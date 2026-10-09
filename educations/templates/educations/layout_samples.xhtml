@@ -1,0 +1,130 @@
+{% extends "educations/base.xhtml" %}
+
+{% block title %}Education Website Layout Samples{% endblock %}
+
+{% block content %}
+<style>
+  .layout-samples { color: #172033; }
+  .layout-samples .sample-card { height: 100%; border: 0; border-radius: 1rem; overflow: hidden; box-shadow: 0 12px 35px #10182820; }
+  .layout-samples .preview { min-height: 360px; padding: 1rem; }
+  .layout-samples .mini { height: 100%; border-radius: .75rem; overflow: hidden; font-size: .72rem; box-shadow: 0 5px 16px #0002; }
+  .layout-samples .mini-bar { padding: .7rem .8rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .layout-samples .mini-body { padding: .85rem; }
+  .layout-samples .mini-title { font-size: 1.1rem; font-weight: 800; line-height: 1.15; margin: .3rem 0 .7rem; }
+  .layout-samples .mini-label { font-size: .6rem; text-transform: uppercase; letter-spacing: .12em; opacity: .72; }
+  .layout-samples .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; margin-top: .75rem; }
+  .layout-samples .mini-tile { padding: .65rem; border-radius: .5rem; min-height: 76px; }
+  .layout-samples .mini-chip { display: inline-block; padding: .25rem .45rem; border-radius: 2rem; margin: .15rem; font-size: .62rem; }
+  .layout-samples .option-a { background: #edf3fb; }
+  .layout-samples .option-a .mini { background: white; color: #17345f; }
+  .layout-samples .option-a .mini-bar { background: #17345f; color: white; }
+  .layout-samples .option-a .mini-hero { background: #e4efff; padding: .8rem; border-radius: .6rem; }
+  .layout-samples .option-a .mini-tile { background: #f3f6fb; border-left: 3px solid #f2a93b; }
+  .layout-samples .option-b { background: #edf4ed; }
+  .layout-samples .option-b .mini { background: #fffdf7; color: #244432; }
+  .layout-samples .option-b .mini-bar { background: #315b43; color: white; }
+  .layout-samples .option-b .mini-hero { background: #e4efdf; padding: .8rem; border-radius: 1.2rem .4rem 1.2rem .4rem; }
+  .layout-samples .option-b .mini-tile { background: #f2f3e9; border-radius: 1rem .35rem 1rem .35rem; }
+  .layout-samples .option-c { background: #101b31; }
+  .layout-samples .option-c .mini { background: #172640; color: #f3f7ff; }
+  .layout-samples .option-c .mini-bar { background: #0a1324; color: white; }
+  .layout-samples .option-c .mini-hero { background: linear-gradient(135deg,#284775,#147b82); padding: .8rem; border-radius: .65rem; }
+  .layout-samples .option-c .mini-tile { background: #213451; border: 1px solid #385071; }
+  .layout-samples .option-c .mini-chip { background: #b5ef59; color: #16241c; }
+</style>
+
+<section class="layout-samples py-3">
+  <div class="mb-4">
+    <p class="text-uppercase small fw-bold text-primary mb-1">Design preview</p>
+    <h1 class="h2 fw-bold">Choose a look for EduPortal</h1>
+    <p class="text-muted mb-0">These are three sample directions. Your current website stays as it is until you choose one.</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-4 col-md-6">
+      <article class="card sample-card">
+        <div class="preview option-a">
+          <div class="mini">
+            <div class="mini-bar"><span>EduPortal</span><span>Grades　Subjects　⌕</span></div>
+            <div class="mini-body">
+              <div class="mini-label">Learning resources</div>
+              <div class="mini-hero">
+                <div class="mini-title">Find what you need<br>for class today.</div>
+                <span class="mini-chip bg-white">Grade 4</span><span class="mini-chip bg-white">Grade 5</span><span class="mini-chip bg-white">Grade 6</span>
+              </div>
+              <div class="mini-grid">
+                <div class="mini-tile"><strong>PDF notes</strong><br><span class="text-muted">Worksheets & guides</span></div>
+                <div class="mini-tile"><strong>Watch</strong><br><span class="text-muted">Short learning videos</span></div>
+                <div class="mini-tile"><strong>Explore subjects</strong><br><span class="text-muted">Browse by grade</span></div>
+                <div class="mini-tile"><strong>New this week</strong><br><span class="text-muted">Recently added</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h2 class="h5 fw-bold">A · Resource library</h2>
+          <p class="text-muted mb-0">Bright, familiar school portal with clear resource cards and quick grade filters.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+      <article class="card sample-card">
+        <div class="preview option-b">
+          <div class="mini">
+            <div class="mini-bar"><span>✦ CBC Learning</span><span>Explore　My grade</span></div>
+            <div class="mini-body">
+              <div class="mini-label">Your learning path</div>
+              <div class="mini-hero">
+                <div class="mini-title">Welcome back,<br>learner!</div>
+                <span>Pick a grade to begin exploring.</span>
+              </div>
+              <div class="d-flex justify-content-between small fw-bold mt-3"><span>Grade 4</span><span>Grade 5</span><span>Grade 6</span></div>
+              <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-success" style="width:68%"></div></div>
+              <div class="mini-grid">
+                <div class="mini-tile"><strong>📘 Mathematics</strong><br><span class="text-muted">Notes · Practice</span></div>
+                <div class="mini-tile"><strong>🌱 Science</strong><br><span class="text-muted">Topics · Activities</span></div>
+                <div class="mini-tile"><strong>🗣 Kiswahili</strong><br><span class="text-muted">Read · Listen</span></div>
+                <div class="mini-tile"><strong>🌍 Social</strong><br><span class="text-muted">Discover · Learn</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h2 class="h5 fw-bold">B · Curriculum pathway</h2>
+          <p class="text-muted mb-0">Warm, welcoming style organized around grade progression and subject learning paths.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+      <article class="card sample-card">
+        <div class="preview option-c">
+          <div class="mini">
+            <div class="mini-bar"><span>EduPortal <span class="mini-chip">LEARN</span></span><span>⌕　☰</span></div>
+            <div class="mini-body">
+              <div class="mini-label">Your classroom, online</div>
+              <div class="mini-hero mt-2">
+                <div class="mini-label">Featured lesson · Grade 6</div>
+                <div class="mini-title">Science in the<br>world around us</div>
+                <span class="mini-chip">▶ Watch lesson</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3"><strong>Continue learning</strong><span class="mini-label">See all</span></div>
+              <div class="mini-grid">
+                <div class="mini-tile"><span class="mini-label">PDF · 8 pages</span><br><strong>Fractions made easy</strong></div>
+                <div class="mini-tile"><span class="mini-label">VIDEO · 6 MIN</span><br><strong>Living things</strong></div>
+                <div class="mini-tile"><span class="mini-label">SUBJECT</span><br><strong>English</strong></div>
+                <div class="mini-tile"><span class="mini-label">SUBJECT</span><br><strong>C.R.E</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h2 class="h5 fw-bold">C · Digital classroom</h2>
+          <p class="text-muted mb-0">A more modern media hub that gives video lessons and recently used materials prominence.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+{% endblock %}

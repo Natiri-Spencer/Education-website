@@ -1,0 +1,12 @@
+{% extends "educations/base.xhtml" %}
+
+{% block content %}
+<h2>Image Resources</h2>
+{% for image in images %}
+  <h3>{{ image.title }}</h3>
+  <img src="{{ image.image_file.url }}" alt="{{ image.title }}" width="400">
+  <br>
+  <a href="{{ image.image_file.url }}" download>Download Image</a>
+{% endfor %}
+{% include "educations/pagination.xhtml" %}
+{% endblock %}

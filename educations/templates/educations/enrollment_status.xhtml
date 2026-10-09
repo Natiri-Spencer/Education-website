@@ -1,0 +1,25 @@
+{% extends "educations/base.xhtml" %}
+
+{% block title %}Enrollment status | EduPortal{% endblock %}
+
+{% block content %}
+<section class="enrollment-status">
+    {% if enrollment.status == "paid" %}
+        <p class="eyebrow">PAYMENT CONFIRMED</p>
+        <h1>You’re enrolled</h1>
+        <p>Your payment for <strong>{{ enrollment.course.title }}</strong> was confirmed.</p>
+        <p>Receipt: <strong>{{ enrollment.mpesa_receipt }}</strong></p>
+    {% elif enrollment.status == "pending" %}
+        <p class="eyebrow">WAITING FOR M-PESA</p>
+        <h1>Approve the payment prompt</h1>
+        <p>Check your phone for an M-Pesa prompt for {{ enrollment.currency }} {{ enrollment.amount|floatformat:0 }}. Enter your M-Pesa PIN to continue.</p>
+        <p>After approving, refresh this page to see your enrollment status.</p>
+        <a class="btn btn-lime" href="">Refresh status</a>
+    {% else %}
+        <p class="eyebrow">PAYMENT NOT COMPLETED</p>
+        <h1>Enrollment is not confirmed</h1>
+        <p>The payment was not completed. You can return to the course page and try again.</p>
+    {% endif %}
+    <a class="btn btn-quiet mt-3" href="{% url 'educations:course_detail' enrollment.course.slug %}">Back to course</a>
+</section>
+{% endblock %}

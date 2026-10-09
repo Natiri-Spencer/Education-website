@@ -1,0 +1,49 @@
+{% extends "educations/base.xhtml" %}
+
+{% block title %}{{ subject.name }} Resources{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4 text-success">{{ subject.name }} Resources</h1>
+
+    <h2>PDFs</h2>
+    <ul class="list-group mb-4">
+        {% for pdf in resources.pdfs %}
+            <li class="list-group-item">
+                <a href="{{ pdf.pdf_file.url }}" class="text-decoration-none" target="_blank" rel="noopener">{{ pdf.title }}</a>
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">No PDFs available.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Videos</h2>
+    <ul class="list-group mb-4">
+        {% for video in resources.videos %}
+            <li class="list-group-item">
+                <video class="w-100 mb-2" controls preload="none">
+                    <source src="{{ video.video_file.url }}">
+                    Your browser does not support video playback.
+                </video>
+                <a href="{{ video.video_file.url }}" class="text-decoration-none" download>{{ video.title }}</a>
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">No videos available.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Images</h2>
+    <div class="row">
+        {% for image in resources.images %}
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                    <a href="{{ image.image_file.url }}" target="_blank" rel="noopener">
+                        <img src="{{ image.image_file.url }}" class="card-img-top" alt="{{ image.title }}" loading="lazy" decoding="async">
+                    </a>
+                    <div class="card-body"><p class="card-text">{{ image.title }}</p></div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-info">No images available.</div>
+        {% endfor %}
+    </div>
+{% endblock %}

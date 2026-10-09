@@ -1,0 +1,68 @@
+{% extends "educations/base.xhtml" %}
+
+{% block title %}About EduPortal{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <section class="about-hero mb-5">
+        <p class="eyebrow"><span class="status-dot"></span> ABOUT EDUPORTAL</p>
+        <h1>Learning resources, easier to find.</h1>
+        <p>EduPortal brings learning materials together and organizes them by grade and subject, so learners can get to the resources they need with fewer steps.</p>
+        <a class="btn btn-lime" href="{% url 'home' %}#grade-library">Explore learning resources <span aria-hidden="true">→</span></a>
+    </section>
+
+    <section class="mb-5" aria-labelledby="about-resources-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">ONE LIBRARY</p>
+                <h2 id="about-resources-title">What you can find</h2>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <article class="about-card h-100">
+                    <span class="resource-icon pdf-icon" aria-hidden="true">PDF</span>
+                    <h3>Notes and documents</h3>
+                    <p>Open or download PDF learning materials from the resource library.</p>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="about-card h-100">
+                    <span class="resource-icon video-icon" aria-hidden="true">▶</span>
+                    <h3>Video lessons</h3>
+                    <p>Browse video resources and play lessons from the site.</p>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="about-card h-100">
+                    <span class="resource-icon image-icon" aria-hidden="true">IMG</span>
+                    <h3>Learning images</h3>
+                    <p>View image resources linked to the subjects in each grade.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-guide" aria-labelledby="about-guide-title">
+        <div>
+            <p class="eyebrow">GETTING STARTED</p>
+            <h2 id="about-guide-title">Find what you need</h2>
+        </div>
+        <ol>
+            <li>Choose a grade from the menu or the Home page.</li>
+            <li>Select a subject to open its learning materials.</li>
+            <li>Use the resource lists to browse more PDFs, videos, and images.</li>
+        </ol>
+        <a class="btn btn-quiet" href="{% url 'home' %}">Return to Home</a>
+    </section>
+
+    <section class="about-contact mt-3" aria-labelledby="about-contact-title">
+        <div>
+            <p class="eyebrow">GET IN TOUCH</p>
+            <h2 id="about-contact-title">Contact us</h2>
+            <p>Have a question or feedback? Send us an email.</p>
+        </div>
+        <a href="mailto:spencernatiri@gmail.com">spencernatiri@gmail.com</a>
+    </section>
+</div>
+{% endblock %}

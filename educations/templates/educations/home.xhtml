@@ -1,0 +1,119 @@
+{% extends "educations/base.xhtml" %}
+
+{% block title %}EduPortal | Your digital classroom{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <section class="dashboard-hero mb-5">
+        <div class="hero-copy">
+            <p class="eyebrow"><span class="status-dot"></span> YOUR CLASSROOM, ONLINE</p>
+            <h1>Learn something<br><span>new today.</span></h1>
+            <p class="hero-description">Find notes, videos, and learning materials for every subject in your grade.</p>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <a class="btn btn-lime" href="#grade-library">Explore your grade <span aria-hidden="true">→</span></a>
+                <a class="btn btn-quiet" href="{% url 'educations:video_list' %}">Browse video lessons</a>
+                <a class="btn btn-quiet" href="{% url 'educations:course_catalog' %}">Short courses · Grades 7–9</a>
+            </div>
+        </div>
+
+        <div class="featured-lesson">
+            {% if videos %}
+                <div class="featured-label">FEATURED LESSON <span>VIDEO</span></div>
+                <video class="featured-video" controls preload="metadata" aria-label="Featured lesson: {{ videos.0.title }}">
+                    <source src="{{ videos.0.video_file.url }}">
+                    Your browser does not support video playback.
+                </video>
+                <div class="featured-caption">
+                    <div><p class="eyebrow mb-1">PICK UP WHERE YOU LEFT OFF</p><h2>{{ videos.0.title }}</h2></div>
+                    <a class="circle-link" href="{% url 'educations:video_list' %}" aria-label="See all video lessons">↗</a>
+                </div>
+            {% else %}
+                <div class="featured-label">YOUR NEXT DISCOVERY <span>START HERE</span></div>
+                <div class="lesson-placeholder" aria-hidden="true">
+                    <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+                    <span class="play-mark">▶</span>
+                    <span class="placeholder-caption">A world of ideas<br>is waiting.</span>
+                </div>
+                <div class="featured-caption">
+                    <div><p class="eyebrow mb-1">READY WHEN YOU ARE</p><h2>Choose a subject to begin</h2></div>
+                    <a class="circle-link" href="#grade-library" aria-label="Choose a grade">↗</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="hero-glow" aria-hidden="true"></div>
+    </section>
+
+    <section id="grade-library" class="mb-5">
+        <div class="section-heading">
+            <div><p class="eyebrow">FIND YOUR CLASS</p><h2>Explore by grade</h2></div>
+            <span class="section-note">Choose a subject to see its resources</span>
+        </div>
+        <div class="row g-3">
+            {% for grade in grades %}
+                <div class="col-xl-4 col-md-6">
+                    <article class="grade-card h-100">
+                        <div class="grade-card-heading">
+                            <span class="grade-number">{{ forloop.counter|stringformat:"02d" }}</span>
+                            <h3>{{ grade.name }}</h3>
+                            <a href="{% url 'educations:grade_resources' grade.id %}" class="grade-arrow" aria-label="Browse {{ grade.name }}">↗</a>
+                        </div>
+                        <div class="subject-links">
+                            {% for subject in grade.subjects.all %}
+                                <a href="{% url 'educations:subject_resources' subject.id %}" class="subject-pill">{{ subject.name }}</a>
+                            {% empty %}
+                                <span class="empty-note">Subjects will appear here soon.</span>
+                            {% endfor %}
+                        </div>
+                    </article>
+                </div>
+            {% empty %}
+                <div class="col-12"><p class="empty-note">Grade resources are being prepared.</p></div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <div class="section-heading">
+            <div><p class="eyebrow">FRESH FROM THE LIBRARY</p><h2>Recently added</h2></div>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <div class="resource-panel h-100">
+                    <div class="resource-panel-heading"><span class="resource-icon pdf-icon">PDF</span><a href="{% url 'educations:pdf_list' %}">All PDFs ↗</a></div>
+                    {% for pdf in pdfs %}
+                        <a class="resource-row" href="{{ pdf.pdf_file.url }}" target="_blank" rel="noopener">
+                            <span><strong>{{ pdf.title }}</strong><small>{{ pdf.subject.name }}</small></span><span class="row-arrow">↗</span>
+                        </a>
+                    {% empty %}
+                        <p class="empty-note">PDF notes will show here when they’re added.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="resource-panel h-100">
+                    <div class="resource-panel-heading"><span class="resource-icon video-icon">▶</span><a href="{% url 'educations:video_list' %}">All videos ↗</a></div>
+                    {% for video in videos %}
+                        <a class="resource-row" href="{{ video.video_file.url }}">
+                            <span><strong>{{ video.title }}</strong><small>{{ video.subject.name }}</small></span><span class="row-arrow">↗</span>
+                        </a>
+                    {% empty %}
+                        <p class="empty-note">Video lessons will show here when they’re added.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="resource-panel h-100">
+                    <div class="resource-panel-heading"><span class="resource-icon image-icon">IMG</span><a href="{% url 'educations:image_list' %}">All images ↗</a></div>
+                    {% for image in images %}
+                        <a class="resource-row" href="{{ image.image_file.url }}" target="_blank" rel="noopener">
+                            <span><strong>{{ image.title }}</strong><small>{{ image.subject.name }}</small></span><span class="row-arrow">↗</span>
+                        </a>
+                    {% empty %}
+                        <p class="empty-note">Learning images will show here when they’re added.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

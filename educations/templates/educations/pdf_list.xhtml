@@ -1,0 +1,10 @@
+{% extends "educations/base.xhtml" %}
+
+{% block content %}
+<h2>PDF Resources</h2>
+{% for pdf in pdfs %}
+  <h3>{{ pdf.title }}</h3>
+  <a href="{{ pdf.pdf_file.url }}" download>Download PDF</a>
+{% endfor %}
+{% include "educations/pagination.xhtml" %}
+{% endblock %}

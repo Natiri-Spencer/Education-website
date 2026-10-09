@@ -1,0 +1,2137 @@
+.virtual-labs-page {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.labs-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.labs-heading h1 {
+    margin: .3rem 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -.05em;
+}
+
+.labs-heading > div:first-child > p:last-child {
+    margin: 0;
+    color: var(--muted);
+}
+
+.grade-switcher {
+    display: flex;
+    gap: .4rem;
+    padding: .35rem;
+    border: 1px solid var(--line);
+    border-radius: .8rem;
+    background: var(--panel);
+}
+
+.grade-switch {
+    padding: .55rem .8rem;
+    color: #c4d3e8;
+    border: 0;
+    border-radius: .55rem;
+    background: transparent;
+    font-weight: 700;
+}
+
+.grade-switch:hover,
+.grade-switch.active {
+    color: #142033;
+    background: var(--lime);
+}
+
+.grade-lab-note {
+    margin-bottom: .7rem;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.lab-app {
+    overflow: hidden;
+    border: 1px solid #b9c8d9;
+    border-radius: .9rem;
+    color: #17243a;
+    background: #f5f7f9;
+    box-shadow: 0 18px 55px #050b1438;
+}
+
+.lab-app[hidden] {
+    display: none;
+}
+
+.lab-shelf {
+    padding: 1rem;
+    background: linear-gradient(155deg, #f2c873, #d59432 55%, #b8751d);
+    border-left: 1px solid #c9d2dc;
+}
+
+.shelf-title-wrap {
+    padding: .1rem .1rem .8rem;
+}
+
+.shelf-title-wrap h2 {
+    font-size: 1.05rem;
+}
+
+.shelf-items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+.shelf-item {
+    display: flex;
+    min-height: 5.6rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .2rem;
+    padding: .55rem .35rem;
+    color: #253149;
+    border: 1px solid #fff3d3;
+    border-radius: .55rem;
+    background: linear-gradient(145deg, #fff8e8, #e9c77f);
+    box-shadow: 0 3px 7px #69421638;
+    font-size: .72rem;
+    font-weight: 750;
+    text-align: center;
+    cursor: grab;
+}
+
+.shelf-item:hover,
+.shelf-item:focus-visible {
+    border-color: #4c806f;
+    background: #fffdf7;
+    transform: translateY(-1px);
+}
+
+.shelf-item:active {
+    cursor: grabbing;
+}
+
+.shelf-icon {
+    font-size: 1.55rem;
+    line-height: 1.2;
+}
+
+.shelf-item small {
+    color: #6a778a;
+    font-size: .6rem;
+    font-weight: 650;
+}
+
+.lab-app-header {
+    display: flex;
+    min-height: 4.2rem;
+    align-items: center;
+    gap: .9rem;
+    padding: .7rem 1rem;
+    color: #18243b;
+    background: #fff;
+    border-bottom: 1px solid #d9e0e8;
+}
+
+.lab-brand-mark {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #087a6c;
+    border-radius: .6rem;
+    background: #e3f5ee;
+    font-size: 1.7rem;
+}
+
+.lab-app-title p {
+    margin: 0 0 .12rem;
+    color: #627087;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .09em;
+}
+
+.lab-app-title h2 {
+    margin: 0;
+    color: #17243a;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.lab-mode {
+    margin-left: auto;
+    padding: .3rem .55rem;
+    color: #086e5d;
+    border-radius: 2rem;
+    background: #e5f6ee;
+    font-size: .65rem;
+    font-weight: 850;
+    letter-spacing: .08em;
+}
+
+.lab-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(4rem, 1fr) auto;
+    gap: .8rem;
+    align-items: center;
+    padding: .65rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid #d9e0e8;
+}
+
+.lab-progress-label {
+    display: flex;
+    gap: .65rem;
+    color: #526078;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.lab-progress-track {
+    height: .45rem;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: #e8edf2;
+}
+
+.lab-progress-track > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #0aa181;
+    transition: width .25s ease;
+}
+
+.lab-reset {
+    padding: .35rem .55rem;
+    color: #526078;
+    border: 1px solid #d6dee7;
+    border-radius: .45rem;
+    background: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.lab-reset:hover {
+    color: #17243a;
+    background: #f0f4f7;
+}
+
+.lab-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 270px) minmax(360px, 1fr) minmax(230px, 280px);
+    min-height: 680px;
+}
+
+.lab-procedure {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background: #fff;
+    border-right: 1px solid #d9e0e8;
+}
+
+.lab-panel-heading h2,
+.shelf-title-wrap h2 {
+    margin: .15rem 0 0;
+    color: #17243a;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.lab-panel-heading .eyebrow,
+.shelf-title-wrap .eyebrow {
+    color: #0a816c;
+    font-size: .62rem;
+}
+
+.procedure-steps {
+    display: grid;
+    gap: .2rem;
+    margin: 1rem 0;
+    padding: 0;
+    list-style: none;
+}
+
+.procedure-steps li {
+    display: flex;
+    gap: .65rem;
+    align-items: flex-start;
+    padding: .5rem .35rem;
+    color: #758197;
+    border-radius: .45rem;
+    font-size: .82rem;
+    line-height: 1.4;
+}
+
+.procedure-steps li.active {
+    color: #132239;
+    background: #e8f7f2;
+    font-weight: 750;
+}
+
+.procedure-steps li.complete {
+    color: #17735f;
+}
+
+.step-marker {
+    display: grid;
+    width: 1.45rem;
+    height: 1.45rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #b9c5d3;
+    border-radius: 50%;
+    color: #6c7a90;
+    font-size: .68rem;
+    font-weight: 800;
+}
+
+.procedure-steps li.active .step-marker {
+    color: #fff;
+    border-color: #09856c;
+    background: #09856c;
+}
+
+.procedure-steps li.complete .step-marker {
+    color: #fff;
+    border-color: #1a9d7b;
+    background: #1a9d7b;
+}
+
+.lab-hint {
+    padding: .75rem;
+    color: #314158;
+    border-left: 3px solid #0da07d;
+    border-radius: 0 .45rem .45rem 0;
+    background: #f1f8f4;
+    font-size: .79rem;
+    line-height: 1.5;
+}
+
+.lab-safety {
+    margin: auto 0 0;
+    padding-top: 1rem;
+    color: #69768a;
+    font-size: .7rem;
+    line-height: 1.5;
+}
+
+.lab-safety strong {
+    color: #a34d16;
+}
+
+.lab-work-area {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    background: #eaf0f4;
+}
+
+.work-area-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .7rem 1rem;
+    color: #43536b;
+    background: #f7f9fb;
+    border-bottom: 1px solid #d9e0e8;
+    font-size: .72rem;
+    font-weight: 850;
+    letter-spacing: .12em;
+}
+
+.drop-hint {
+    color: #8a95a5;
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.lab-bench {
+    display: flex;
+    min-height: 370px;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.1rem;
+    background: linear-gradient(#f6f8fa 0 62%, #d3dce5 62% 63%, #8494a9 63%);
+    outline: 0;
+    transition: background-color .15s ease;
+}
+
+.lab-bench.drag-over {
+    box-shadow: inset 0 0 0 4px #27ad8a;
+}
+
+.bench-back-wall {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: auto;
+    padding-top: 1rem;
+}
+
+.bench-back-wall span {
+    width: 18%;
+    height: 2rem;
+    border: 1px solid #dfe5eb;
+    border-radius: .35rem;
+    background: #fff;
+    box-shadow: 0 2px 3px #1c2a3d0c;
+}
+
+.bench-surface {
+    position: relative;
+    min-height: 190px;
+    padding: 1.2rem;
+    border: 1px solid #677b94;
+    border-radius: .3rem .3rem 0 0;
+    background: linear-gradient(140deg, #9dacbd, #788ba3);
+    box-shadow: inset 0 5px 8px #31415822;
+}
+
+.bench-instruction {
+    max-width: 70%;
+    color: #25344a;
+    font-size: .82rem;
+    font-weight: 650;
+}
+
+.bench-equipment {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: 1rem;
+}
+
+.bench-object {
+    display: flex;
+    min-width: 4rem;
+    flex-direction: column;
+    align-items: center;
+    gap: .1rem;
+    padding: .4rem .55rem;
+    color: #1e2c41;
+    border: 1px solid #ffffffb8;
+    border-radius: .55rem;
+    background: #f6f8fae8;
+    box-shadow: 0 4px 7px #18243b22;
+    font-size: .65rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.bench-object span:first-child {
+    font-size: 1.5rem;
+}
+
+.bench-sink {
+    position: absolute;
+    top: -2rem;
+    right: 1.5rem;
+    width: 6rem;
+    height: 3.6rem;
+}
+
+.tap {
+    position: absolute;
+    top: 0;
+    left: 2.2rem;
+    width: 1.5rem;
+    height: 2rem;
+    border: .35rem solid #55677f;
+    border-bottom: 0;
+    border-radius: 1.2rem 1.2rem 0 0;
+}
+
+.tap::after {
+    position: absolute;
+    right: -.5rem;
+    bottom: -.05rem;
+    width: 1rem;
+    height: .3rem;
+    content: "";
+    border-radius: .4rem;
+    background: #55677f;
+}
+
+.sink-basin {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1rem;
+    border: .2rem solid #53647a;
+    border-radius: 0 0 1rem 1rem;
+    background: #dfe5eb;
+}
+
+.indicator-result {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin-top: .8rem;
+    padding: .55rem .7rem;
+    color: #fff;
+    border-radius: .5rem;
+    background: #28364b;
+    font-size: .78rem;
+    font-weight: 750;
+}
+
+.result-swatch {
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid #ffffffb0;
+    border-radius: 50%;
+    background: #a42046;
+}
+
+.classification-panel {
+    padding: 1rem;
+    background: #fff;
+    border-bottom: 1px solid #d9e0e8;
+}
+
+.classification-panel[hidden],
+.indicator-result[hidden] {
+    display: none;
+}
+
+.classification-panel h3 {
+    margin: 0 0 .7rem;
+    color: #17243a;
+    font-size: .95rem;
+}
+
+.classification-choices {
+    display: flex;
+    gap: .5rem;
+}
+
+.classification-choices button {
+    padding: .45rem .8rem;
+    color: #26344a;
+    border: 1px solid #cbd5df;
+    border-radius: 2rem;
+    background: #fff;
+    font-size: .78rem;
+    font-weight: 750;
+}
+
+.classification-choices button:hover,
+.classification-choices button:focus-visible {
+    border-color: #0a9877;
+    background: #e8f7f2;
+}
+
+.lab-colour-help {
+    margin: .7rem 0 0;
+    color: #657289;
+    font-size: .72rem;
+    line-height: 1.5;
+}
+
+.observation-log {
+    padding: .85rem 1rem 1rem;
+    background: #f8fafb;
+}
+
+.observation-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: .5rem;
+    align-items: baseline;
+    margin-bottom: .55rem;
+}
+
+.observation-heading h3 {
+    margin: 0;
+    color: #26344a;
+    font-size: .95rem;
+    font-weight: 800;
+}
+
+.observation-heading span {
+    color: #748197;
+    font-size: .68rem;
+}
+
+.observation-log table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #34435a;
+    font-size: .75rem;
+}
+
+.observation-log th,
+.observation-log td {
+    padding: .45rem .4rem;
+    border-bottom: 1px solid #e0e6ec;
+    text-align: left;
+}
+
+.observation-log th {
+    color: #66748a;
+    font-size: .65rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.empty-observation td {
+    color: #8995a6;
+    text-align: center;
+}
+
+.future-labs {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: .85rem;
+    background: var(--panel);
+}
+
+.future-labs h2 {
+    margin: .2rem 0 0;
+    font-size: 1.15rem;
+}
+
+.future-labs > p {
+    max-width: 38rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: .88rem;
+    line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+    .lab-layout {
+        grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+    }
+
+    .lab-shelf {
+        grid-column: 1 / -1;
+        border-top: 1px solid #c9d2dc;
+    }
+
+    .shelf-items {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .labs-heading,
+    .future-labs {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .grade-switcher {
+        align-self: start;
+    }
+
+    .lab-toolbar {
+        grid-template-columns: 1fr auto;
+    }
+
+    .lab-toolbar .lab-progress-track {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .lab-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .lab-procedure {
+        border-right: 0;
+        border-bottom: 1px solid #d9e0e8;
+    }
+
+    .procedure-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lab-shelf {
+        grid-column: auto;
+    }
+
+    .shelf-items {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lab-bench {
+        min-height: 300px;
+        padding: .65rem;
+    }
+
+    .classification-choices {
+        flex-wrap: wrap;
+    }
+}
+
+/* CEMASTEA-style grade, lesson, and experiment flow */
+.virtual-labs-body > nav.navbar {
+    display: none;
+}
+
+.virtual-labs-body > main.container {
+    width: 100%;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.virtual-labs-page [hidden] {
+    display: none !important;
+}
+
+.virtual-labs-page {
+    max-width: 1600px;
+    min-height: 75vh;
+    color: #18253c;
+    background: #fff;
+}
+
+.virtual-labs-brand {
+    display: flex;
+    min-height: 4.5rem;
+    align-items: center;
+    gap: .85rem;
+    padding: .6rem clamp(1rem, 4vw, 3rem);
+    border-bottom: 1px solid #e1e5eb;
+    color: #15213a;
+}
+
+.virtual-labs-brand strong {
+    font-size: .95rem;
+    font-weight: 750;
+}
+
+.brand-back {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    color: #fff;
+    border: 0;
+    border-radius: 50%;
+    background: #ff6900;
+    font-size: 1.45rem;
+}
+
+.brand-emblem {
+    font-size: 1.8rem;
+}
+
+.grade-picker {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 2vw, 2rem) 3rem;
+}
+
+.picker-intro {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.picker-icon {
+    display: grid;
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #ff6900;
+    border: 1px solid #ff6900;
+    font-size: 1.7rem;
+}
+
+.picker-intro .eyebrow {
+    margin: 0 0 .35rem;
+    color: #f36b13;
+    font-size: .72rem;
+    letter-spacing: .11em;
+}
+
+.picker-intro h1 {
+    margin: 0 0 .5rem;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 700;
+}
+
+.picker-intro p:last-child {
+    max-width: 70rem;
+    margin: 0;
+    color: #526078;
+    line-height: 1.65;
+}
+
+.school-level-heading {
+    display: flex;
+    align-items: baseline;
+    gap: .8rem;
+    margin-bottom: 1.25rem;
+    padding-left: .85rem;
+    border-left: 4px solid #ff6900;
+}
+
+.school-level-heading h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+}
+
+.school-level-heading span {
+    color: #8290a3;
+    font-size: .78rem;
+}
+
+.grade-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.1rem;
+}
+
+.grade-card {
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: .55rem;
+    background: #fff;
+}
+
+.grade-card-art {
+    position: relative;
+    display: flex;
+    height: 11rem;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(150deg, #26384a, #895b3f 60%, #f07831);
+}
+
+.grade-card-art::before {
+    position: absolute;
+    width: 72%;
+    height: 70%;
+    content: "";
+    transform: rotate(-8deg);
+    border: 8px solid #fff4e4;
+    border-radius: .35rem;
+    background: linear-gradient(155deg, #fffdf7, #f5d6b9);
+    box-shadow: 0 .4rem 1rem #10182755;
+}
+
+.grade-art-8 { background: linear-gradient(150deg, #35404b, #81634d 60%, #ed853d); }
+.grade-art-9 { background: linear-gradient(150deg, #334250, #6f594b 60%, #e66e25); }
+
+.lab-paper {
+    z-index: 1;
+    color: #24334b;
+    font-size: clamp(.9rem, 1.5vw, 1.25rem);
+    font-weight: 900;
+    letter-spacing: .04em;
+    transform: rotate(-8deg);
+}
+
+.lab-glass {
+    position: absolute;
+    right: 14%;
+    bottom: 13%;
+    z-index: 2;
+    color: #9e5727;
+    font-size: 2rem;
+}
+
+.grade-ribbon {
+    position: absolute;
+    bottom: .8rem;
+    left: .75rem;
+    z-index: 3;
+    padding: .25rem .55rem;
+    color: #fff;
+    background: #f2610a;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.grade-card-content {
+    display: flex;
+    min-height: 10rem;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: .9rem 1rem 1rem;
+}
+
+.grade-card-content > p {
+    margin: 0 0 .7rem;
+    color: #68758a;
+    font-size: .9rem;
+}
+
+.grade-subject-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    margin-bottom: .85rem;
+}
+
+.grade-subject-tags span {
+    padding: .15rem .35rem;
+    color: #69758a;
+    border-radius: .2rem;
+    background: #f2f4f7;
+    font-size: .65rem;
+}
+
+.orange-button {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: .45rem .8rem;
+    color: #fff;
+    border: 0;
+    border-radius: .4rem;
+    background: #ff6900;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.orange-button:hover,
+.brand-back:hover {
+    background: #e85e00;
+}
+
+.grade-card-content .orange-button {
+    align-self: flex-end;
+    margin-top: auto;
+}
+
+.grade-dashboard,
+.lesson-view {
+    display: grid;
+    min-height: 75vh;
+    grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.grade-sidebar {
+    padding: 1rem .7rem;
+    border-right: 1px solid #e1e5eb;
+    background: #fff;
+}
+
+.grade-sidebar h2 {
+    margin: 0;
+    padding: 0 .6rem .85rem;
+    font-size: 1rem;
+}
+
+.sidebar-rule {
+    height: 1px;
+    margin: 0 .5rem 2rem;
+    background: #e4e7ec;
+}
+
+.sidebar-section-label {
+    margin: 1.5rem 0 .45rem;
+    padding: 0 .55rem;
+    color: #18253c;
+    font-size: .77rem;
+    font-weight: 800;
+}
+
+.sidebar-link {
+    display: flex;
+    width: 100%;
+    min-height: 2.55rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: .45rem .65rem;
+    color: #24334b;
+    border: 0;
+    border-radius: .4rem;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar-link.active,
+.sidebar-link:hover {
+    color: #ed5c0a;
+    background: #fff3e8;
+}
+
+.sidebar-sub-link {
+    margin: .2rem 0 .8rem;
+    padding-left: 1.8rem;
+    color: #ed5c0a;
+}
+
+.grade-dashboard-main {
+    min-width: 0;
+    padding: 1.5rem clamp(1rem, 2vw, 2rem) 3rem;
+    background: #f7f7f7;
+}
+
+.grade-welcome-banner {
+    display: flex;
+    min-height: 11rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.7rem 2rem;
+    color: #fff;
+    border-radius: 1.3rem;
+    background: linear-gradient(110deg, #ef5a19, #ff9a57);
+}
+
+.grade-welcome-banner h1 {
+    margin: 0 0 .55rem;
+    font-size: clamp(1.5rem, 2.2vw, 2rem);
+}
+
+.grade-welcome-banner p {
+    max-width: 25rem;
+    margin: 0;
+    line-height: 1.55;
+}
+
+.grade-welcome-banner > span {
+    font-size: 4rem;
+}
+
+.subject-heading {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-bottom: 1.2rem;
+}
+
+.subject-icon,
+.lesson-card-icon,
+.experiment-icon {
+    display: grid;
+    width: 3.2rem;
+    height: 3.2rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: .8rem;
+    background: #fff0e4;
+    font-size: 1.65rem;
+}
+
+.subject-heading h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    text-transform: uppercase;
+}
+
+.grade-pill {
+    margin-left: auto;
+    padding: .35rem .8rem;
+    color: #f26313;
+    border: 1px solid #ffc69f;
+    border-radius: 2rem;
+    font-size: .75rem;
+}
+
+.lab-card-group {
+    margin-top: 1.3rem;
+}
+
+.lab-card-group > h3 {
+    margin: 0 0 .8rem;
+    color: #aeb7c3;
+    font-size: .7rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+
+.lesson-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 235px));
+    gap: 1rem;
+}
+
+.lesson-card {
+    position: relative;
+    display: flex;
+    min-height: 13rem;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.2rem;
+    color: #25344a;
+    border: 2px solid #ffd0ad;
+    border-radius: 1.2rem;
+    text-align: left;
+}
+
+.lesson-card-orange { background: #fff0e5; }
+.lesson-card-blue { border-color: #a9d3ff; background: #e8f4ff; }
+
+.available-lesson {
+    cursor: pointer;
+}
+
+.available-lesson:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .6rem 1.4rem #25344a18;
+}
+
+.lesson-card h4,
+.lesson-card-title {
+    display: block;
+    max-width: 12rem;
+    margin: .8rem 0 auto;
+    color: #71340f;
+    font-size: .9rem;
+    font-weight: 750;
+    line-height: 1.45;
+}
+
+.lesson-card-blue h4 { color: #194675; }
+
+.availability-pill {
+    margin-top: .9rem;
+    padding: .35rem .7rem;
+    color: #a34d16;
+    border-radius: 2rem;
+    background: #fffaf6;
+    font-size: .7rem;
+}
+
+.lesson-card-arrow {
+    position: absolute;
+    right: 1.15rem;
+    bottom: 1.25rem;
+    color: #874113;
+}
+
+.grade-coming-note {
+    margin-top: 1rem;
+    color: #68758a;
+}
+
+.lesson-main {
+    min-width: 0;
+    padding: 1.5rem clamp(1rem, 2vw, 2rem) 3rem;
+    background: #fff;
+}
+
+.lesson-page-heading h1 {
+    margin: 0 0 .2rem;
+    font-size: 1.2rem;
+}
+
+.lesson-page-heading p {
+    margin: 0 0 1.2rem;
+    color: #86827f;
+    font-size: .85rem;
+}
+
+.lesson-tabs {
+    display: flex;
+    gap: clamp(.7rem, 2vw, 2rem);
+    overflow-x: auto;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.lesson-tab {
+    flex: 0 0 auto;
+    padding: .65rem .15rem .75rem;
+    color: #99948f;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    font-size: .8rem;
+    cursor: pointer;
+}
+
+.lesson-tab.active,
+.lesson-tab:hover {
+    color: #f26313;
+    border-bottom-color: #f26313;
+}
+
+.lesson-content {
+    min-height: 24rem;
+    padding: 1.3rem 1rem;
+    background-image: radial-gradient(#dce0e5 .7px, transparent .7px);
+    background-size: 1rem 1rem;
+}
+
+.lesson-panel {
+    color: #4b4038;
+    line-height: 1.8;
+}
+
+.lesson-panel h2 {
+    margin: 0 0 .5rem;
+    color: #4a392c;
+    font-size: 1.8rem;
+    font-weight: 500;
+}
+
+.lesson-panel p { margin: .5rem 0; }
+.lesson-panel li { margin: .35rem 0; }
+
+.resource-safety-note {
+    margin-top: 1.3rem !important;
+    padding: .8rem 1rem;
+    border-left: 3px solid #f26313;
+    background: #fff5ed;
+}
+
+.experiment-intro-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid #dce2e9;
+    border-radius: .8rem;
+    background: #fff;
+}
+
+.experiment-intro-card h3 {
+    margin: .2rem 0;
+    color: #1c2b42;
+    font-size: 1rem;
+}
+
+.experiment-intro-card > p {
+    margin: .8rem 0 1rem;
+    color: #53627a;
+}
+
+.experiment-icon {
+    float: left;
+    margin-right: .7rem;
+    color: #0a9678;
+}
+
+.back-to-lesson {
+    margin: 0 0 .8rem;
+    padding: .5rem .7rem;
+    color: #f26313;
+    border: 1px solid #ffd0ad;
+    border-radius: .45rem;
+    background: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .grade-dashboard,
+    .lesson-view {
+        grid-template-columns: 220px minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 680px) {
+    .grade-card-grid { grid-template-columns: 1fr; }
+    .grade-dashboard,
+    .lesson-view { grid-template-columns: 1fr; }
+    .grade-sidebar,
+    .lesson-sidebar { border-right: 0; border-bottom: 1px solid #e1e5eb; }
+    .grade-welcome-banner { min-height: 9rem; padding: 1.2rem; }
+    .grade-welcome-banner > span { font-size: 2.5rem; }
+    .lesson-content { padding: 1rem .3rem; }
+}
+
+/* Experiment workspace follows the three-panel reference layout. */
+.simulation-view {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    overflow: auto;
+    background: #f5f7f9;
+}
+
+.simulation-view .lab-app {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.simulation-view .lab-app-header {
+    min-height: 3rem;
+    flex: 0 0 3rem;
+    gap: .75rem;
+    padding: .25rem .65rem;
+}
+
+.lab-logo-cluster {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: .35rem;
+}
+
+.kenya-mark,
+.cemastea-mark,
+.science-mark {
+    display: grid;
+    min-width: 2rem;
+    height: 2.2rem;
+    place-items: center;
+    padding: 0 .25rem;
+    color: #123963;
+    border-right: 1px solid #d8dfe7;
+    font-size: .62rem;
+    font-weight: 850;
+}
+
+.cemastea-mark { color: #087a6c; font-size: .55rem; }
+.science-mark { color: #ee6b14; font-size: 1.25rem; }
+
+.simulation-view .lab-app-title {
+    min-width: 0;
+}
+
+.simulation-view .lab-app-title h2 {
+    overflow: hidden;
+    color: #17243a;
+    font-size: clamp(.65rem, 1vw, .9rem);
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lab-header-actions {
+    display: flex;
+    gap: .4rem;
+    margin-left: auto;
+}
+
+.lab-icon-button {
+    display: grid;
+    width: 2.2rem;
+    height: 2.2rem;
+    place-items: center;
+    color: #27364d;
+    border: 1px solid #d9e0e8;
+    border-radius: .4rem;
+    background: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.lab-close-button {
+    color: #fff;
+    border-color: #ff6900;
+    background: #ff6900;
+    font-size: 1.8rem;
+}
+
+.simulation-view .lab-layout {
+    min-height: 0;
+    height: calc(100vh - 3rem);
+    flex: 1 1 auto;
+    grid-template-columns: minmax(270px, 18%) minmax(0, 1fr) minmax(320px, 24%);
+    overflow: hidden;
+}
+
+.simulation-view .lab-layout.procedure-collapsed {
+    grid-template-columns: 3.2rem minmax(0, 1fr) minmax(320px, 24%);
+}
+
+.simulation-view .procedure-collapsed .lab-procedure {
+    align-items: center;
+    padding-right: .25rem;
+    padding-left: .25rem;
+}
+
+.simulation-view .procedure-collapsed .lab-panel-heading {
+    margin-right: -.25rem;
+    margin-left: -.25rem;
+}
+
+.simulation-view .procedure-collapsed .lab-panel-heading h2,
+.simulation-view .procedure-collapsed .lab-procedure > :not(.lab-panel-heading) {
+    display: none;
+}
+
+.simulation-view .procedure-collapsed .procedure-collapse {
+    font-size: 1.25rem;
+}
+
+.simulation-view .lab-procedure {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 .8rem 4.5rem;
+    border-right: 1px solid #d5dde6;
+}
+
+.simulation-view .lab-panel-heading {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    min-height: 3.2rem;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 -.8rem .7rem;
+    padding: .5rem .8rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.simulation-view .lab-panel-heading h2 {
+    margin: 0;
+    color: #23334a;
+    font-size: 1rem;
+    font-weight: 650;
+}
+
+.procedure-collapse {
+    width: 2rem;
+    height: 2rem;
+    color: #fff;
+    border: 0;
+    border-radius: .4rem;
+    background: #ff6900;
+    font-size: 1.4rem;
+}
+
+.simulation-view .procedure-steps {
+    gap: .05rem;
+    margin: .2rem 0 .7rem;
+}
+
+.simulation-view .procedure-steps li {
+    gap: .65rem;
+    padding: .45rem .15rem;
+    color: #66758a;
+    font-size: .9rem;
+    line-height: 1.4;
+}
+
+.simulation-view .procedure-steps li.active {
+    color: #101c2e;
+    background: transparent;
+    font-weight: 800;
+}
+
+.simulation-view .step-marker {
+    width: 1.45rem;
+    height: 1.45rem;
+    color: #758297;
+    background: #fff;
+    border-color: #c5d0dd;
+}
+
+.simulation-view .procedure-steps li.active .step-marker {
+    color: #101c2e;
+    border: 2px solid #ff6900;
+    font-weight: 850;
+}
+
+.simulation-view .procedure-steps li.complete .step-marker {
+    color: #fff;
+    border-color: #109e78;
+    background: #109e78;
+}
+
+.simulation-view .lab-hint {
+    padding: .65rem;
+    color: #19283d;
+    border-left: 3px solid #ff8900;
+    border-radius: 0;
+    background: #fff9e9;
+    font-size: .88rem;
+}
+
+.simulation-view .lab-safety {
+    margin: .8rem 0 0;
+    padding: 0;
+}
+
+.procedure-next {
+    position: sticky;
+    bottom: 0;
+    display: block;
+    width: fit-content;
+    margin: .9rem 0 0 auto;
+    padding: .5rem .85rem;
+    color: #fff;
+    border: 0;
+    border-radius: .4rem;
+    background: #ff6900;
+    box-shadow: 0 .2rem 0 #ffd5b8;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.simulation-view .lab-work-area {
+    position: relative;
+    min-height: 0;
+    overflow-y: auto;
+    background-color: #f7f2eb;
+    background-image: linear-gradient(90deg, #e9e0d7 1px, transparent 1px), linear-gradient(#e9e0d7 1px, transparent 1px);
+    background-size: 5rem 2.8rem;
+}
+
+.simulation-view .lab-toolbar {
+    position: absolute;
+    top: .5rem;
+    left: .5rem;
+    z-index: 4;
+    display: grid;
+    width: min(24rem, calc(100% - 1rem));
+    grid-template-columns: 1fr auto;
+    gap: .35rem .6rem;
+    align-items: center;
+    padding: .45rem .6rem;
+    border: 1px solid #e3e6e9;
+    border-radius: .6rem;
+    background: #fffefaed;
+    box-shadow: 0 .2rem .7rem #17243a18;
+}
+
+.simulation-view .lab-progress-label {
+    justify-content: space-between;
+    gap: .3rem;
+    font-size: .65rem;
+}
+
+.simulation-view .lab-progress-track {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.simulation-view .lab-reset {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    color: #fff;
+    border-color: #ff6900;
+    background: #ff6900;
+    font-size: 1.2rem;
+}
+
+.simulation-view .lab-bench {
+    min-height: 20rem;
+    flex: 1 0 27rem;
+    padding: .5rem;
+    background: transparent;
+}
+
+.simulation-view .bench-back-wall {
+    flex: 1 1 auto;
+}
+
+.simulation-view .bench-back-wall span {
+    width: 18%;
+    height: 2.5rem;
+    border-color: var(--line);
+    background: linear-gradient(#1d304c, #172640);
+}
+
+.simulation-view .bench-surface {
+    min-height: 13rem;
+    flex: 0 0 40%;
+    border-color: #657991;
+    border-radius: .15rem .15rem 0 0;
+}
+
+.simulation-view .work-area-heading {
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    color: #17243a;
+    background: linear-gradient(#f8fbfd, #e0e8ef);
+    font-size: 1.2rem;
+    letter-spacing: .2em;
+}
+
+.simulation-view .drop-hint {
+    position: absolute;
+    right: .8rem;
+    font-size: .65rem;
+}
+
+.simulation-view .classification-panel,
+.simulation-view .observation-log {
+    flex: 0 0 auto;
+}
+
+.simulation-view .lab-shelf {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: .55rem .7rem .8rem;
+    border-left: 2px solid #7d5119;
+    background: linear-gradient(150deg, #d28e2b, #a96e19 65%, #8b5015);
+}
+
+.shelf-objective-wrap {
+    margin: 0 0 .55rem;
+    padding: .5rem .6rem;
+    border: 1px solid #d2d9df;
+    border-radius: .4rem;
+    background: #fff;
+}
+
+.shelf-objective-wrap label {
+    display: block;
+    margin-bottom: .2rem;
+    color: #536078;
+    font-size: .62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.shelf-objective-wrap select {
+    width: 100%;
+    color: #17243a;
+    border: 0;
+    background: #fff;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.simulation-view .shelf-title-wrap {
+    padding: .25rem .15rem .5rem;
+    text-align: center;
+}
+
+.simulation-view .shelf-title-wrap .eyebrow {
+    display: inline-block;
+    margin: 0;
+    padding: .35rem .7rem;
+    color: #422a12;
+    border: 2px solid #6f4517;
+    border-radius: .25rem;
+    background: linear-gradient(#ffe7a2, #e8bd61);
+    font-size: .62rem;
+    letter-spacing: .16em;
+}
+
+.simulation-view .shelf-title-wrap h2 { display: none; }
+
+.simulation-view .shelf-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .25rem;
+    padding: .25rem;
+    border: 3px solid #754716;
+    background: #955d1e;
+}
+
+.simulation-view .shelf-item {
+    min-height: 7.5rem;
+    gap: .15rem;
+    padding: .4rem .25rem;
+    color: #26334a;
+    border: 3px solid #84551e;
+    border-radius: 0;
+    background: radial-gradient(ellipse at 50% 15%, #ffe6a2, #ecc774 72%, #d5a247);
+    box-shadow: inset 0 0 0 2px #fff5cf, 0 2px 3px #38220d66;
+    font-size: .7rem;
+}
+
+.simulation-view .shelf-item:hover,
+.simulation-view .shelf-item:focus-visible {
+    border-color: #f6e7b9;
+    background: linear-gradient(145deg, #fff4ce, #eccc7a);
+    transform: none;
+}
+
+.simulation-view .shelf-icon { font-size: 2rem; }
+.simulation-view .shelf-item small { font-size: .58rem; }
+
+.shelf-cupboard-footer {
+    display: flex;
+    min-height: 5.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    margin-top: .5rem;
+    padding: .7rem;
+    border: 3px solid #714114;
+    background: repeating-linear-gradient(90deg, #8e4d17 0 1.8rem, #7d4113 1.8rem 1.95rem);
+}
+
+.shelf-cupboard-footer p {
+    max-width: 10rem;
+    margin: 0;
+    padding: .5rem;
+    color: #39250e;
+    background: #d9952c;
+    font-size: .65rem;
+    font-weight: 850;
+    letter-spacing: .08em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.cupboard-handle {
+    width: .25rem;
+    height: 2.2rem;
+    border-radius: 1rem;
+    background: #f6e5c1;
+    box-shadow: 0 0 2px #341e0a;
+}
+
+@media (max-width: 900px) {
+    .simulation-view .lab-layout {
+        grid-template-columns: minmax(220px, 28%) minmax(0, 1fr) minmax(230px, 30%);
+    }
+}
+
+@media (max-width: 680px) {
+    .simulation-view { position: fixed; overflow-y: auto; }
+    .simulation-view .lab-app { height: auto; min-height: 100vh; overflow: visible; }
+    .simulation-view .lab-layout { height: auto; overflow: visible; grid-template-columns: 1fr; }
+    .simulation-view .lab-procedure { min-height: 28rem; max-height: 55vh; border-right: 0; border-bottom: 1px solid #d5dde6; }
+    .simulation-view .lab-work-area { min-height: 35rem; }
+    .simulation-view .lab-bench { flex-basis: 25rem; }
+    .simulation-view .lab-shelf { border-left: 0; border-top: 2px solid #7d5119; }
+    .simulation-view .shelf-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Use the EduPortal navy, teal, and lime theme throughout the lab screens. */
+body.virtual-labs-body {
+    background: var(--page);
+    color: var(--text);
+}
+
+.virtual-labs-body > main.container {
+    background: var(--page);
+}
+
+.virtual-labs-page {
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    color: var(--text);
+    background: var(--page);
+}
+
+.virtual-labs-page h1,
+.virtual-labs-page h2,
+.virtual-labs-page h3,
+.virtual-labs-page h4,
+.virtual-labs-page h5,
+.virtual-labs-page h6 {
+    color: var(--text);
+}
+
+.virtual-labs-brand {
+    color: var(--text);
+    border-color: #23334d;
+    background: #0a1324;
+}
+
+.brand-back,
+.orange-button,
+.procedure-next,
+.procedure-collapse,
+.simulation-view .lab-reset {
+    color: #102033;
+    background: var(--lime);
+}
+
+.brand-back:hover,
+.orange-button:hover,
+.procedure-next:hover,
+.procedure-collapse:hover,
+.simulation-view .lab-reset:hover {
+    color: #102033;
+    background: #c9f783;
+}
+
+.picker-icon {
+    color: var(--lime);
+    border-color: var(--lime);
+    background: var(--panel);
+}
+
+.picker-intro .eyebrow,
+.school-level-heading span {
+    color: var(--teal);
+}
+
+.picker-intro p:last-child,
+.grade-card-content > p,
+.grade-coming-note,
+.lesson-page-heading p,
+.lesson-panel p,
+.lesson-panel li {
+    color: var(--muted);
+}
+
+.school-level-heading {
+    border-color: var(--teal);
+}
+
+.grade-card {
+    border-color: var(--line);
+    background: var(--panel);
+    box-shadow: 0 .8rem 2rem #050b1426;
+}
+
+.grade-card-art {
+    background: linear-gradient(145deg, #172640, #155360 70%, #40d6c2);
+}
+
+.grade-art-8 { background: linear-gradient(145deg, #172640, #1b4c62 70%, #40d6c2); }
+.grade-art-9 { background: linear-gradient(145deg, #172640, #253d65 70%, #b5ef59); }
+
+.grade-card-art::before {
+    border-color: #3c5879;
+    background: linear-gradient(145deg, #1d304c, #172640);
+}
+
+.lab-paper { color: #eaf2ff; }
+
+.grade-ribbon {
+    color: #102033;
+    background: var(--lime);
+}
+
+.grade-subject-tags span {
+    color: #c1cde0;
+    background: #243956;
+}
+
+.grade-dashboard,
+.lesson-view {
+    background: var(--page);
+}
+
+.grade-sidebar {
+    border-color: #23334d;
+    background: #0a1324;
+}
+
+.sidebar-rule {
+    background: #23334d;
+}
+
+.sidebar-section-label,
+.sidebar-link {
+    color: #c1cde0;
+}
+
+.sidebar-link.active,
+.sidebar-link:hover {
+    color: var(--lime);
+    background: #1c304b;
+}
+
+.sidebar-coming-note {
+    margin: .2rem 0 .75rem;
+    padding: .3rem .65rem .3rem 1.8rem;
+    color: var(--muted);
+    font-size: .76rem;
+}
+
+.grade-dashboard-main,
+.lesson-main {
+    background: var(--page);
+}
+
+.grade-welcome-banner {
+    color: var(--text);
+    border: 1px solid #2b496b;
+    background: linear-gradient(120deg, #142440, #1a3553 55%, #124e5b);
+}
+
+.grade-welcome-banner > span {
+    color: var(--lime);
+}
+
+.subject-icon,
+.lesson-card-icon,
+.experiment-icon {
+    color: var(--teal);
+    border: 1px solid #2b496b;
+    background: #1d304c;
+}
+
+.grade-pill {
+    color: var(--lime);
+    border-color: #3d665d;
+}
+
+.lab-card-group > h3 {
+    color: var(--muted);
+}
+
+.lesson-card {
+    color: var(--text);
+    border-color: var(--line);
+    background: var(--panel);
+}
+
+.lesson-card-orange,
+.lesson-card-blue {
+    border-color: var(--line);
+    background: var(--panel);
+}
+
+.lesson-card h4,
+.lesson-card-title,
+.lesson-card-blue h4 {
+    color: var(--text);
+}
+
+.available-lesson:hover {
+    border-color: var(--teal);
+    box-shadow: 0 .6rem 1.4rem #050b1440;
+}
+
+.availability-pill {
+    color: var(--teal);
+    background: #102d3a;
+}
+
+.lesson-card-arrow {
+    color: var(--lime);
+}
+
+.lesson-page-heading h1 { color: var(--text); }
+
+.lesson-tabs {
+    border-color: var(--line);
+}
+
+.lesson-tab {
+    color: var(--muted);
+}
+
+.lesson-tab.active,
+.lesson-tab:hover {
+    color: var(--lime);
+    border-bottom-color: var(--lime);
+}
+
+.lesson-content {
+    background-color: var(--page);
+    background-image: radial-gradient(#2b405f .7px, transparent .7px);
+}
+
+.lesson-panel,
+.lesson-panel h2 {
+    color: var(--text);
+}
+
+.resource-safety-note {
+    color: #e6edf8;
+    border-color: var(--lime);
+    background: var(--panel);
+}
+
+.experiment-intro-card {
+    color: var(--text);
+    border-color: var(--line);
+    background: var(--panel);
+}
+
+.experiment-intro-card h3,
+.experiment-intro-card > p {
+    color: var(--text);
+}
+
+.simulation-view {
+    background: var(--page);
+}
+
+.simulation-view .lab-app-header,
+.simulation-view .lab-procedure,
+.simulation-view .classification-panel,
+.simulation-view .observation-log {
+    color: var(--text);
+    border-color: var(--line);
+    background: var(--panel);
+}
+
+.simulation-view .lab-app-title h2,
+.simulation-view .lab-panel-heading h2,
+.simulation-view .observation-heading h3,
+.simulation-view .classification-panel h3 {
+    color: var(--text);
+}
+
+.kenya-mark,
+.cemastea-mark,
+.science-mark {
+    color: var(--teal);
+    border-color: var(--line);
+}
+
+.simulation-view .lab-panel-heading {
+    background: #111e33;
+    border-color: var(--line);
+}
+
+.simulation-view .procedure-steps li,
+.simulation-view .lab-safety,
+.simulation-view .lab-progress-label,
+.simulation-view .observation-heading span,
+.simulation-view .lab-colour-help,
+.simulation-view .observation-log table {
+    color: var(--muted);
+}
+
+.simulation-view .procedure-steps li.active {
+    color: var(--text);
+}
+
+.simulation-view .lab-hint {
+    color: #e6edf8;
+    border-color: var(--lime);
+    background: #21364f;
+}
+
+.simulation-view .lab-work-area {
+    background-color: #111e33;
+    background-image: linear-gradient(90deg, #23334d 1px, transparent 1px), linear-gradient(#23334d 1px, transparent 1px);
+}
+
+.simulation-view .lab-toolbar {
+    border-color: var(--line);
+    background: #172640ed;
+}
+
+.simulation-view .lab-progress-track {
+    background: #2b405f;
+}
+
+.simulation-view .lab-progress-track > span {
+    background: var(--lime);
+}
+
+.simulation-view .lab-icon-button {
+    color: var(--text);
+    border-color: var(--line);
+    background: var(--panel-raised);
+}
+
+.simulation-view .lab-close-button {
+    color: #102033;
+    border-color: var(--lime);
+    background: var(--lime);
+}
+
+.simulation-view .lab-close-button:hover {
+    background: #c9f783;
+}
+
+.simulation-view .bench-object {
+    color: var(--text);
+    border-color: #496382;
+    background: #1d304cee;
+    box-shadow: 0 4px 7px #050b1455;
+}
+
+.simulation-view .classification-choices button {
+    color: var(--text);
+    border-color: var(--line);
+    background: #111e33;
+}
+
+.simulation-view .classification-choices button:hover,
+.simulation-view .classification-choices button:focus-visible {
+    color: var(--lime);
+    border-color: var(--lime);
+    background: #243956;
+}
+
+.simulation-view .work-area-heading {
+    color: var(--text);
+    border-color: var(--line);
+    background: linear-gradient(#1d304c, #111e33);
+}
+
+.simulation-view .lab-shelf {
+    border-color: var(--line);
+    background: linear-gradient(160deg, #172640, #101b31);
+}
+
+.shelf-objective-wrap {
+    border-color: var(--line);
+    background: var(--panel);
+}
+
+.shelf-objective-wrap label,
+.shelf-objective-wrap select {
+    color: var(--text);
+    background: var(--panel);
+}
+
+.simulation-view .shelf-title-wrap .eyebrow {
+    color: var(--teal);
+    border-color: #3d665d;
+    background: #17334a;
+}
+
+.simulation-view .shelf-items {
+    border-color: #2b496b;
+    background: #0a1324;
+}
+
+.simulation-view .shelf-item {
+    color: var(--text);
+    border-color: #2b496b;
+    background: linear-gradient(145deg, #243956, #172640);
+    box-shadow: inset 0 0 0 1px #314b6e;
+}
+
+.simulation-view .shelf-item:hover,
+.simulation-view .shelf-item:focus-visible {
+    border-color: var(--lime);
+    background: #2b405f;
+}
+
+.simulation-view .shelf-item small {
+    color: var(--muted);
+}
+
+.shelf-cupboard-footer {
+    border-color: #2b496b;
+    background: repeating-linear-gradient(90deg, #172640 0 1.8rem, #1d304c 1.8rem 1.95rem);
+}
+
+.shelf-cupboard-footer p {
+    color: #102033;
+    background: var(--lime);
+}
+
+.cupboard-handle {
+    background: #d7e4f4;
+}
+
+.observation-log th,
+.observation-log td {
+    border-color: var(--line);
+}
+
+.observation-log th {
+    color: var(--muted);
+}

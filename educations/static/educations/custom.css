@@ -1,0 +1,11 @@
+/* Bootstrap controls when dropdown menus are shown. */
+.navbar .dropdown-menu {
+    z-index: 1050;
+}
+
+@media (max-width: 991.98px) {
+    .navbar .dropdown-menu {
+        position: static;
+        float: none;
+    }
+}

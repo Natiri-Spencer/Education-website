@@ -1,0 +1,47 @@
+{% extends "educations/base.xhtml" %}
+
+{% block title %}Short Courses | EduPortal{% endblock %}
+
+{% block content %}
+<div class="course-page">
+    <section class="course-hero mb-5">
+        <p class="eyebrow"><span class="status-dot"></span> FOCUSED LEARNING</p>
+        <h1>Short courses for Grades 7–9</h1>
+        <p>Build confidence in a subject with a short, focused course. Choose a grade to see the available courses.</p>
+    </section>
+
+    {% for grade_name, courses in courses_by_grade.items %}
+        <section class="course-grade-section mb-5" aria-labelledby="{{ grade_name|slugify }}-courses">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">SHORT COURSES</p>
+                    <h2 id="{{ grade_name|slugify }}-courses">{{ grade_name }}</h2>
+                </div>
+                <span class="section-note">{{ courses|length }} course{{ courses|length|pluralize }}</span>
+            </div>
+            <div class="row g-3">
+                {% for course in courses %}
+                    <div class="col-xl-4 col-md-6">
+                        <article class="course-card h-100">
+                            <span class="course-subject">{{ course.subject.name }}</span>
+                            <h3>{{ course.title }}</h3>
+                            <p>{{ course.summary }}</p>
+                            <div class="course-card-meta">
+                                <span>{{ course.duration_weeks }} weeks</span>
+                                {% if course.price %}
+                                    <strong>{{ course.currency }} {{ course.price|floatformat:0 }}</strong>
+                                {% else %}
+                                    <strong>Price coming soon</strong>
+                                {% endif %}
+                            </div>
+                            <a class="btn btn-lime mt-3" href="{% url 'educations:course_detail' course.slug %}">View course</a>
+                        </article>
+                    </div>
+                {% empty %}
+                    <div class="col-12"><p class="course-empty">New courses for this grade are being prepared.</p></div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}

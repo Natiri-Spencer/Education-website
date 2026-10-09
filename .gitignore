@@ -1,0 +1,17 @@
+# Local environment and generated files
+.venv/
+venv/
+env/
+Lib/
+Scripts/
+Include/
+share/
+pyvenv.cfg
+__pycache__/
+*.py[cod]
+db.sqlite3
+media/
+staticfiles/
+.env
+.DS_Store
+*.log
