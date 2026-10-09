@@ -1,74 +1,92 @@
-# CBC Education Portal
+# 🎓 CBC Education Portal
 
-## Virtual labs
+An online learning website for CBC learners. Students can find learning materials, take short courses, and explore virtual science labs.
 
-The virtual labs are designed for Junior School learners in Grades 7–9:
+## 🚀 Features
 
-- `/virtual-labs/` opens the grade selector. Each grade card leads to its dashboard.
-- `/virtual-labs/grade/7/` shows Grade 7's dashboard, with labs grouped by strand.
-- The Grade 7 Integrated Science lesson, **Acids, Bases, and Indicators**, has sections for Introduction, Learning Outcomes, Resources, Pre-Assessment, Procedure & Experiment, Post-Assessment, and Conclusion.
-- **View Experiment** opens the interactive hibiscus-indicator lab. Learners follow the procedure, use the virtual apparatus, and classify household solutions based on observed colour changes. The lab includes a back control to return to the lesson.
-- Other lab cards and the Grade 8 and 9 content are marked as coming soon until those activities are added.
+- Browse learning materials by grade and subject.
+- View PDF, video, and image resources.
+- Explore short courses for Grades 7–9. The sample Mathematics course costs KES 500.
+- Use Safaricom Daraja M-Pesa to pay for a course.
+- Let staff manage courses and learning materials through the admin site.
+- Explore virtual labs for Grades 7–9.
 
-The grade selector, dashboards, lesson sections, and experiment interface are rendered from Django templates. The virtual lab interactions and styling are implemented in JavaScript and CSS in `educations/static/educations/virtual_labs.js` and `educations/static/educations/virtual_labs.css`.
+## 🧪 Virtual Labs
 
-## Technologies
+- Choose Grade 7, 8, or 9 to open its lab dashboard.
+- Browse labs grouped by subject and strand.
+- Open the Grade 7 **Acids, Bases, and Indicators** lesson.
+- Read the lesson sections, then choose **View Experiment** to try the interactive hibiscus indicator lab.
+- Other labs are marked **Coming soon** until they are ready.
 
-- **Python 3.13** and **Django 6.0.9** for the server-side application, URLs, views, authentication, and data models.
-- **Django templates, HTML, CSS, and JavaScript** for the website and interactive virtual lab; `django-bootstrap5` provides Bootstrap integration.
-- **PostgreSQL** for hosted deployments through `DATABASE_URL`; **SQLite** is used as the local fallback.
-- **Gunicorn** serves the Django WSGI application, and **WhiteNoise** serves collected static files.
-- **Pillow** handles image uploads, and **python-dotenv** loads local environment settings.
-- **Safaricom Daraja M-Pesa** supports the short-course payment flow.
+## 🛠️ Tech Stack
 
-## Deployment
+- **Python 3.13** and **Django 6.0.9** — website and backend.
+- **Django templates, HTML, CSS, and JavaScript** — pages and virtual lab.
+- **Bootstrap** through `django-bootstrap5` — website components.
+- **PostgreSQL** for deployment and **SQLite** for local development.
+- **Gunicorn** — runs the website online.
+- **WhiteNoise** — serves CSS, JavaScript, and other static files.
+- **Safaricom Daraja** — M-Pesa course payments.
 
-The Django project root is this directory (`cbc_env`), which contains `manage.py`.
-Use Python 3.13 and install dependencies with `pip install -r requirements.txt`.
-Before starting the web service, run:
+## ⚙️ Setup
+
+1. Clone this repository and open the project folder:
+
+   ```powershell
+   git clone https://github.com/Natiri-Spencer/Education-website.git
+   cd Education-website
+   ```
+
+2. Create and activate a Python environment, then install the requirements:
+
+   ```powershell
+   py -3.13 -m venv .venv
+   .venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   ```
+
+3. Create your local settings file and prepare the database:
+
+   ```powershell
+   Copy-Item .env.example .env
+   python manage.py migrate
+   ```
+
+4. Start the website:
+
+   ```powershell
+   python manage.py runserver
+   ```
+
+5. Open <http://127.0.0.1:8000/> in your browser.
+
+The example `.env` settings are for local development. M-Pesa payments need Daraja credentials; keep those credentials in `.env` and never commit them to GitHub.
+
+## 🌍 Deployment
+
+Set these environment variables on your hosting service:
+
+- `DJANGO_SECRET_KEY` — a private production secret.
+- `DJANGO_ALLOWED_HOSTS` — your website's hostname.
+- `DATABASE_URL` — your hosted PostgreSQL database.
+- `CSRF_TRUSTED_ORIGINS` — your website's HTTPS address.
+- `DJANGO_DEBUG=False` — turn off debug mode.
+
+Run database migrations and collect static files during deployment:
 
 ```sh
-python manage.py collectstatic --noinput
 python manage.py migrate
+python manage.py collectstatic --noinput
 ```
 
-Start the service with the included `Procfile` (`gunicorn spencer_project.wsgi:application`).
+The included `Procfile` starts the app with Gunicorn. Set up persistent storage for uploaded files if your hosting service does not keep local files between deployments.
 
-Set these environment variables in the hosting service:
+To accept M-Pesa payments, add these Daraja settings to your local `.env` file or hosting service:
 
-- `DJANGO_SECRET_KEY`: a newly generated secret, kept out of source control.
-- `DJANGO_ALLOWED_HOSTS`: comma-separated hostnames for the deployed site.
-- `DATABASE_URL`: persistent PostgreSQL connection URL. SQLite is only the local fallback.
-- `CSRF_TRUSTED_ORIGINS`: comma-separated HTTPS origins, including scheme, for the deployed site.
-- `DJANGO_DEBUG`: leave unset or set to `False` in production.
+- `MPESA_ENVIRONMENT` — use `sandbox` while testing.
+- `MPESA_CONSUMER_KEY` and `MPESA_CONSUMER_SECRET` — from your Daraja app.
+- `MPESA_SHORTCODE` and `MPESA_PASSKEY` — your payment details from Safaricom.
+- `MPESA_CALLBACK_URL` — your public HTTPS address ending in `/payments/mpesa/callback/`.
 
-Static assets are served by WhiteNoise after `collectstatic`. User uploads are stored in
-`media/`; configure persistent or object storage on the host before relying on uploaded
-files, since many hosting services discard local files when an instance is replaced.
-
-## Short courses and M-Pesa
-
-The course catalog includes a Grade 7 Mathematics sample course priced at KES 500. Run
-`python manage.py migrate` to create the course and its outline. Staff can manage courses
-and enrollments in Django admin. Set up a Safaricom Daraja app before accepting payments;
-never commit its credentials. Configure these environment variables in the hosting service:
-
-- `MPESA_ENVIRONMENT`: `sandbox` while testing, then `production` after Safaricom approval.
-- `MPESA_CONSUMER_KEY` and `MPESA_CONSUMER_SECRET`: credentials from the Daraja app.
-- `MPESA_SHORTCODE` and `MPESA_PASSKEY`: the business shortcode and Lipa na M-Pesa passkey.
-- `MPESA_CALLBACK_URL`: the public HTTPS URL ending in `/payments/mpesa/callback/`.
-- `MPESA_TRANSACTION_TYPE`: optional; defaults to `CustomerPayBillOnline`.
-
-The M-Pesa callback marks an enrollment paid only when the reported amount, phone number,
-and receipt match the pending enrollment. Use Safaricom's sandbox and a publicly reachable
-HTTPS callback URL before switching to production.
-
-For local development on Windows, fill the Daraja sandbox values in the existing `.env`
-file (or copy `.env.example` to `.env` if needed). `.env` is ignored by Git. In Daraja, create a sandbox app with the M-Pesa
-Express product, copy the Consumer Key and Consumer Secret from the app's keys, and use its
-Lipa na M-Pesa test shortcode and passkey. Set the callback URL to this app's publicly
-reachable HTTPS address. Safaricom sends payment results asynchronously to that callback.
-Never send the Consumer Secret or passkey in chat or commit them to the repository.
-
-The project folder also contains a local Windows virtual environment and local database;
-`.gitignore` excludes these so only application code and migrations are deployed.
+Test payments in the Daraja sandbox before switching to production. Never commit these credentials to GitHub.
