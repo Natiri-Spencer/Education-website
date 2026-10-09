@@ -1,5 +1,26 @@
 # CBC Education Portal
 
+## Virtual labs
+
+The virtual labs are designed for Junior School learners in Grades 7–9:
+
+- `/virtual-labs/` opens the grade selector. Each grade card leads to its dashboard.
+- `/virtual-labs/grade/7/` shows Grade 7's dashboard, with labs grouped by strand.
+- The Grade 7 Integrated Science lesson, **Acids, Bases, and Indicators**, has sections for Introduction, Learning Outcomes, Resources, Pre-Assessment, Procedure & Experiment, Post-Assessment, and Conclusion.
+- **View Experiment** opens the interactive hibiscus-indicator lab. Learners follow the procedure, use the virtual apparatus, and classify household solutions based on observed colour changes. The lab includes a back control to return to the lesson.
+- Other lab cards and the Grade 8 and 9 content are marked as coming soon until those activities are added.
+
+The grade selector, dashboards, lesson sections, and experiment interface are rendered from Django templates. The virtual lab interactions and styling are implemented in JavaScript and CSS in `educations/static/educations/virtual_labs.js` and `educations/static/educations/virtual_labs.css`.
+
+## Technologies
+
+- **Python 3.13** and **Django 6.0.9** for the server-side application, URLs, views, authentication, and data models.
+- **Django templates, HTML, CSS, and JavaScript** for the website and interactive virtual lab; `django-bootstrap5` provides Bootstrap integration.
+- **PostgreSQL** for hosted deployments through `DATABASE_URL`; **SQLite** is used as the local fallback.
+- **Gunicorn** serves the Django WSGI application, and **WhiteNoise** serves collected static files.
+- **Pillow** handles image uploads, and **python-dotenv** loads local environment settings.
+- **Safaricom Daraja M-Pesa** supports the short-course payment flow.
+
 ## Deployment
 
 The Django project root is this directory (`cbc_env`), which contains `manage.py`.
