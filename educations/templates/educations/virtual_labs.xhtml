@@ -5,7 +5,7 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=8">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=9">
 {% endblock %}
 
 {% block content %}
@@ -72,7 +72,9 @@
                     <button type="button" id="open-acids-lesson" class="lesson-card lesson-card-orange available-lesson" {% if not grade_has_labs %}hidden{% endif %}>
                         <span class="lesson-card-icon" aria-hidden="true">🔬</span><span class="lesson-card-title">Acids, Bases, and Indicators</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
                     </button>
-                    <article class="lesson-card lesson-card-blue coming-soon-card"><span class="lesson-card-icon" aria-hidden="true">🔬</span><h4>Mixtures</h4><span class="availability-pill">Coming soon</span><span class="lesson-card-arrow" aria-hidden="true">→</span></article>
+                    <button type="button" id="open-mixtures-lesson" class="lesson-card lesson-card-blue available-lesson" {% if not grade_has_labs %}hidden{% endif %}>
+                        <span class="lesson-card-icon" aria-hidden="true">🔬</span><span class="lesson-card-title">Mixtures</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
+                    </button>
                 </div>
             </section>
             <section class="lab-card-group" aria-labelledby="force-energy-heading" {% if not grade_has_labs %}hidden{% endif %}>
@@ -163,6 +165,44 @@
                 </section>
                 <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Conclusion</h2><p>Each instrument has a particular purpose. Selecting the right apparatus helps you collect useful observations and measurements. Always check that equipment is suitable and follow laboratory safety instructions.</p>
+                </section>
+            </template>
+            <template id="mixtures-lesson-panels">
+                <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
+                    <h2>Introduction</h2>
+                    <p>A mixture contains two or more substances that are together but not chemically joined. We can often separate its parts by using differences in properties such as particle size, solubility, boiling point, or whether a substance changes directly from a solid to a gas.</p>
+                    <p>In this lesson, explore evaporation, sublimation, fractional distillation, paper chromatography, and filtration.</p>
+                </section>
+                <section id="lesson-panel-outcomes" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p>
+                    <ul><li>Describe five methods used to separate mixtures.</li><li>Choose a separation method based on the properties of the materials.</li><li>Identify the separated product and the material left behind.</li><li>Record observations and follow laboratory safety instructions.</li></ul>
+                </section>
+                <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Resources</h2>
+                    <p>The simulations show salt solution, ammonium chloride and sand, water and ethanol, groundnut-skin extract, and sand mixed with water. Virtual apparatus includes an evaporating dish, heat source, fractionating column, condenser, chromatography paper, funnel, and filter paper.</p>
+                    <p class="resource-safety-note"><strong>Simulation only:</strong> Ammonium chloride dust or vapour can be harmful, ethanol is flammable, and groundnuts can cause severe allergic reactions. Do not try these activities at home. Real laboratory work needs teacher supervision, suitable ventilation, and the correct safety equipment.</p>
+                </section>
+                <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Pre-Assessment</h2><p>Think about these questions before starting:</p>
+                    <ol><li>How could you recover salt from salt water?</li><li>What happens when a solid changes directly into a gas?</li><li>Which property helps separate liquids by fractional distillation?</li><li>What does filter paper allow to pass through?</li></ol>
+                </section>
+                <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Procedure &amp; Experiment</h2>
+                    <p>Choose a method to open its guided simulation. Follow the steps and observe what is collected and what remains behind.</p>
+                    <div class="mixture-method-grid">
+                        <article class="mixture-method-card"><span aria-hidden="true">♨️</span><h3>Evaporation</h3><p>Separate salt from a salt solution.</p><button type="button" class="orange-button" data-mixture-method="evaporation">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">❄️</span><h3>Sublimation</h3><p>Separate ammonium chloride from sand.</p><button type="button" class="orange-button" data-mixture-method="sublimation">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🌡️</span><h3>Fractional Distillation</h3><p>Separate a water and ethanol mixture.</p><button type="button" class="orange-button" data-mixture-method="distillation">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🧻</span><h3>Paper Chromatography</h3><p>Separate soluble pigments from groundnut skin extract.</p><button type="button" class="orange-button" data-mixture-method="chromatography">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🧪</span><h3>Filtration</h3><p>Separate sand from water.</p><button type="button" class="orange-button" data-mixture-method="filtration">View Simulation</button></article>
+                    </div>
+                </section>
+                <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Post-Assessment</h2><p>Check your understanding:</p>
+                    <ol><li>Which method can recover salt from salt solution?</li><li>In filtration, what are the residue and filtrate in a sand-and-water mixture?</li><li>Why does fractional distillation separate water and ethanol?</li><li>What does the solvent do in paper chromatography?</li><li>Which method uses a solid that changes directly into vapour?</li></ol>
+                </section>
+                <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Conclusion</h2><p>Choose a separation method by comparing the properties of the substances in the mixture. Evaporation, sublimation, distillation, chromatography, and filtration each work in a different way. In your notes, record the method, what was collected, and what remained.</p>
                 </section>
             </template>
         </div>
@@ -313,10 +353,63 @@
         </div>
     </section>
 
+    <section id="mixture-lab-app" class="lab-app mixture-lab-app" aria-labelledby="mixture-lab-title" hidden>
+        <header class="lab-app-header">
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="kenya-mark">KE</span><span class="cemastea-mark">CEMASTEA</span><span class="science-mark">🧪</span></div>
+            <div class="lab-app-title"><h2 id="mixture-lab-title">INTEGRATED SCIENCE | MIXTURES | GRADE 7</h2></div>
+            <div class="lab-header-actions">
+                <button type="button" id="mixture-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
+                <button type="button" id="mixture-back-to-lesson" class="lab-icon-button lab-close-button" aria-label="Back to lesson" title="Back to lesson">×</button>
+            </div>
+        </header>
+        <div class="mixture-simulation-layout">
+            <aside class="mixture-method-sidebar" aria-labelledby="mixture-method-heading">
+                <div class="lab-panel-heading"><h2 id="mixture-method-heading">SEPARATION METHODS</h2></div>
+                <nav class="mixture-method-nav" aria-label="Choose a separation method">
+                    <button type="button" data-mixture-select="evaporation" aria-pressed="true">Evaporation <small>Salt solution</small></button>
+                    <button type="button" data-mixture-select="sublimation" aria-pressed="false">Sublimation <small>Ammonium chloride &amp; sand</small></button>
+                    <button type="button" data-mixture-select="distillation" aria-pressed="false">Fractional distillation <small>Water &amp; ethanol</small></button>
+                    <button type="button" data-mixture-select="chromatography" aria-pressed="false">Paper chromatography <small>Groundnut skin extract</small></button>
+                    <button type="button" data-mixture-select="filtration" aria-pressed="false">Filtration <small>Sand &amp; water</small></button>
+                </nav>
+                <p class="mixture-safety-note"><strong>Virtual lab safety:</strong> These activities are simulations. Do not heat ammonium chloride or ethanol, or handle groundnuts, as a home experiment.</p>
+            </aside>
+            <main class="mixture-simulation-main">
+                <div class="mixture-simulation-heading">
+                    <div><p class="eyebrow">GRADE 7 · INTEGRATED SCIENCE</p><h2 id="mixture-method-title">Evaporation</h2><p id="mixture-objective">Separate dissolved salt from salt solution.</p><p id="mixture-method-safety" class="mixture-method-safety"></p></div>
+                    <span class="mixture-step-count" id="mixture-step-count">Step 1</span>
+                </div>
+                <div class="mixture-progress-track" role="progressbar" aria-label="Simulation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="mixture-progress-fill"></span></div>
+                <div class="mixture-simulation-columns">
+                    <section class="mixture-scene-card" aria-label="Simulation scene">
+                        <div class="mixture-scene" id="mixture-scene" data-method="evaporation" data-stage="0">
+                            <span id="mixture-scene-icon" aria-hidden="true">🧂</span>
+                            <span id="mixture-scene-label">Salt solution</span>
+                        </div>
+                        <p id="mixture-scene-caption">A solution of salt dissolved in water.</p>
+                    </section>
+                    <section class="mixture-step-card" aria-live="polite">
+                        <p class="eyebrow">PROCEDURE</p>
+                        <ol id="mixture-step-list" class="mixture-step-list"></ol>
+                        <h3 id="mixture-step-title">Place the salt solution in an evaporating dish.</h3>
+                        <p id="mixture-step-description">The salt is dissolved in the water, so it cannot be removed with filter paper.</p>
+                        <div class="mixture-result-note" id="mixture-result-note" hidden></div>
+                        <div class="mixture-controls">
+                            <button type="button" id="mixture-previous" class="mixture-secondary-button">← Previous</button>
+                            <button type="button" id="mixture-next" class="orange-button">Next step →</button>
+                            <button type="button" id="mixture-reset" class="mixture-secondary-button">Start again ↻</button>
+                        </div>
+                    </section>
+                </div>
+                <p id="mixture-live-feedback" class="mixture-live-feedback" role="status" aria-live="polite"></p>
+            </main>
+        </div>
+    </section>
+
     </section>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=8" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=9" defer></script>
 {% endblock %}

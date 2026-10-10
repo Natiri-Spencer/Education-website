@@ -40,6 +40,11 @@
             template: "apparatus-lesson-panels",
             labTitle: "INTEGRATED SCIENCE | LABORATORY APPARATUS & INSTRUMENTS | GRADE 7",
         },
+        mixtures: {
+            title: "Mixtures",
+            template: "mixtures-lesson-panels",
+            labTitle: "INTEGRATED SCIENCE | MIXTURES | GRADE 7",
+        },
     };
     let selectedLesson = "acids";
 
@@ -85,6 +90,7 @@
     });
     document.getElementById("open-acids-lesson").addEventListener("click", () => openLesson("acids"));
     document.getElementById("open-apparatus-lesson").addEventListener("click", () => openLesson("apparatus"));
+    document.getElementById("open-mixtures-lesson").addEventListener("click", () => openLesson("mixtures"));
     document.querySelectorAll("[data-lesson-tab]").forEach((tab) => {
         tab.addEventListener("click", () => selectLessonTab(tab.dataset.lessonTab));
     });
@@ -92,8 +98,14 @@
         if (!event.target.closest("#view-experiment")) return;
         document.querySelector("#simulation-view > .lab-app").hidden = selectedLesson !== "acids";
         document.getElementById("apparatus-lab-app").hidden = selectedLesson !== "apparatus";
+        document.getElementById("mixture-lab-app").hidden = selectedLesson !== "mixtures";
         selectLessonTab("procedure");
         showStage("simulation");
+    });
+    document.addEventListener("click", (event) => {
+        const methodButton = event.target.closest("[data-mixture-method]");
+        if (!methodButton) return;
+        startMixtureSimulation(methodButton.dataset.mixtureMethod);
     });
     document.getElementById("back-to-lesson").addEventListener("click", () => {
         if (document.fullscreenElement) document.exitFullscreen();
@@ -111,6 +123,19 @@
             else await document.getElementById("apparatus-lab-app").requestFullscreen();
         } catch {
             document.getElementById("apparatus-feedback").textContent = "Full screen is unavailable in this browser. You can continue here.";
+        }
+    });
+    document.getElementById("mixture-back-to-lesson").addEventListener("click", () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        showStage("lesson");
+        selectLessonTab("procedure");
+    });
+    document.getElementById("mixture-fullscreen").addEventListener("click", async () => {
+        try {
+            if (document.fullscreenElement) await document.exitFullscreen();
+            else await document.getElementById("mixture-lab-app").requestFullscreen();
+        } catch {
+            document.getElementById("mixture-live-feedback").textContent = "Full screen is unavailable in this browser. You can continue here.";
         }
     });
     const procedureCollapse = document.querySelector(".procedure-collapse");
@@ -490,6 +515,142 @@
         updateApparatusActivity();
     });
 
+    const mixtureMethods = {
+        evaporation: {
+            title: "Evaporation",
+            objective: "Separate dissolved salt from salt solution.",
+            safety: "In a real lab, heat gently with teacher supervision. The water evaporates and is not collected in this method.",
+            steps: [
+                { title: "Place the salt solution in an evaporating dish.", description: "Salt is dissolved in the water, so it cannot be removed with filter paper.", icon: "🧂", label: "Salt solution in an evaporating dish", caption: "Salt particles are dissolved throughout the water." },
+                { title: "Warm the solution gently.", description: "Heat supplies energy to the water. Do not cover or seal the dish.", icon: "♨️", label: "Gentle heating", caption: "Water begins to change into water vapour." },
+                { title: "Allow the water to evaporate.", description: "Water vapour leaves the dish. The dissolved salt stays behind and begins to form crystals.", icon: "💨", label: "Water vapour leaves; salt remains", caption: "The dissolved solid is left in the dish as the solvent evaporates." },
+            ],
+            result: "Salt crystals remain in the dish. Evaporation recovers the dissolved solid, but it does not collect the water.",
+        },
+        sublimation: {
+            title: "Sublimation",
+            objective: "Separate ammonium chloride from a mixture with sand.",
+            safety: "Ammonium chloride vapour and dust can be harmful. This is a virtual demonstration only; real work requires a fume cupboard and teacher supervision.",
+            steps: [
+                { title: "Place the ammonium chloride and sand mixture in a dish.", description: "Set a cool surface, such as an inverted funnel, above the mixture to collect the separated solid.", icon: "⚗️", label: "Ammonium chloride mixed with sand", caption: "The mixture contains a solid that sublimes and a solid that does not." },
+                { title: "Heat the mixture gently in the simulation.", description: "Ammonium chloride changes into vapour when heated. Sand remains in the dish.", icon: "♨️", label: "Ammonium chloride vapour rises", caption: "The subliming substance moves away from the non-subliming sand." },
+                { title: "Observe the cool collecting surface.", description: "The vapour cools and deposits as solid ammonium chloride crystals. The sand stays in the dish.", icon: "❄️", label: "Crystals deposit on the cool surface", caption: "Cooling changes the vapour back into solid crystals." },
+            ],
+            result: "Ammonium chloride crystals collect on the cool surface, while sand remains in the dish. The activity is a simulation because ammonium chloride vapour must not be inhaled.",
+        },
+        distillation: {
+            title: "Fractional distillation",
+            objective: "Separate an ethanol and water mixture into fractions.",
+            safety: "Ethanol is flammable. This is a virtual demonstration only; real distillation must use suitable electric heating and teacher supervision, away from flames.",
+            steps: [
+                { title: "Set up the mixture with a fractionating column and condenser.", description: "The thermometer monitors vapour temperature. The condenser cools vapour so it can be collected as liquid.", icon: "⚗️", label: "Flask, fractionating column, and condenser", caption: "The fractionating column helps separate liquids with different boiling points." },
+                { title: "Heat the mixture in a controlled way.", description: "At normal atmospheric pressure, ethanol boils at about 78 °C and water at about 100 °C. Ethanol-rich vapour rises first.", icon: "🌡️", label: "Ethanol-rich vapour rises first", caption: "The lower-boiling liquid is more volatile and enters the vapour phase more readily." },
+                { title: "Cool the vapour and collect the first fraction.", description: "The condenser turns the vapour back into liquid. The collected fraction is richer in ethanol, not necessarily pure ethanol.", icon: "💧", label: "Ethanol-rich liquid is collected", caption: "Repeated vapourisation and condensation improve the separation." },
+            ],
+            result: "The first collected fraction is richer in ethanol because ethanol has the lower boiling point. Fractional distillation improves separation but does not guarantee a perfectly pure liquid.",
+        },
+        chromatography: {
+            title: "Paper chromatography",
+            objective: "Separate soluble pigments in a prepared groundnut-skin extract.",
+            safety: "Groundnuts can cause severe allergic reactions. This is a virtual demonstration; do not handle groundnuts if you have an allergy. Visible results depend on the extract and solvent used.",
+            steps: [
+                { title: "Prepare a coloured extract from groundnut skins.", description: "The simulation uses a prepared extract containing soluble coloured substances from the skins, rather than claiming the whole groundnut separates into visible colours.", icon: "🥜", label: "Prepared groundnut-skin extract", caption: "Only substances that dissolve in the chosen solvent can travel on the paper." },
+                { title: "Place a small spot on a pencil baseline.", description: "Keep the spot above the solvent level. Pencil graphite stays in place; ink could dissolve and affect the result.", icon: "🧻", label: "Extract spot above the solvent", caption: "The paper is placed upright with its lower edge in the solvent." },
+                { title: "Let the solvent rise up the paper.", description: "Different soluble substances travel at different rates and distances, forming separate bands on the paper.", icon: "🎨", label: "Pigment bands separate", caption: "The moving solvent is the mobile phase; the paper is the stationary phase." },
+            ],
+            result: "The prepared extract may separate into bands because soluble components move different distances with the solvent. The pattern depends on the extract and solvent used.",
+        },
+        filtration: {
+            title: "Filtration",
+            objective: "Separate insoluble sand from water.",
+            safety: "The simulation uses clean materials. In a real lab, never taste laboratory mixtures or drink the filtrate.",
+            steps: [
+                { title: "Fold filter paper and place it in a funnel.", description: "Place the funnel over a clean collecting container. The paper acts as a barrier with tiny spaces.", icon: "🧻", label: "Filter paper in a funnel", caption: "The apparatus is ready to separate an insoluble solid from a liquid." },
+                { title: "Pour the sand and water mixture through the filter.", description: "Water passes through the paper. Sand particles are too large to pass through and remain on the paper.", icon: "🫗", label: "Mixture passes through the filter", caption: "The solid caught on the paper is called the residue." },
+                { title: "Observe the residue and filtrate.", description: "Sand remains as the residue; water collected below is the filtrate. Filtration does not remove substances dissolved in water.", icon: "💧", label: "Sand residue and water filtrate", caption: "The filtrate is the liquid that has passed through the filter." },
+            ],
+            result: "Sand is collected as the residue on the filter paper. Water passes through as the filtrate. Dissolved substances would pass through with the water.",
+        },
+    };
+    let selectedMixtureMethod = "evaporation";
+    let mixtureStep = 0;
+    let mixtureComplete = false;
+
+    function renderMixtureSimulation() {
+        const method = mixtureMethods[selectedMixtureMethod];
+        const finished = mixtureComplete;
+        const step = method.steps[mixtureStep];
+        document.querySelectorAll("[data-mixture-select]").forEach((button) => {
+            const active = button.dataset.mixtureSelect === selectedMixtureMethod;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+        });
+        document.getElementById("mixture-method-title").textContent = method.title;
+        document.getElementById("mixture-objective").textContent = method.objective;
+        document.getElementById("mixture-method-safety").textContent = method.safety;
+        document.getElementById("mixture-step-count").textContent = finished ? "Complete" : `Step ${mixtureStep + 1} of ${method.steps.length}`;
+        document.getElementById("mixture-progress-fill").style.width = `${finished ? 100 : (mixtureStep / method.steps.length) * 100}%`;
+        document.querySelector(".mixture-progress-track").setAttribute("aria-valuenow", String(finished ? 100 : Math.round((mixtureStep / method.steps.length) * 100)));
+        document.getElementById("mixture-step-list").replaceChildren(...method.steps.map((item, index) => {
+            const entry = document.createElement("li");
+            entry.textContent = `Step ${index + 1}`;
+            entry.classList.toggle("active", !finished && index === mixtureStep);
+            entry.classList.toggle("complete", finished || index < mixtureStep);
+            return entry;
+        }));
+        document.getElementById("mixture-step-title").textContent = finished ? "Separation complete" : step.title;
+        document.getElementById("mixture-step-description").textContent = finished ? method.result : step.description;
+        document.getElementById("mixture-scene").dataset.method = selectedMixtureMethod;
+        document.getElementById("mixture-scene").dataset.stage = finished ? "result" : String(mixtureStep);
+        document.getElementById("mixture-scene-icon").textContent = finished ? "✅" : step.icon;
+        document.getElementById("mixture-scene-label").textContent = finished ? "Separated materials" : step.label;
+        document.getElementById("mixture-scene-caption").textContent = finished ? method.result : step.caption;
+        document.getElementById("mixture-result-note").textContent = finished ? method.result : "";
+        document.getElementById("mixture-result-note").hidden = !finished;
+        document.getElementById("mixture-live-feedback").textContent = finished ? "Simulation complete. Choose another method or start again." : "Follow the step, then continue to see what happens.";
+        document.getElementById("mixture-previous").disabled = !finished && mixtureStep === 0;
+        document.getElementById("mixture-next").disabled = finished;
+        document.getElementById("mixture-next").textContent = finished ? "Completed" : mixtureStep === method.steps.length - 1 ? "Show result →" : "Next step →";
+    }
+
+    function startMixtureSimulation(methodName) {
+        if (!mixtureMethods[methodName]) return;
+        selectedMixtureMethod = methodName;
+        mixtureStep = 0;
+        mixtureComplete = false;
+        document.querySelector("#simulation-view > .lab-app").hidden = true;
+        document.getElementById("apparatus-lab-app").hidden = true;
+        document.getElementById("mixture-lab-app").hidden = false;
+        renderMixtureSimulation();
+        showStage("simulation");
+    }
+
+    document.querySelectorAll("[data-mixture-select]").forEach((button) => {
+        button.addEventListener("click", () => {
+            selectedMixtureMethod = button.dataset.mixtureSelect;
+            mixtureStep = 0;
+            mixtureComplete = false;
+            renderMixtureSimulation();
+        });
+    });
+    document.getElementById("mixture-next").addEventListener("click", () => {
+        const method = mixtureMethods[selectedMixtureMethod];
+        if (mixtureStep < method.steps.length - 1) mixtureStep += 1;
+        else mixtureComplete = true;
+        renderMixtureSimulation();
+    });
+    document.getElementById("mixture-previous").addEventListener("click", () => {
+        if (mixtureComplete) mixtureComplete = false;
+        else if (mixtureStep > 0) mixtureStep -= 1;
+        renderMixtureSimulation();
+    });
+    document.getElementById("mixture-reset").addEventListener("click", () => {
+        mixtureStep = 0;
+        mixtureComplete = false;
+        renderMixtureSimulation();
+    });
+
     updateProcedure();
     updateApparatusActivity();
+    renderMixtureSimulation();
 })();
