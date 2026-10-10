@@ -5,7 +5,7 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=9">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=10">
 {% endblock %}
 
 {% block content %}
@@ -387,6 +387,11 @@
                             <span id="mixture-scene-label">Salt solution</span>
                         </div>
                         <p id="mixture-scene-caption">A solution of salt dissolved in water.</p>
+                        <div class="mixture-color-observation" id="mixture-color-observation" hidden>
+                            <strong>Colour observation</strong>
+                            <div class="mixture-color-swatches" id="mixture-color-swatches" aria-label="Observed colours"></div>
+                            <p id="mixture-color-text"></p>
+                        </div>
                     </section>
                     <section class="mixture-step-card" aria-live="polite">
                         <p class="eyebrow">PROCEDURE</p>
@@ -411,5 +416,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=9" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=10" defer></script>
 {% endblock %}

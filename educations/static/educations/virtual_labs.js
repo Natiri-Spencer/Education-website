@@ -521,55 +521,65 @@
             objective: "Separate dissolved salt from salt solution.",
             safety: "In a real lab, heat gently with teacher supervision. The water evaporates and is not collected in this method.",
             steps: [
-                { title: "Place the salt solution in an evaporating dish.", description: "Salt is dissolved in the water, so it cannot be removed with filter paper.", icon: "🧂", label: "Salt solution in an evaporating dish", caption: "Salt particles are dissolved throughout the water." },
-                { title: "Warm the solution gently.", description: "Heat supplies energy to the water. Do not cover or seal the dish.", icon: "♨️", label: "Gentle heating", caption: "Water begins to change into water vapour." },
-                { title: "Allow the water to evaporate.", description: "Water vapour leaves the dish. The dissolved salt stays behind and begins to form crystals.", icon: "💨", label: "Water vapour leaves; salt remains", caption: "The dissolved solid is left in the dish as the solvent evaporates." },
+                { title: "Place the salt solution in an evaporating dish.", description: "Salt is dissolved in the water, so it cannot be removed with filter paper.", icon: "🧂", label: "Salt solution in an evaporating dish", caption: "Salt particles are dissolved throughout the water.", color: "The salt solution is clear and colourless.", swatches: [{ label: "Clear, colourless solution", color: "#dcecf5" }] },
+                { title: "Warm the solution gently.", description: "Heat supplies energy to the water. Do not cover or seal the dish.", icon: "♨️", label: "Gentle heating", caption: "Water begins to change into water vapour.", color: "The liquid remains clear and colourless; water vapour is invisible.", swatches: [{ label: "Clear, colourless solution", color: "#dcecf5" }] },
+                { title: "Allow the water to evaporate.", description: "Water vapour leaves the dish. The dissolved salt stays behind and begins to form crystals.", icon: "💨", label: "Water vapour leaves; salt remains", caption: "The dissolved solid is left in the dish as the solvent evaporates.", color: "There is no colour change. As the water disappears, white salt crystals become visible.", swatches: [{ label: "White salt crystals", color: "#f4f1e8" }] },
             ],
             result: "Salt crystals remain in the dish. Evaporation recovers the dissolved solid, but it does not collect the water.",
+            resultColor: "No colour change occurs: the solution starts clear and colourless, and white salt crystals remain after the water evaporates.",
+            resultSwatches: [{ label: "White salt crystals", color: "#f4f1e8" }],
         },
         sublimation: {
             title: "Sublimation",
             objective: "Separate ammonium chloride from a mixture with sand.",
             safety: "Ammonium chloride vapour and dust can be harmful. This is a virtual demonstration only; real work requires a fume cupboard and teacher supervision.",
             steps: [
-                { title: "Place the ammonium chloride and sand mixture in a dish.", description: "Set a cool surface, such as an inverted funnel, above the mixture to collect the separated solid.", icon: "⚗️", label: "Ammonium chloride mixed with sand", caption: "The mixture contains a solid that sublimes and a solid that does not." },
-                { title: "Heat the mixture gently in the simulation.", description: "Ammonium chloride changes into vapour when heated. Sand remains in the dish.", icon: "♨️", label: "Ammonium chloride vapour rises", caption: "The subliming substance moves away from the non-subliming sand." },
-                { title: "Observe the cool collecting surface.", description: "The vapour cools and deposits as solid ammonium chloride crystals. The sand stays in the dish.", icon: "❄️", label: "Crystals deposit on the cool surface", caption: "Cooling changes the vapour back into solid crystals." },
+                { title: "Place the ammonium chloride and sand mixture in a dish.", description: "Set a cool surface, such as an inverted funnel, above the mixture to collect the separated solid.", icon: "⚗️", label: "Ammonium chloride mixed with sand", caption: "The mixture contains a solid that sublimes and a solid that does not.", color: "Ammonium chloride crystals are white; sand is usually tan or brown.", swatches: [{ label: "White ammonium chloride", color: "#f4f1e8" }, { label: "Tan sand", color: "#b89562" }] },
+                { title: "Heat the mixture gently in the simulation.", description: "Ammonium chloride changes into vapour when heated. Sand remains in the dish.", icon: "♨️", label: "Ammonium chloride vapour rises", caption: "The subliming substance moves away from the non-subliming sand.", color: "The vapour may be hard to see. The white ammonium chloride separates from the tan sand.", swatches: [{ label: "White ammonium chloride", color: "#f4f1e8" }, { label: "Tan sand", color: "#b89562" }] },
+                { title: "Observe the cool collecting surface.", description: "The vapour cools and deposits as solid ammonium chloride crystals. The sand stays in the dish.", icon: "❄️", label: "Crystals deposit on the cool surface", caption: "Cooling changes the vapour back into solid crystals.", color: "White crystals collect on the cool surface; tan sand remains in the dish.", swatches: [{ label: "White crystals", color: "#f4f1e8" }, { label: "Tan sand", color: "#b89562" }] },
             ],
             result: "Ammonium chloride crystals collect on the cool surface, while sand remains in the dish. The activity is a simulation because ammonium chloride vapour must not be inhaled.",
+            resultColor: "The deposited ammonium chloride is white; sand remains tan or brown. The method separates the solids without a colour change.",
+            resultSwatches: [{ label: "White ammonium chloride", color: "#f4f1e8" }, { label: "Tan sand", color: "#b89562" }],
         },
         distillation: {
             title: "Fractional distillation",
             objective: "Separate an ethanol and water mixture into fractions.",
             safety: "Ethanol is flammable. This is a virtual demonstration only; real distillation must use suitable electric heating and teacher supervision, away from flames.",
             steps: [
-                { title: "Set up the mixture with a fractionating column and condenser.", description: "The thermometer monitors vapour temperature. The condenser cools vapour so it can be collected as liquid.", icon: "⚗️", label: "Flask, fractionating column, and condenser", caption: "The fractionating column helps separate liquids with different boiling points." },
-                { title: "Heat the mixture in a controlled way.", description: "At normal atmospheric pressure, ethanol boils at about 78 °C and water at about 100 °C. Ethanol-rich vapour rises first.", icon: "🌡️", label: "Ethanol-rich vapour rises first", caption: "The lower-boiling liquid is more volatile and enters the vapour phase more readily." },
-                { title: "Cool the vapour and collect the first fraction.", description: "The condenser turns the vapour back into liquid. The collected fraction is richer in ethanol, not necessarily pure ethanol.", icon: "💧", label: "Ethanol-rich liquid is collected", caption: "Repeated vapourisation and condensation improve the separation." },
+                { title: "Set up the mixture with a fractionating column and condenser.", description: "The thermometer monitors vapour temperature. The condenser cools vapour so it can be collected as liquid.", icon: "⚗️", label: "Flask, fractionating column, and condenser", caption: "The fractionating column helps separate liquids with different boiling points.", color: "Water and ethanol are both clear and colourless, so colour does not distinguish them.", swatches: [{ label: "Colourless water and ethanol", color: "#dcecf5" }] },
+                { title: "Heat the mixture in a controlled way.", description: "At normal atmospheric pressure, ethanol boils at about 78 °C and water at about 100 °C. Ethanol-rich vapour rises first.", icon: "🌡️", label: "Ethanol-rich vapour rises first", caption: "The lower-boiling liquid is more volatile and enters the vapour phase more readily.", color: "There is no visible colour change. The thermometer and boiling points show which fraction is coming through.", swatches: [{ label: "Colourless liquids", color: "#dcecf5" }] },
+                { title: "Cool the vapour and collect the first fraction.", description: "The condenser turns the vapour back into liquid. The collected fraction is richer in ethanol, not necessarily pure ethanol.", icon: "💧", label: "Ethanol-rich liquid is collected", caption: "Repeated vapourisation and condensation improve the separation.", color: "The collected ethanol-rich fraction and the remaining water are both clear and colourless.", swatches: [{ label: "Colourless ethanol-rich fraction", color: "#dcecf5" }] },
             ],
             result: "The first collected fraction is richer in ethanol because ethanol has the lower boiling point. Fractional distillation improves separation but does not guarantee a perfectly pure liquid.",
+            resultColor: "No colour change is expected: both the ethanol-rich fraction and water are clear and colourless. Separation is indicated by temperature and collection, not colour.",
+            resultSwatches: [{ label: "Colourless fractions", color: "#dcecf5" }],
         },
         chromatography: {
             title: "Paper chromatography",
             objective: "Separate soluble pigments in a prepared groundnut-skin extract.",
             safety: "Groundnuts can cause severe allergic reactions. This is a virtual demonstration; do not handle groundnuts if you have an allergy. Visible results depend on the extract and solvent used.",
             steps: [
-                { title: "Prepare a coloured extract from groundnut skins.", description: "The simulation uses a prepared extract containing soluble coloured substances from the skins, rather than claiming the whole groundnut separates into visible colours.", icon: "🥜", label: "Prepared groundnut-skin extract", caption: "Only substances that dissolve in the chosen solvent can travel on the paper." },
-                { title: "Place a small spot on a pencil baseline.", description: "Keep the spot above the solvent level. Pencil graphite stays in place; ink could dissolve and affect the result.", icon: "🧻", label: "Extract spot above the solvent", caption: "The paper is placed upright with its lower edge in the solvent." },
-                { title: "Let the solvent rise up the paper.", description: "Different soluble substances travel at different rates and distances, forming separate bands on the paper.", icon: "🎨", label: "Pigment bands separate", caption: "The moving solvent is the mobile phase; the paper is the stationary phase." },
+                { title: "Prepare a coloured extract from groundnut skins.", description: "The simulation uses a prepared extract containing soluble coloured substances from the skins, rather than claiming the whole groundnut separates into visible colours.", icon: "🥜", label: "Prepared groundnut-skin extract", caption: "Only substances that dissolve in the chosen solvent can travel on the paper.", color: "The prepared extract is shown as reddish-brown. Actual extract colour can vary.", swatches: [{ label: "Illustrative reddish-brown extract", color: "#8b4a32" }] },
+                { title: "Place a small spot on a pencil baseline.", description: "Keep the spot above the solvent level. Pencil graphite stays in place; ink could dissolve and affect the result.", icon: "🧻", label: "Extract spot above the solvent", caption: "The paper is placed upright with its lower edge in the solvent.", color: "The extract spot appears reddish-brown before the solvent rises.", swatches: [{ label: "Reddish-brown starting spot", color: "#8b4a32" }] },
+                { title: "Let the solvent rise up the paper.", description: "Different soluble substances travel at different rates and distances, forming separate bands on the paper.", icon: "🎨", label: "Pigment bands separate", caption: "The moving solvent is the mobile phase; the paper is the stationary phase.", color: "The simulation illustrates separate red, orange, and yellow-brown bands. Actual colours depend on the extract and solvent.", swatches: [{ label: "Red band", color: "#b83b45" }, { label: "Orange band", color: "#e87832" }, { label: "Yellow-brown band", color: "#c0a243" }] },
             ],
             result: "The prepared extract may separate into bands because soluble components move different distances with the solvent. The pattern depends on the extract and solvent used.",
+            resultColor: "The simulation shows red, orange, and yellow-brown pigment bands. These are illustrative; real colours and separation depend on the groundnut-skin extract and solvent.",
+            resultSwatches: [{ label: "Illustrative red band", color: "#b83b45" }, { label: "Illustrative orange band", color: "#e87832" }, { label: "Illustrative yellow-brown band", color: "#c0a243" }],
         },
         filtration: {
             title: "Filtration",
             objective: "Separate insoluble sand from water.",
             safety: "The simulation uses clean materials. In a real lab, never taste laboratory mixtures or drink the filtrate.",
             steps: [
-                { title: "Fold filter paper and place it in a funnel.", description: "Place the funnel over a clean collecting container. The paper acts as a barrier with tiny spaces.", icon: "🧻", label: "Filter paper in a funnel", caption: "The apparatus is ready to separate an insoluble solid from a liquid." },
-                { title: "Pour the sand and water mixture through the filter.", description: "Water passes through the paper. Sand particles are too large to pass through and remain on the paper.", icon: "🫗", label: "Mixture passes through the filter", caption: "The solid caught on the paper is called the residue." },
-                { title: "Observe the residue and filtrate.", description: "Sand remains as the residue; water collected below is the filtrate. Filtration does not remove substances dissolved in water.", icon: "💧", label: "Sand residue and water filtrate", caption: "The filtrate is the liquid that has passed through the filter." },
+                { title: "Fold filter paper and place it in a funnel.", description: "Place the funnel over a clean collecting container. The paper acts as a barrier with tiny spaces.", icon: "🧻", label: "Filter paper in a funnel", caption: "The apparatus is ready to separate an insoluble solid from a liquid.", color: "The water is clear; dry sand is usually tan or brown.", swatches: [{ label: "Clear water", color: "#dcecf5" }, { label: "Tan sand", color: "#b89562" }] },
+                { title: "Pour the sand and water mixture through the filter.", description: "Water passes through the paper. Sand particles are too large to pass through and remain on the paper.", icon: "🫗", label: "Mixture passes through the filter", caption: "The solid caught on the paper is called the residue.", color: "The mixture may look cloudy. Tan sand collects on the paper while clearer water passes through.", swatches: [{ label: "Cloudy sand-water mixture", color: "#b4a184" }, { label: "Sand residue", color: "#b89562" }] },
+                { title: "Observe the residue and filtrate.", description: "Sand remains as the residue; water collected below is the filtrate. Filtration does not remove substances dissolved in water.", icon: "💧", label: "Sand residue and water filtrate", caption: "The filtrate is the liquid that has passed through the filter.", color: "The sand residue is tan or brown; the water filtrate should be clear and colourless.", swatches: [{ label: "Tan sand residue", color: "#b89562" }, { label: "Clear filtrate", color: "#dcecf5" }] },
             ],
             result: "Sand is collected as the residue on the filter paper. Water passes through as the filtrate. Dissolved substances would pass through with the water.",
+            resultColor: "The residue is usually tan or brown sand. The filtrate should be clear and colourless if the sand is the only suspended material.",
+            resultSwatches: [{ label: "Tan sand residue", color: "#b89562" }, { label: "Clear, colourless filtrate", color: "#dcecf5" }],
         },
     };
     let selectedMixtureMethod = "evaporation";
@@ -605,6 +615,20 @@
         document.getElementById("mixture-scene-icon").textContent = finished ? "✅" : step.icon;
         document.getElementById("mixture-scene-label").textContent = finished ? "Separated materials" : step.label;
         document.getElementById("mixture-scene-caption").textContent = finished ? method.result : step.caption;
+        const colorObservation = document.getElementById("mixture-color-observation");
+        const colorText = finished ? method.resultColor : step.color;
+        const swatches = finished ? method.resultSwatches : step.swatches;
+        document.getElementById("mixture-color-text").textContent = colorText || "No colour change is expected in this step.";
+        document.getElementById("mixture-color-swatches").replaceChildren(...(swatches || []).map((swatch) => {
+            const chip = document.createElement("span");
+            chip.className = "mixture-color-swatch";
+            chip.style.backgroundColor = swatch.color;
+            chip.setAttribute("role", "img");
+            chip.setAttribute("aria-label", swatch.label);
+            chip.title = swatch.label;
+            return chip;
+        }));
+        colorObservation.hidden = !colorText;
         document.getElementById("mixture-result-note").textContent = finished ? method.result : "";
         document.getElementById("mixture-result-note").hidden = !finished;
         document.getElementById("mixture-live-feedback").textContent = finished ? "Simulation complete. Choose another method or start again." : "Follow the step, then continue to see what happens.";

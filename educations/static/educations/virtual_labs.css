@@ -2422,6 +2422,23 @@ body.virtual-labs-body {
 .mixture-scene #mixture-scene-label { max-width: 18rem; color: var(--text); font-size: 1rem; font-weight: 750; }
 .mixture-scene-card > p { margin: .7rem .2rem .1rem; color: var(--muted); font-size: .88rem; line-height: 1.5; }
 
+.mixture-color-observation {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: .45rem .7rem;
+    margin-top: .8rem;
+    padding: .7rem;
+    border: 1px solid var(--line);
+    border-radius: .6rem;
+    background: #172640;
+}
+
+.mixture-color-observation > strong { color: var(--text); font-size: .8rem; }
+.mixture-color-swatches { display: flex; gap: .35rem; }
+.mixture-color-swatch { width: 1.25rem; height: 1.25rem; border: 1px solid #9eb2ce; border-radius: 50%; box-shadow: 0 0 0 2px #0a1324; }
+.mixture-color-observation p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.45; }
+
 .mixture-step-card > .eyebrow { margin: 0; color: var(--teal); font-size: .72rem; font-weight: 800; letter-spacing: .1em; }
 .mixture-step-list { display: flex; flex-wrap: wrap; gap: .4rem; margin: .65rem 0 1.2rem; padding: 0; list-style: none; }
 .mixture-step-list li { padding: .25rem .5rem; color: var(--muted); border: 1px solid var(--line); border-radius: 2rem; font-size: .72rem; }
