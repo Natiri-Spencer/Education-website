@@ -582,6 +582,94 @@
             resultSwatches: [{ label: "Tan sand residue", color: "#b89562" }, { label: "Clear, colourless filtrate", color: "#dcecf5" }],
         },
     };
+    const mixtureShelfItems = {
+        evaporation: [
+            { icon: "🥣", name: "Evaporating dish", note: "Holds the salt solution." },
+            { icon: "♜", name: "Tripod and wire gauze", note: "Support the dish above the heater." },
+            { icon: "♨️", name: "Heat source", note: "Use only with teacher supervision." },
+            { icon: "🧤", name: "Heat-resistant tongs", note: "Move hot equipment safely in a real lab." },
+            { icon: "▰", name: "Heatproof mat", note: "Protects the work surface from heat." },
+            { icon: "🥽", name: "Safety goggles", note: "Protect the eyes during real lab work." },
+            { icon: "🧂", name: "Salt solution", states: [
+                { label: "Clear and colourless", colors: [{ label: "Clear solution", color: "#dcecf5" }] },
+                { label: "Still clear; water is evaporating", colors: [{ label: "Clear solution", color: "#dcecf5" }] },
+                { label: "White salt crystals are visible", colors: [{ label: "White salt", color: "#f4f1e8" }] },
+                { label: "White salt crystals remain", colors: [{ label: "White salt crystals", color: "#f4f1e8" }] },
+            ] },
+            { icon: "💧", name: "Water", states: [
+                { label: "Dissolved in the clear solution", colors: [{ label: "Colourless water", color: "#dcecf5" }] },
+                { label: "Changing to invisible vapour", colors: [] },
+                { label: "Vapour leaves the dish", colors: [] },
+                { label: "Not collected by evaporation", colors: [] },
+            ] },
+        ],
+        sublimation: [
+            { icon: "🥣", name: "Evaporating dish", note: "Contains the solid mixture." },
+            { icon: "♜", name: "Tripod and wire gauze", note: "Support the dish above the heater." },
+            { icon: "♨️", name: "Heat source", note: "Virtual heating only." },
+            { icon: "⏳", name: "Inverted funnel and cotton wool", note: "Cool surface collects the crystals; cotton reduces vapour escape." },
+            { icon: "🛡️", name: "Fume cupboard", note: "Required for supervised real demonstrations." },
+            { icon: "🧤", name: "Heat-resistant tongs", note: "For handling hot equipment after heating." },
+            { icon: "⚗️", name: "Ammonium chloride", states: [
+                { label: "White solid crystals", colors: [{ label: "White ammonium chloride", color: "#f4f1e8" }] },
+                { label: "White vapour rises", colors: [{ label: "White vapour", color: "#e8edf1" }] },
+                { label: "White crystals deposit on the cool surface", colors: [{ label: "White crystals", color: "#f4f1e8" }] },
+                { label: "White solid collected separately", colors: [{ label: "White crystals", color: "#f4f1e8" }] },
+            ] },
+            { icon: "🏖️", name: "Sand", states: [
+                { label: "Tan solid mixed with the crystals", colors: [{ label: "Tan sand", color: "#b89562" }] },
+                { label: "Tan sand stays in the dish", colors: [{ label: "Tan sand", color: "#b89562" }] },
+                { label: "Tan sand remains behind", colors: [{ label: "Tan sand", color: "#b89562" }] },
+                { label: "Tan residue in the dish", colors: [{ label: "Tan sand residue", color: "#b89562" }] },
+            ] },
+        ],
+        distillation: [
+            { icon: "⚗️", name: "Distillation flask", note: "Holds the liquid mixture." },
+            { icon: "〰️", name: "Fractionating column", note: "Encourages repeated condensation and vaporisation." },
+            { icon: "🌡️", name: "Thermometer", note: "Measures vapour temperature." },
+            { icon: "🚰", name: "Water-cooled condenser and tubing", note: "Cools vapour back into liquid." },
+            { icon: "🧪", name: "Receiving flask", note: "Collects the distillate." },
+            { icon: "♨️", name: "Controlled electric heater", note: "No naked flame near ethanol." },
+            { icon: "🗜️", name: "Retort stands and clamps", note: "Hold the glassware securely in position." },
+            { icon: "⚪", name: "Anti-bumping granules", note: "Promote smooth boiling; add before heating." },
+            { icon: "💧", name: "Ethanol and water mixture", states: [
+                { label: "Both liquids are clear and colourless", colors: [{ label: "Colourless mixture", color: "#dcecf5" }] },
+                { label: "Ethanol-rich vapour rises; colourless", colors: [{ label: "Colourless vapour", color: "#dcecf5" }] },
+                { label: "Ethanol-rich liquid condenses; colourless", colors: [{ label: "Colourless distillate", color: "#dcecf5" }] },
+                { label: "Both fractions remain colourless", colors: [{ label: "Colourless fractions", color: "#dcecf5" }] },
+            ] },
+        ],
+        chromatography: [
+            { icon: "🪨", name: "Mortar and pestle", note: "Can crush the groundnut skins to prepare an extract." },
+            { icon: "🧻", name: "Chromatography paper", note: "Stationary phase for the separation." },
+            { icon: "✏️", name: "Pencil and ruler", note: "Mark a straight baseline in pencil." },
+            { icon: "🧴", name: "Capillary tube or dropper", note: "Places a small extract spot on the baseline." },
+            { icon: "🥛", name: "Beaker or chromatography jar", note: "Holds the solvent and paper upright." },
+            { icon: "🫙", name: "Lid or watch glass", note: "Covers the chamber to reduce solvent evaporation." },
+            { icon: "🗜️", name: "Paper clip or support", note: "Keeps the paper upright without touching the chamber bottom." },
+            { icon: "🧪", name: "Suitable solvent", note: "Choice depends on the extract; keep the spot above the solvent." },
+            { icon: "🥜", name: "Prepared groundnut-skin extract", states: [
+                { label: "Reddish-brown extract", colors: [{ label: "Reddish-brown extract", color: "#8b4a32" }] },
+                { label: "Reddish-brown starting spot", colors: [{ label: "Starting spot", color: "#8b4a32" }] },
+                { label: "Illustrative red, orange, and yellow-brown bands", colors: [{ label: "Red band", color: "#b83b45" }, { label: "Orange band", color: "#e87832" }, { label: "Yellow-brown band", color: "#c0a243" }] },
+                { label: "Pigment bands remain separated", colors: [{ label: "Red band", color: "#b83b45" }, { label: "Orange band", color: "#e87832" }, { label: "Yellow-brown band", color: "#c0a243" }] },
+            ] },
+        ],
+        filtration: [
+            { icon: "🧪", name: "Beaker", note: "Holds the sand-and-water mixture." },
+            { icon: "⏳", name: "Filter funnel", note: "Supports the filter paper." },
+            { icon: "🧻", name: "Filter paper", note: "Traps insoluble sand as residue." },
+            { icon: "🥛", name: "Conical flask or beaker", note: "Collects the filtrate." },
+            { icon: "〰️", name: "Glass rod", note: "Guides the liquid while pouring." },
+            { icon: "🧷", name: "Stand and clamp", note: "Can support the funnel." },
+            { icon: "🏖️", name: "Sand and water", states: [
+                { label: "Cloudy mixture; tan sand is visible", colors: [{ label: "Cloudy tan mixture", color: "#b4a184" }] },
+                { label: "Sand is trapped; water passes through", colors: [{ label: "Tan sand residue", color: "#b89562" }, { label: "Clearer water", color: "#dcecf5" }] },
+                { label: "Tan residue and clear, colourless filtrate", colors: [{ label: "Tan sand residue", color: "#b89562" }, { label: "Clear filtrate", color: "#dcecf5" }] },
+                { label: "Sand residue and colourless water filtrate", colors: [{ label: "Tan sand residue", color: "#b89562" }, { label: "Colourless filtrate", color: "#dcecf5" }] },
+            ] },
+        ],
+    };
     let selectedMixtureMethod = "evaporation";
     let mixtureStep = 0;
     let mixtureComplete = false;
@@ -598,6 +686,39 @@
         document.getElementById("mixture-method-title").textContent = method.title;
         document.getElementById("mixture-objective").textContent = method.objective;
         document.getElementById("mixture-method-safety").textContent = method.safety;
+        const shelfItems = mixtureShelfItems[selectedMixtureMethod];
+        const shelfStage = finished ? 3 : mixtureStep;
+        document.getElementById("mixture-shelf-count").textContent = `${shelfItems.length} items`;
+        document.getElementById("mixture-shelf-state").textContent = finished ? "Final products and remaining materials" : mixtureStep === 0 ? "Equipment and starting materials" : `During step ${mixtureStep + 1}: ${step.title}`;
+        document.getElementById("mixture-shelf-items").replaceChildren(...shelfItems.map((item) => {
+            const row = document.createElement("li");
+            row.className = "mixture-shelf-item";
+            const icon = document.createElement("span");
+            icon.className = "mixture-shelf-item-icon";
+            icon.setAttribute("aria-hidden", "true");
+            icon.textContent = item.icon;
+            const name = document.createElement("strong");
+            name.textContent = item.name;
+            row.append(icon, name);
+            const state = item.states?.[Math.min(shelfStage, item.states.length - 1)];
+            const stateColors = state?.colors || [];
+            const colorGroup = document.createElement("span");
+            colorGroup.className = "mixture-shelf-color-group";
+            stateColors.forEach((swatch) => {
+                const chip = document.createElement("span");
+                chip.className = "mixture-shelf-color";
+                chip.style.backgroundColor = swatch.color;
+                chip.setAttribute("role", "img");
+                chip.setAttribute("aria-label", swatch.label);
+                chip.title = swatch.label;
+                colorGroup.appendChild(chip);
+            });
+            row.appendChild(colorGroup);
+            const detail = document.createElement("small");
+            detail.textContent = state?.label || item.note;
+            row.appendChild(detail);
+            return row;
+        }));
         document.getElementById("mixture-step-count").textContent = finished ? "Complete" : `Step ${mixtureStep + 1} of ${method.steps.length}`;
         document.getElementById("mixture-progress-fill").style.width = `${finished ? 100 : (mixtureStep / method.steps.length) * 100}%`;
         document.querySelector(".mixture-progress-track").setAttribute("aria-valuenow", String(finished ? 100 : Math.round((mixtureStep / method.steps.length) * 100)));

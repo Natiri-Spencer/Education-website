@@ -2291,6 +2291,14 @@ body.virtual-labs-body {
     .apparatus-choice-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
 }
 
+@media (max-width: 1200px) {
+    .mixture-simulation-layout { grid-template-columns: 220px minmax(0, 1fr); }
+    .mixture-apparatus-shelf { grid-column: 2; border-top: 1px solid var(--line); border-left: 0; }
+    .mixture-shelf-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mixture-simulation-columns { grid-template-columns: 1fr; }
+    .mixture-scene { min-height: 13rem; }
+}
+
 @media (max-width: 620px) {
     .apparatus-activity-layout { grid-template-columns: 1fr; }
     .apparatus-procedure { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -2329,7 +2337,7 @@ body.virtual-labs-body {
 .mixture-simulation-layout {
     display: grid;
     min-height: calc(100vh - 3.4rem);
-    grid-template-columns: minmax(250px, 25%) minmax(0, 1fr);
+    grid-template-columns: minmax(230px, 22%) minmax(0, 1fr) minmax(220px, 265px);
     color: var(--text);
     background: var(--page);
 }
@@ -2373,6 +2381,37 @@ body.virtual-labs-body {
 }
 
 .mixture-simulation-main { min-width: 0; padding: clamp(1rem, 3vw, 2.25rem); }
+
+.mixture-apparatus-shelf {
+    min-width: 0;
+    padding: 1rem;
+    border-left: 1px solid var(--line);
+    background: var(--panel);
+}
+
+.mixture-shelf-heading { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem; }
+.mixture-shelf-heading h2 { margin: 0; color: var(--text); font-size: .82rem; letter-spacing: .08em; }
+.mixture-shelf-heading span { color: var(--muted); font-size: .72rem; }
+.mixture-shelf-state { margin: .4rem 0 .8rem; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.mixture-shelf-items { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+
+.mixture-shelf-item {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .35rem;
+    padding: .5rem;
+    border: 1px solid var(--line);
+    border-radius: .5rem;
+    background: #1b2b43;
+}
+
+.mixture-shelf-item-icon { font-size: 1.1rem; text-align: center; }
+.mixture-shelf-item strong { color: var(--text); font-size: .75rem; line-height: 1.3; }
+.mixture-shelf-item small { grid-column: 2 / -1; color: var(--muted); font-size: .68rem; line-height: 1.3; }
+.mixture-shelf-color-group { display: flex; gap: .18rem; }
+.mixture-shelf-color { width: .85rem; height: .85rem; border: 1px solid #9eb2ce; border-radius: 50%; }
+.mixture-shelf-footnote { margin: .8rem 0 0; color: var(--muted); font-size: .68rem; line-height: 1.45; }
 
 .mixture-simulation-heading {
     display: flex;
@@ -2465,6 +2504,8 @@ body.virtual-labs-body {
 
 @media (max-width: 850px) {
     .mixture-simulation-layout { grid-template-columns: 220px minmax(0, 1fr); }
+    .mixture-apparatus-shelf { grid-column: 2; border-top: 1px solid var(--line); border-left: 0; }
+    .mixture-shelf-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mixture-simulation-columns { grid-template-columns: 1fr; }
     .mixture-scene { min-height: 13rem; }
 }
@@ -2472,6 +2513,7 @@ body.virtual-labs-body {
 @media (max-width: 620px) {
     .mixture-simulation-layout { grid-template-columns: 1fr; }
     .mixture-method-sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+    .mixture-apparatus-shelf { grid-column: 1; }
     .mixture-method-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mixture-simulation-heading { align-items: flex-start; }
 }

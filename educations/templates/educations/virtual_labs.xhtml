@@ -5,7 +5,7 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=10">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=12">
 {% endblock %}
 
 {% block content %}
@@ -408,6 +408,12 @@
                 </div>
                 <p id="mixture-live-feedback" class="mixture-live-feedback" role="status" aria-live="polite"></p>
             </main>
+            <aside class="mixture-apparatus-shelf" aria-labelledby="mixture-shelf-title">
+                <div class="mixture-shelf-heading"><h2 id="mixture-shelf-title">APPARATUS SHELF</h2><span id="mixture-shelf-count"></span></div>
+                <p id="mixture-shelf-state" class="mixture-shelf-state">Equipment and materials for this method</p>
+                <ul id="mixture-shelf-items" class="mixture-shelf-items"></ul>
+                <p class="mixture-shelf-footnote">Colour labels show the current material or expected product in the simulation.</p>
+            </aside>
         </div>
     </section>
 
@@ -416,5 +422,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=10" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=12" defer></script>
 {% endblock %}
