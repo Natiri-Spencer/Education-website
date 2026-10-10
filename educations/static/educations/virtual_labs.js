@@ -28,6 +28,32 @@
         });
     }
 
+    const lessonContent = document.getElementById("lesson-content");
+    const lessonConfig = {
+        acids: {
+            title: "Acids, Bases, and Indicators",
+            template: "acids-lesson-panels",
+            labTitle: "INTEGRATED SCIENCE | ACIDS, BASES, AND INDICATORS | GRADE 7",
+        },
+        apparatus: {
+            title: "Laboratory Apparatus & Instruments",
+            template: "apparatus-lesson-panels",
+            labTitle: "INTEGRATED SCIENCE | LABORATORY APPARATUS & INSTRUMENTS | GRADE 7",
+        },
+    };
+    let selectedLesson = "acids";
+
+    function openLesson(lessonName) {
+        const lesson = lessonConfig[lessonName];
+        if (!lesson) return;
+        selectedLesson = lessonName;
+        document.getElementById("lesson-page-title").textContent = lesson.title;
+        document.getElementById("lesson-science-link").textContent = lesson.title;
+        lessonContent.replaceChildren(document.getElementById(lesson.template).content.cloneNode(true));
+        selectLessonTab("introduction");
+        showStage("lesson");
+    }
+
     document.getElementById("brand-back").addEventListener("click", (event) => {
         if (!stages.lesson.hidden) {
             event.preventDefault();
@@ -57,14 +83,15 @@
     document.getElementById("science-home").addEventListener("click", () => {
         document.querySelector("#grade-dashboard .lab-card-group").scrollIntoView({ behavior: "smooth", block: "start" });
     });
-    document.getElementById("open-acids-lesson").addEventListener("click", () => {
-        selectLessonTab("introduction");
-        showStage("lesson");
-    });
+    document.getElementById("open-acids-lesson").addEventListener("click", () => openLesson("acids"));
+    document.getElementById("open-apparatus-lesson").addEventListener("click", () => openLesson("apparatus"));
     document.querySelectorAll("[data-lesson-tab]").forEach((tab) => {
         tab.addEventListener("click", () => selectLessonTab(tab.dataset.lessonTab));
     });
-    document.getElementById("view-experiment").addEventListener("click", () => {
+    document.addEventListener("click", (event) => {
+        if (!event.target.closest("#view-experiment")) return;
+        document.querySelector("#simulation-view > .lab-app").hidden = selectedLesson !== "acids";
+        document.getElementById("apparatus-lab-app").hidden = selectedLesson !== "apparatus";
         selectLessonTab("procedure");
         showStage("simulation");
     });
@@ -72,6 +99,19 @@
         if (document.fullscreenElement) document.exitFullscreen();
         showStage("lesson");
         selectLessonTab("procedure");
+    });
+    document.getElementById("apparatus-back-to-lesson").addEventListener("click", () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        showStage("lesson");
+        selectLessonTab("procedure");
+    });
+    document.getElementById("apparatus-fullscreen").addEventListener("click", async () => {
+        try {
+            if (document.fullscreenElement) await document.exitFullscreen();
+            else await document.getElementById("apparatus-lab-app").requestFullscreen();
+        } catch {
+            document.getElementById("apparatus-feedback").textContent = "Full screen is unavailable in this browser. You can continue here.";
+        }
     });
     const procedureCollapse = document.querySelector(".procedure-collapse");
     procedureCollapse.addEventListener("click", () => {
@@ -375,5 +415,81 @@
         });
     });
 
+    const apparatusTasks = [
+        { prompt: "Which instrument would you use to hold and mix a liquid?", answer: "beaker", name: "Beaker", explanation: "A beaker holds, mixes, and pours liquids. Its markings give an estimate, not a precise volume." },
+        { prompt: "Which instrument is best for measuring a liquid volume accurately?", answer: "cylinder", name: "Measuring cylinder", explanation: "A measuring cylinder is designed to measure liquid volume. Read the level at eye height for a more accurate result." },
+        { prompt: "Which instrument helps you transfer just a few drops of liquid?", answer: "dropper", name: "Dropper", explanation: "A dropper transfers a small amount of liquid one drop at a time." },
+        { prompt: "Which instrument helps you pour liquid into a container with a narrow opening?", answer: "funnel", name: "Funnel", explanation: "A funnel guides liquid into a narrow opening and can hold filter paper when filtering." },
+        { prompt: "Which instrument measures how hot or cold a substance is?", answer: "thermometer", name: "Thermometer", explanation: "A thermometer measures temperature. Use one with a range suitable for the substance." },
+        { prompt: "Which instrument helps you see the details of a tiny specimen?", answer: "microscope", name: "Microscope", explanation: "A microscope magnifies small specimens so details that are hard to see with the eye become visible." },
+    ];
+    const apparatusState = { step: 0, completed: 0 };
+    const apparatusQuestion = document.getElementById("apparatus-question");
+    const apparatusFeedback = document.getElementById("apparatus-feedback");
+    const apparatusResult = document.getElementById("apparatus-result-card");
+    const apparatusChoiceButtons = [...document.querySelectorAll("[data-apparatus-choice]")];
+    const apparatusProgress = document.querySelector(".apparatus-progress-track");
+
+    function updateApparatusActivity() {
+        const finished = apparatusState.step >= apparatusTasks.length;
+        const task = apparatusTasks[apparatusState.step];
+        document.getElementById("apparatus-counter").textContent = finished ? "Complete" : `${apparatusState.step + 1} of ${apparatusTasks.length}`;
+        document.getElementById("apparatus-progress-label").textContent = `${apparatusState.completed} of ${apparatusTasks.length} matched`;
+        document.getElementById("apparatus-progress-fill").style.width = `${(apparatusState.completed / apparatusTasks.length) * 100}%`;
+        apparatusProgress.setAttribute("aria-valuenow", String(apparatusState.completed));
+        document.querySelectorAll("[data-apparatus-step]").forEach((item, index) => {
+            item.classList.toggle("active", !finished && index === apparatusState.step);
+            item.classList.toggle("complete", index < apparatusState.completed);
+        });
+        apparatusQuestion.textContent = finished ? "You have matched all the instruments!" : task.prompt;
+        apparatusFeedback.textContent = finished ? "Review the instrument descriptions, or start again to practise." : "Select an instrument from the shelf.";
+        apparatusChoiceButtons.forEach((button) => {
+            button.disabled = finished;
+            button.classList.remove("is-correct", "is-wrong");
+        });
+        apparatusResult.hidden = true;
+        document.getElementById("apparatus-complete").hidden = !finished;
+        document.getElementById("apparatus-next").hidden = true;
+    }
+
+    apparatusChoiceButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const task = apparatusTasks[apparatusState.step];
+            if (!task) return;
+            if (button.dataset.apparatusChoice !== task.answer) {
+                button.classList.add("is-wrong");
+                apparatusFeedback.textContent = "Not quite. Think about the job the instrument needs to do, then try again.";
+                window.setTimeout(() => button.classList.remove("is-wrong"), 700);
+                return;
+            }
+            apparatusState.completed += 1;
+            button.classList.add("is-correct");
+            apparatusChoiceButtons.forEach((choice) => { choice.disabled = true; });
+            apparatusFeedback.textContent = "Correct. Read the instrument note, then continue.";
+            document.getElementById("apparatus-result-icon").textContent = "✓";
+            document.getElementById("apparatus-result-title").textContent = task.name;
+            document.getElementById("apparatus-result-description").textContent = task.explanation;
+            apparatusResult.hidden = false;
+            document.getElementById("apparatus-next").hidden = false;
+            document.getElementById("apparatus-progress-label").textContent = `${apparatusState.completed} of ${apparatusTasks.length} matched`;
+            document.getElementById("apparatus-progress-fill").style.width = `${(apparatusState.completed / apparatusTasks.length) * 100}%`;
+            apparatusProgress.setAttribute("aria-valuenow", String(apparatusState.completed));
+            const completedStep = document.querySelector(`[data-apparatus-step="${apparatusState.step + 1}"]`);
+            completedStep.classList.remove("active");
+            completedStep.classList.add("complete");
+        });
+    });
+
+    document.getElementById("apparatus-next").addEventListener("click", () => {
+        apparatusState.step += 1;
+        updateApparatusActivity();
+    });
+    document.getElementById("apparatus-reset").addEventListener("click", () => {
+        apparatusState.step = 0;
+        apparatusState.completed = 0;
+        updateApparatusActivity();
+    });
+
     updateProcedure();
+    updateApparatusActivity();
 })();

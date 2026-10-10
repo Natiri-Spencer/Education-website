@@ -2135,3 +2135,169 @@ body.virtual-labs-body {
 .observation-log th {
     color: var(--muted);
 }
+
+/* Grade 7 laboratory apparatus identification activity. */
+.apparatus-activity-layout {
+    display: grid;
+    min-height: calc(100vh - 3.4rem);
+    grid-template-columns: minmax(255px, 24%) minmax(0, 1fr);
+    color: var(--text);
+    background: var(--page);
+}
+
+.apparatus-procedure {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+}
+
+.apparatus-counter,
+.apparatus-activity-topline > span:last-child { color: var(--muted); font-size: .8rem; }
+
+.apparatus-procedure-steps {
+    display: grid;
+    gap: .65rem;
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.apparatus-procedure-steps li {
+    padding: .45rem .5rem;
+    color: var(--muted);
+    border-left: 2px solid transparent;
+    line-height: 1.45;
+}
+
+.apparatus-procedure-steps li.active { color: var(--text); border-left-color: var(--teal); background: #203752; }
+.apparatus-procedure-steps li.complete { color: var(--teal); }
+
+.apparatus-safety-note {
+    margin: auto 0 1rem;
+    padding: .8rem;
+    color: var(--muted);
+    border-left: 3px solid var(--lime);
+    background: #1b2b43;
+    font-size: .82rem;
+    line-height: 1.5;
+}
+
+.apparatus-workspace { min-width: 0; padding: clamp(1rem, 3vw, 2.5rem); }
+
+.apparatus-activity-topline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: .55rem;
+}
+
+.apparatus-activity-topline .eyebrow,
+.apparatus-question-card .eyebrow {
+    margin: 0;
+    color: var(--teal);
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+}
+
+.apparatus-progress-track { height: .55rem; overflow: hidden; border-radius: 1rem; background: #263a56; }
+.apparatus-progress-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--lime); transition: width .25s ease; }
+
+.apparatus-question-card {
+    position: relative;
+    margin: 1.5rem 0;
+    padding: 1.4rem 1.5rem 1.2rem 5.2rem;
+    border: 1px solid var(--line);
+    border-radius: .9rem;
+    background: linear-gradient(120deg, #172a43, #193a52);
+}
+
+.apparatus-question-icon {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.2rem;
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    border-radius: .8rem;
+    background: #243e5c;
+    font-size: 1.55rem;
+}
+
+.apparatus-question-card h3 { margin: .45rem 0; color: var(--text); font-size: clamp(1.1rem, 2vw, 1.55rem); }
+.apparatus-feedback { min-height: 1.4rem; margin: .5rem 0 0; color: var(--muted); }
+
+.apparatus-shelf-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.6rem 0 .8rem;
+    color: var(--text);
+    font-size: .85rem;
+    letter-spacing: .08em;
+}
+
+.apparatus-shelf-heading span { color: var(--muted); font-size: .75rem; font-weight: 400; letter-spacing: 0; }
+.apparatus-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)); gap: .8rem; }
+
+.apparatus-choice {
+    display: grid;
+    min-height: 8rem;
+    justify-items: start;
+    gap: .35rem;
+    padding: 1rem;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: .75rem;
+    background: var(--panel);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+
+.apparatus-choice:hover:not(:disabled),
+.apparatus-choice:focus-visible { border-color: var(--teal); transform: translateY(-2px); }
+.apparatus-choice > span { font-size: 1.55rem; }
+.apparatus-choice strong { font-size: .9rem; }
+.apparatus-choice small { color: var(--muted); }
+.apparatus-choice:disabled { cursor: default; opacity: .7; }
+.apparatus-choice.is-correct { border-color: var(--lime); background: #203c42; opacity: 1; }
+.apparatus-choice.is-wrong { border-color: #ef8c78; background: #482e3c; }
+
+.apparatus-result-card {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-top: 1rem;
+    padding: .85rem 1rem;
+    border: 1px solid #4d796b;
+    border-radius: .7rem;
+    background: #1d3a3c;
+}
+
+.apparatus-result-card > span { display: grid; width: 2rem; height: 2rem; flex: 0 0 2rem; place-items: center; color: #14243a; border-radius: 50%; background: var(--lime); font-weight: 900; }
+.apparatus-result-card > div { flex: 1; }
+.apparatus-result-card strong { color: var(--text); }
+.apparatus-result-card p { margin: .2rem 0 0; color: var(--muted); line-height: 1.45; }
+.apparatus-result-card .orange-button { white-space: nowrap; }
+
+.apparatus-complete { margin-top: 1rem; padding: 1rem; color: var(--text); border: 1px solid #4d796b; border-radius: .7rem; background: #1d3a3c; }
+
+@media (max-width: 850px) {
+    .apparatus-activity-layout { grid-template-columns: 225px minmax(0, 1fr); }
+    .apparatus-choice-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+}
+
+@media (max-width: 620px) {
+    .apparatus-activity-layout { grid-template-columns: 1fr; }
+    .apparatus-procedure { border-right: 0; border-bottom: 1px solid var(--line); }
+    .apparatus-procedure-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-left: 1.25rem; }
+    .apparatus-safety-note { margin-top: .5rem; }
+    .apparatus-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .apparatus-question-card { padding-left: 1.2rem; }
+    .apparatus-question-icon { position: static; margin-bottom: .75rem; }
+    .apparatus-result-card { flex-wrap: wrap; }
+}

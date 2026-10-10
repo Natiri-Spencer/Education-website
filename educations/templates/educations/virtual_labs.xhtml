@@ -5,7 +5,7 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=7">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=8">
 {% endblock %}
 
 {% block content %}
@@ -58,10 +58,12 @@
                 <span aria-hidden="true">🔬</span>
             </div>
             <div class="subject-heading"><span class="subject-icon" aria-hidden="true">🧪</span><h2>Integrated Science</h2><span id="grade-pill" class="grade-pill">Grade {{ selected_grade|default:"7" }}</span></div>
-            <section class="lab-card-group" aria-labelledby="investigation-heading">
+            <section class="lab-card-group" aria-labelledby="investigation-heading" {% if not grade_has_labs %}hidden{% endif %}>
                 <h3 id="investigation-heading">Scientific Investigation</h3>
                 <div class="lesson-card-grid">
-                    <article class="lesson-card lesson-card-orange coming-soon-card"><span class="lesson-card-icon" aria-hidden="true">🔬</span><h4>Laboratory Apparatus &amp; Instruments</h4><span class="availability-pill">Coming soon</span><span class="lesson-card-arrow" aria-hidden="true">→</span></article>
+                    <button type="button" id="open-apparatus-lesson" class="lesson-card lesson-card-orange available-lesson" {% if not grade_has_labs %}hidden{% endif %}>
+                        <span class="lesson-card-icon" aria-hidden="true">🔬</span><span class="lesson-card-title">Laboratory Apparatus &amp; Instruments</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
+                    </button>
                 </div>
             </section>
             <section class="lab-card-group" aria-labelledby="mixtures-heading" {% if not grade_has_labs %}hidden{% endif %}>
@@ -107,7 +109,8 @@
                 <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-post" data-lesson-tab="post">♧&nbsp; Post-Assessment</button>
                 <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-conclusion" data-lesson-tab="conclusion">✓&nbsp; Conclusion</button>
             </nav>
-            <div class="lesson-content">
+            <div class="lesson-content" id="lesson-content"></div>
+            <template id="acids-lesson-panels">
                 <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
                     <h2>Introduction</h2><p>Welcome to the CEMASTEA Virtual Lab on Acids, Bases, and Indicators. In this lesson, you will explore household solutions and use a hibiscus indicator to investigate how acids, bases, and neutral solutions can be identified by colour change. Begin with the pre-assessment, then follow the guided experiment and record your observations.</p>
                 </section>
@@ -129,7 +132,39 @@
                 <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Conclusion</h2><p>Indicators provide evidence about the properties of a solution through colour change. Compare all three observations and explain how each colour supported your classification.</p>
                 </section>
-            </div>
+            </template>
+            <template id="apparatus-lesson-panels">
+                <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
+                    <h2>Introduction</h2>
+                    <p>Scientists use different apparatus to observe, measure, heat, and transfer materials. Choosing the right tool helps make an investigation safer and its results more reliable. In this lesson, explore common laboratory apparatus and match each tool to the job it does.</p>
+                </section>
+                <section id="lesson-panel-outcomes" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p>
+                    <ul><li>Name common laboratory apparatus and instruments.</li><li>Describe what each instrument is used for.</li><li>Choose an appropriate instrument for a simple investigation.</li><li>Explain why careful use and safety matter in a laboratory.</li></ul>
+                </section>
+                <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Resources</h2><p>The activity includes a beaker, measuring cylinder, dropper, funnel, thermometer, and microscope.</p>
+                    <p class="resource-safety-note"><strong>Safety:</strong> This is a simulation. In a real laboratory, handle glassware carefully and use heating equipment only with your teacher's guidance.</p>
+                </section>
+                <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Pre-Assessment</h2><p>Think about these questions before starting:</p>
+                    <ol><li>Which tool would you use to measure the temperature of water?</li><li>Would a beaker or a measuring cylinder give a more accurate volume reading?</li><li>What should you do before using unfamiliar laboratory equipment?</li></ol>
+                </section>
+                <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Procedure &amp; Experiment</h2>
+                    <div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">🔬</span><div><h3>INTEGRATED SCIENCE | LABORATORY APPARATUS &amp; INSTRUMENTS</h3><p>Grade 7 · Scientific Investigation</p></div>
+                        <p>Read each task and select the instrument that is best suited to it. Check the feedback to learn what the apparatus does.</p>
+                        <button type="button" id="view-experiment" class="orange-button">⛶&nbsp; View Experiment</button>
+                    </div>
+                </section>
+                <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Post-Assessment</h2><p>Check what you have learned:</p>
+                    <ol><li>Which instrument should you use to measure a liquid volume accurately?</li><li>What is the difference between a beaker and a measuring cylinder?</li><li>Which instrument helps you see very small objects?</li><li>Give one safety rule for using laboratory apparatus.</li></ol>
+                </section>
+                <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Conclusion</h2><p>Each instrument has a particular purpose. Selecting the right apparatus helps you collect useful observations and measurements. Always check that equipment is suitable and follow laboratory safety instructions.</p>
+                </section>
+            </template>
         </div>
     </section>
 
@@ -227,10 +262,61 @@
         </div>
     </section>
 
+    <section id="apparatus-lab-app" class="lab-app apparatus-lab-app" aria-labelledby="apparatus-lab-title" hidden>
+        <header class="lab-app-header">
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="kenya-mark">KE</span><span class="cemastea-mark">CEMASTEA</span><span class="science-mark">🔬</span></div>
+            <div class="lab-app-title"><h2 id="apparatus-lab-title">INTEGRATED SCIENCE | LABORATORY APPARATUS &amp; INSTRUMENTS | GRADE 7</h2></div>
+            <div class="lab-header-actions">
+                <button type="button" id="apparatus-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
+                <button type="button" id="apparatus-back-to-lesson" class="lab-icon-button lab-close-button" aria-label="Back to lesson" title="Back to lesson">×</button>
+            </div>
+        </header>
+        <div class="apparatus-activity-layout">
+            <aside class="apparatus-procedure" aria-labelledby="apparatus-procedure-title">
+                <div class="lab-panel-heading"><h2 id="apparatus-procedure-title">PROCEDURE</h2><span class="apparatus-counter" id="apparatus-counter">1 of 6</span></div>
+                <ol id="apparatus-procedure-steps" class="apparatus-procedure-steps">
+                    <li class="active" data-apparatus-step="1">Choose an instrument to hold and mix a liquid.</li>
+                    <li data-apparatus-step="2">Choose an instrument to measure liquid volume accurately.</li>
+                    <li data-apparatus-step="3">Choose an instrument to transfer a few drops.</li>
+                    <li data-apparatus-step="4">Choose an instrument to guide liquid into a narrow container.</li>
+                    <li data-apparatus-step="5">Choose an instrument to measure temperature.</li>
+                    <li data-apparatus-step="6">Choose an instrument to view a tiny specimen.</li>
+                </ol>
+                <p class="apparatus-safety-note"><strong>Safety:</strong> Treat the virtual tools as real equipment. Handle glassware carefully and ask your teacher before using unfamiliar instruments.</p>
+                <button type="button" id="apparatus-reset" class="procedure-next">START AGAIN&nbsp; ↻</button>
+            </aside>
+            <main class="apparatus-workspace">
+                <div class="apparatus-activity-topline"><span class="eyebrow">INSTRUMENT IDENTIFICATION</span><span id="apparatus-progress-label">0 of 6 matched</span></div>
+                <div class="apparatus-progress-track" role="progressbar" aria-label="Activity progress" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><span id="apparatus-progress-fill"></span></div>
+                <section class="apparatus-question-card" aria-live="polite">
+                    <span class="apparatus-question-icon" aria-hidden="true">🧪</span>
+                    <p class="eyebrow">YOUR TASK</p>
+                    <h3 id="apparatus-question">Which instrument would you use to hold and mix a liquid?</h3>
+                    <p id="apparatus-feedback" class="apparatus-feedback" role="status">Select an instrument from the shelf.</p>
+                </section>
+                <h3 class="apparatus-shelf-heading">APPARATUS SHELF <span>Choose one instrument</span></h3>
+                <div class="apparatus-choice-grid" id="apparatus-choice-grid">
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="beaker"><span aria-hidden="true">🧪</span><strong>Beaker</strong><small>Hold or mix liquids</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="cylinder"><span aria-hidden="true">🥛</span><strong>Measuring cylinder</strong><small>Measure liquid volume</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="dropper"><span aria-hidden="true">💧</span><strong>Dropper</strong><small>Transfer small amounts</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="funnel"><span aria-hidden="true">⏳</span><strong>Funnel</strong><small>Guide liquid when pouring</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="thermometer"><span aria-hidden="true">🌡️</span><strong>Thermometer</strong><small>Measure temperature</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="microscope"><span aria-hidden="true">🔬</span><strong>Microscope</strong><small>Magnify tiny objects</small></button>
+                </div>
+                <div class="apparatus-result-card" id="apparatus-result-card" hidden>
+                    <span id="apparatus-result-icon" aria-hidden="true">✓</span>
+                    <div><strong id="apparatus-result-title">Correct</strong><p id="apparatus-result-description"></p></div>
+                    <button type="button" id="apparatus-next" class="orange-button">NEXT&nbsp; →</button>
+                </div>
+                <p id="apparatus-complete" class="apparatus-complete" hidden>Well done! You matched all six instruments to their uses. Review the equipment, then start again to practise.</p>
+            </main>
+        </div>
+    </section>
+
     </section>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=7" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=8" defer></script>
 {% endblock %}
