@@ -95,7 +95,16 @@
         tab.addEventListener("click", () => selectLessonTab(tab.dataset.lessonTab));
     });
     document.addEventListener("click", (event) => {
+        if (event.target.closest("[data-open-commercial]")) {
+            stages.simulation.querySelectorAll(":scope > .lab-app").forEach((app) => {
+                app.hidden = app.id !== "commercial-lab-app";
+            });
+            selectLessonTab("procedure");
+            showStage("simulation");
+            return;
+        }
         if (!event.target.closest("#view-experiment")) return;
+        document.getElementById("commercial-lab-app").hidden = true;
         document.querySelector("#simulation-view > .lab-app").hidden = selectedLesson !== "acids";
         document.getElementById("apparatus-lab-app").hidden = selectedLesson !== "apparatus";
         document.getElementById("mixture-lab-app").hidden = selectedLesson !== "mixtures";
@@ -108,6 +117,11 @@
         startMixtureSimulation(methodButton.dataset.mixtureMethod);
     });
     document.getElementById("back-to-lesson").addEventListener("click", () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        showStage("lesson");
+        selectLessonTab("procedure");
+    });
+    document.getElementById("commercial-back").addEventListener("click", () => {
         if (document.fullscreenElement) document.exitFullscreen();
         showStage("lesson");
         selectLessonTab("procedure");
@@ -170,6 +184,9 @@
         lemon: { icon: "🍋", label: "Lemon juice" },
         soap: { icon: "🫧", label: "Soapy water" },
         "plain-water": { icon: "🚰", label: "Plain water" },
+        urine: { icon: "🧫", label: "Standing urine (virtual)" },
+        vinegar: { icon: "🍶", label: "Vinegar" },
+        "sugar-solution": { icon: "🧊", label: "Sugar solution" },
         dropper: { icon: "🧴", label: "Indicator dropper" },
     };
     const samples = {
@@ -195,16 +212,225 @@
             explanation: "A neutral solution keeps the hibiscus indicator purple in this simulation.",
         },
     };
+    Object.assign(samples, {
+        urine: {
+            name: "Standing urine (virtual sample)", className: "base", colour: "Green", swatch: "#3b995c",
+            explanation: "This model represents standing urine made alkaline by ammonia released when bacteria break down urea. The hibiscus indicator turns green. Fresh urine pH varies.",
+        },
+        vinegar: {
+            name: "Vinegar", className: "acid", colour: "Red / pink", swatch: "#c83755",
+            explanation: "Vinegar contains acetic acid and turns the hibiscus indicator red or pink.",
+        },
+        "sugar-solution": {
+            name: "Sugar solution", className: "neutral", colour: "Purple", swatch: "#8056a4",
+            explanation: "Sugar dissolved in pure water is neutral in this model, so the hibiscus indicator remains purple.",
+        },
+    });
+    const totalSamples = Object.keys(samples).length;
+    const totalActions = 6 + totalSamples * 3;
     const preparation = ["mortar", "petals", "pestle", "water", "beaker", "filter"];
-    const state = { step: 1, sample: null, classified: {} };
+    const state = { step: 1, sample: null, classified: {}, container: null, dropperLoaded: false };
+    const shelf = document.querySelector(".lab-shelf");
+    let crushingTimer = null;
+    let pestlePhase = null;
+    let testingTimer = null;
+    let testingPhaseTimer = null;
+    let dispensing = false;
+    let funnelOnBeaker = false;
+
+    function returnFunnel() {
+        if (!funnelOnBeaker || state.step !== 6) return;
+        const beaker = equipment.querySelector('[data-equipment="beaker"]');
+        beaker.querySelector(".indicator-funnel").remove();
+        beaker.querySelector(".funnel-return").remove();
+        document.querySelector('.shelf-item[data-lab-item="filter"]').disabled = false;
+        funnelOnBeaker = false;
+        state.step = 7;
+        benchStatus.textContent = "Funnel returned to the shelf. The filtered purple extract is ready in the beaker.";
+        setHint("Choose an untested sample from the shelf to test with the indicator dropper.");
+        updateProcedure();
+    }
+
+    function returnPestle() {
+        if (pestlePhase !== "done") return;
+        equipment.querySelector(".mortar-pestle")?.remove();
+        equipment.querySelector(".pestle-action")?.remove();
+        document.querySelector('.shelf-item[data-lab-item="pestle"]').disabled = false;
+        pestlePhase = null;
+        state.step = 4;
+        benchStatus.textContent = "Pestle returned to the shelf. Crushed petals remain in the mortar.";
+        setHint("Add distilled water to extract the pigment from the crushed petals.");
+        updateProcedure();
+    }
+
+    function placePestle() {
+        pestlePhase = "ready";
+        const mortar = equipment.querySelector('[data-equipment="mortar"]');
+        const pestle = document.createElement("div");
+        pestle.className = "mortar-pestle";
+        pestle.setAttribute("aria-label", "Pestle in the mortar");
+        const action = document.createElement("button");
+        action.type = "button";
+        action.className = "pestle-action";
+        action.textContent = "Crush hibiscus petals";
+        action.onclick = () => {
+            if (pestlePhase !== "ready") return;
+            pestlePhase = "crushing";
+            mortar.classList.add("crushing-petals");
+            action.disabled = true;
+            action.textContent = "Crushing…";
+            benchStatus.textContent = "Move the pestle against the petals to crush them and release their pigment.";
+            setHint("Watch the petals break down beneath the pestle.");
+            crushingTimer = window.setTimeout(() => {
+                crushingTimer = null;
+                mortar.classList.remove("crushing-petals");
+                colourMortar("ground");
+                pestlePhase = "done";
+                action.disabled = false;
+                action.textContent = "Return pestle to shelf";
+                action.onclick = returnPestle;
+                pestle.draggable = true;
+                benchStatus.textContent = "The petals are crushed into a dark red pulp.";
+                setHint("Return the pestle using the button, or drag it back to the apparatus shelf.");
+            }, 1800);
+        };
+        pestle.addEventListener("dragstart", (event) => {
+            event.dataTransfer.setData("text/plain", "return:pestle");
+            event.dataTransfer.effectAllowed = "move";
+        });
+        mortar.append(pestle, action);
+        document.querySelector('.shelf-item[data-lab-item="pestle"]').disabled = true;
+        benchStatus.textContent = "Pestle placed in the mortar. Crush the hibiscus petals.";
+        setHint("Choose Crush hibiscus petals to start grinding.");
+    }
+
+    function colourMortar(stage) {
+        const mortar = equipment.querySelector('[data-equipment="mortar"]');
+        if (!mortar) return;
+        mortar.dataset.contents = stage;
+        mortar.querySelector(".mortar-contents").textContent = {
+            empty: "Empty mortar", petals: "Red hibiscus petals", ground: "Crushed red petals", extract: "Purple hibiscus extract",
+        }[stage];
+    }
+
+    function returnContainer() {
+        if (!state.container?.empty) {
+            setHint("Pour the contents into the mortar before returning the container.");
+            return;
+        }
+        const item = state.container.item;
+        equipment.querySelector(`[data-container="${item}"]`).remove();
+        const button = document.querySelector(`.shelf-item[data-lab-item="${item}"]`);
+        button.disabled = false;
+        button.draggable = false;
+        button.querySelector(".shelf-icon").textContent = item === "petals" ? "◡" : "♧";
+        button.querySelector("span:nth-child(2)").textContent = item === "petals" ? "Empty hibiscus dish" : "Empty water beaker";
+        state.container = null;
+        state.step += 1;
+        setHint(item === "petals" ? "Empty dish returned. Choose the pestle to grind the petals." : "Empty water beaker returned. Place the indicator beaker on the bench.");
+        benchStatus.textContent = hint.textContent;
+        updateProcedure();
+    }
+
+    function pourContainer() {
+        if (!state.container || state.container.empty) return;
+        const item = state.container.item;
+        const container = equipment.querySelector(`[data-container="${item}"]`);
+        state.container.empty = true;
+        container.classList.add("container-poured");
+        container.draggable = true;
+        container.querySelector(".container-content").textContent = item === "petals" ? "Empty dish" : "Empty water beaker";
+        container.querySelector(".container-icon").textContent = item === "petals" ? "◡" : "♧";
+        container.querySelector("button").textContent = "Return to shelf";
+        container.querySelector("button").onclick = returnContainer;
+        colourMortar(item === "petals" ? "petals" : "extract");
+        benchStatus.textContent = item === "petals" ? "Red hibiscus petals are now in the mortar." : "The water extracts the pigment: the mixture in the mortar turns purple.";
+        setHint("Return the empty container using its button, or drag it back to the apparatus shelf.");
+    }
+
+    function placePourContainer(item) {
+        state.container = { item, empty: false };
+        const container = document.createElement("div");
+        container.className = "bench-object pour-container";
+        container.dataset.container = item;
+        const icon = document.createElement("span");
+        icon.className = "container-icon";
+        icon.textContent = item === "petals" ? "🌺" : "💧";
+        const label = document.createElement("span");
+        label.className = "container-content";
+        label.textContent = item === "petals" ? "Dish of hibiscus petals" : "Beaker of clear water";
+        const pour = document.createElement("button");
+        pour.type = "button";
+        pour.textContent = "Pour into mortar";
+        pour.onclick = pourContainer;
+        container.append(icon, label, pour);
+        container.addEventListener("dragstart", (event) => {
+            event.dataTransfer.setData("text/plain", `return:${item}`);
+            event.dataTransfer.effectAllowed = "move";
+        });
+        equipment.append(container);
+        document.querySelector(`.shelf-item[data-lab-item="${item}"]`).disabled = true;
+        benchStatus.textContent = `${label.textContent} ready. Pour it into the mortar.`;
+        setHint("Choose Pour into mortar, then return the empty container to the shelf.");
+    }
+
+    shelf.addEventListener("dragover", (event) => {
+        if (!state.container?.empty && pestlePhase !== "done" && !funnelOnBeaker) return;
+        event.preventDefault();
+        shelf.classList.add("return-ready");
+    });
+    shelf.addEventListener("dragleave", (event) => {
+        if (!shelf.contains(event.relatedTarget)) shelf.classList.remove("return-ready");
+    });
+    shelf.addEventListener("drop", (event) => {
+        shelf.classList.remove("return-ready");
+        if (funnelOnBeaker && event.dataTransfer.getData("text/plain") === "return:filter") {
+            event.preventDefault();
+            returnFunnel();
+            return;
+        }
+        if (pestlePhase === "done" && event.dataTransfer.getData("text/plain") === "return:pestle") {
+            event.preventDefault();
+            returnPestle();
+            return;
+        }
+        if (event.dataTransfer.getData("text/plain") !== `return:${state.container?.item}`) return;
+        event.preventDefault();
+        returnContainer();
+    });
 
     document.getElementById("procedure-next").addEventListener("click", () => {
+        if (funnelOnBeaker) {
+            setHint("Return the filter funnel to the shelf before testing a sample.");
+            equipment.querySelector(".funnel-return")?.focus();
+            return;
+        }
+        if (dispensing) {
+            setHint("Watch the purple drops mix into the sample and change its colour.");
+            return;
+        }
+        if (pestlePhase) {
+            setHint(pestlePhase === "done" ? "Return the pestle to the shelf before adding water." : "Crush the petals using the pestle in the mortar.");
+            equipment.querySelector(".pestle-action")?.focus();
+            return;
+        }
+        if (state.container) {
+            setHint(state.container.empty ? "Return the empty container to the shelf to continue." : "Pour the container contents into the mortar to continue.");
+            equipment.querySelector(".pour-container button")?.focus();
+            return;
+        }
         let nextItem;
         if (state.step <= 6) {
             nextItem = preparation[state.step - 1];
         } else if (state.step === 7) {
             nextItem = Object.keys(samples).find((item) => !state.classified[item]);
         } else if (state.step === 8) {
+            const action = equipment.querySelector(".dropper-action");
+            if (action) {
+                setHint(state.dropperLoaded ? "Add drops to the selected sample." : "Fill the dropper from the extract beaker.");
+                action.focus();
+                return;
+            }
             nextItem = "dropper";
         }
 
@@ -238,23 +464,137 @@
     }
 
     function addEquipment(item) {
+        if (item === "filter") {
+            const beaker = equipment.querySelector('[data-equipment="beaker"]');
+            const funnel = document.createElement("div");
+            funnel.className = "indicator-funnel";
+            funnel.setAttribute("aria-label", "Filter funnel above the indicator beaker");
+            funnel.textContent = "Filter funnel";
+            funnel.draggable = true;
+            funnel.addEventListener("dragstart", (event) => {
+                event.dataTransfer.setData("text/plain", "return:filter");
+                event.dataTransfer.effectAllowed = "move";
+            });
+            beaker.prepend(funnel);
+            const returnButton = document.createElement("button");
+            returnButton.type = "button";
+            returnButton.className = "funnel-return";
+            returnButton.textContent = "Return funnel to shelf";
+            returnButton.onclick = returnFunnel;
+            beaker.append(returnButton);
+            funnelOnBeaker = true;
+            document.querySelector('.shelf-item[data-lab-item="filter"]').disabled = true;
+            beaker.classList.add("filtered-extract");
+            beaker.querySelector(".vessel-liquid").textContent = "Purple extract";
+            colourMortar("ground");
+            equipment.querySelector('[data-equipment="mortar"] .mortar-contents').textContent = "Petal residue";
+            return;
+        }
         const data = shelfData[item];
         const chip = document.createElement("div");
         chip.className = "bench-object";
+        chip.dataset.equipment = item;
+        if (samples[item]) chip.classList.add("sample-vessel");
         const icon = document.createElement("span");
         icon.textContent = data.icon;
         const name = document.createElement("span");
         name.textContent = data.label;
         chip.append(icon, name);
+        if (item === "beaker" || samples[item]) {
+            const liquid = document.createElement("div");
+            liquid.className = "vessel-liquid";
+            liquid.textContent = item === "beaker" ? "Empty" : "Before indicator";
+            chip.append(liquid);
+            if (samples[item]) {
+                chip.addEventListener("dragover", (event) => {
+                    if (state.step === 8 && state.sample === item && state.dropperLoaded) event.preventDefault();
+                });
+                chip.addEventListener("drop", (event) => {
+                    if (event.dataTransfer.getData("text/plain") !== "loaded-indicator-dropper") return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (state.sample === item) dispenseIndicator();
+                });
+            }
+        }
+        if (item === "mortar") {
+            const contents = document.createElement("span");
+            contents.className = "mortar-contents";
+            contents.textContent = "Empty mortar";
+            chip.dataset.contents = "empty";
+            chip.append(contents);
+        }
         equipment.appendChild(chip);
+    }
+
+    function fillDropper() {
+        if (state.step !== 8 || state.dropperLoaded || dispensing) return;
+        state.dropperLoaded = true;
+        const dropper = equipment.querySelector('[data-equipment="dropper"]');
+        dropper.classList.add("dropper-loaded");
+        dropper.draggable = true;
+        dropper.querySelector(".dropper-action").textContent = "Add drops to sample";
+        dropper.querySelector(".dropper-action").onclick = dispenseIndicator;
+        benchStatus.textContent = "Dropper filled with purple hibiscus extract from the indicator beaker.";
+        setHint("Choose Add drops to sample, or drag the filled dropper onto the selected sample.");
+    }
+
+    function dispenseIndicator() {
+        if (state.step !== 8 || !state.dropperLoaded || dispensing) return;
+        dispensing = true;
+        const sample = samples[state.sample];
+        const sampleVessel = equipment.querySelector(`[data-equipment="${state.sample}"]`);
+        const dropper = equipment.querySelector('[data-equipment="dropper"]');
+        const origin = dropper.getBoundingClientRect();
+        sampleVessel.append(dropper);
+        dropper.draggable = false;
+        dropper.classList.remove("dropper-loaded");
+        dropper.classList.add("dropper-dispensing");
+        dropper.querySelector(".dropper-action").remove();
+        const target = dropper.getBoundingClientRect();
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!reducedMotion) {
+            dropper.animate([
+                { transform: `translate(${origin.left - target.left}px, ${origin.top - target.top}px)` },
+                { transform: "translate(0, 0)" },
+            ], { duration: 650, easing: "ease-in-out" });
+        }
+        sampleVessel.style.setProperty("--contents-colour", sample.swatch);
+        sampleVessel.classList.add("sample-testing");
+        sampleVessel.querySelector(".vessel-liquid").textContent = "Adding purple indicator…";
+        benchStatus.textContent = `Adding hibiscus extract to ${sample.name.toLowerCase()}. Watch the drops enter the liquid.`;
+        setHint("Watch the purple indicator spread through the sample, then observe the final colour.");
+        state.dropperLoaded = false;
+        testingPhaseTimer = window.setTimeout(() => {
+            testingPhaseTimer = null;
+            sampleVessel.querySelector(".vessel-liquid").textContent = "Mixing…";
+            benchStatus.textContent = `The indicator is mixing: ${sample.name.toLowerCase()} turns ${sample.colour.toLowerCase()}.`;
+        }, 1700);
+        testingTimer = window.setTimeout(() => {
+        testingTimer = null;
+        sampleVessel.classList.remove("sample-testing");
+        sampleVessel.classList.add("coloured-sample");
+        sampleVessel.querySelector(".vessel-liquid").textContent = sample.colour;
+        dropper.classList.remove("dropper-dispensing");
+        dropper.classList.add("dropper-finished");
+        resultSwatch.style.backgroundColor = sample.swatch;
+        resultText.textContent = `${sample.name}: ${sample.colour} indicator`;
+        resultPanel.hidden = false;
+        classificationPanel.hidden = false;
+        dispensing = false;
+        state.step = 9;
+        benchStatus.textContent = "Hibiscus extract added to the sample. Observe the colour change, then classify it.";
+        setHint("Use the colour change to decide whether this sample is acidic, neutral, or basic.");
+        updateProcedure();
+        }, 3600);
     }
 
     function progressValue() {
         const completedSamples = Object.keys(state.classified).length;
-        if (state.step <= 6) return Math.round(((state.step - 1) / 15) * 100);
-        if (state.step === 7) return Math.round(((6 + completedSamples * 3) / 15) * 100);
-        if (state.step === 8) return Math.round(((7 + completedSamples * 3) / 15) * 100);
-        if (state.step === 9) return Math.round(((8 + completedSamples * 3) / 15) * 100);
+        if (state.step <= 6) return Math.round(((state.step - 1) / totalActions) * 100);
+        if (state.step === 7) return Math.round(((6 + completedSamples * 3) / totalActions) * 100);
+        if (state.step === 8) return Math.round(((7 + completedSamples * 3) / totalActions) * 100);
+        if (state.step === 9) return Math.round(((8 + completedSamples * 3) / totalActions) * 100);
         return 100;
     }
 
@@ -284,14 +624,30 @@
                 8: "Add the indicator",
                 9: "Classify the sample",
             }[state.step];
-            stepLabel.textContent = `Sample ${Object.keys(state.classified).length + 1} of 3 · ${phase}`;
+            stepLabel.textContent = `Sample ${Object.keys(state.classified).length + 1} of ${totalSamples} · ${phase}`;
         }
         progressLabel.textContent = `${value}% complete`;
-        sampleCount.textContent = `${Object.keys(state.classified).length} of 3 samples classified`;
+        sampleCount.textContent = `${Object.keys(state.classified).length} of ${totalSamples} samples classified`;
     }
 
     function useItem(item) {
+        if (funnelOnBeaker) {
+            setHint("Filtering is complete. Return the funnel to the shelf before selecting a sample.");
+            return;
+        }
+        if (dispensing) {
+            setHint("Wait for the indicator to mix and the colour change to finish.");
+            return;
+        }
         if (!shelfData[item] || state.step === 10) return;
+        if (pestlePhase) {
+            setHint(pestlePhase === "done" ? "Return the pestle to the shelf first." : "Finish crushing the petals with the pestle first.");
+            return;
+        }
+        if (state.container) {
+            setHint(state.container.empty ? "Return the empty container to the shelf first." : "Pour the contents into the mortar first.");
+            return;
+        }
 
         if (state.step <= 6) {
             const expected = preparation[state.step - 1];
@@ -299,7 +655,21 @@
                 setHint(`For this step, choose the ${shelfData[expected].label.toLowerCase()}.`);
                 return;
             }
+            if (item === "petals" || item === "water") {
+                placePourContainer(item);
+                return;
+            }
+            if (item === "pestle") {
+                placePestle();
+                return;
+            }
             addEquipment(item);
+            if (item === "filter") {
+                benchStatus.textContent = "Purple extract collected in the beaker. Remove the filter funnel before testing.";
+                setHint("Choose Return funnel to shelf, or drag the funnel back to the apparatus shelf.");
+                updateProcedure();
+                return;
+            }
             const preparationMessages = [
                 "Mortar placed. Add the hibiscus petals next.",
                 "Petals added. Grind them with the pestle.",
@@ -310,7 +680,7 @@
             ];
             benchStatus.textContent = preparationMessages[state.step - 1];
             state.step += 1;
-            if (state.step === 7) setHint("Choose lemon juice, soapy water, or plain water from the shelf.");
+            if (state.step === 7) setHint("Choose an untested sample from the shelf.");
             else setHint(preparationMessages[state.step - 2]);
             updateProcedure();
             return;
@@ -318,7 +688,7 @@
 
         if (state.step === 7) {
             if (!samples[item]) {
-                setHint("Choose one of the three solution samples to test.");
+                setHint("Choose one of the six solution samples to test.");
                 return;
             }
             if (state.classified[item]) {
@@ -339,16 +709,24 @@
                 setHint("Use the indicator dropper for this step.");
                 return;
             }
-            addEquipment(item);
-            const sample = samples[state.sample];
-            resultSwatch.style.backgroundColor = sample.swatch;
-            resultText.textContent = `${sample.name}: ${sample.colour} indicator`;
-            resultPanel.hidden = false;
-            classificationPanel.hidden = false;
-            benchStatus.textContent = "Observe the colour change, then classify the sample.";
-            state.step = 9;
-            setHint("Use the colour change to decide whether this sample is acidic, neutral, or basic.");
-            updateProcedure();
+            if (equipment.querySelector('[data-equipment="dropper"]')) {
+                setHint(state.dropperLoaded ? "Add drops to the selected sample using the dropper button or drag it onto the sample." : "Fill the dropper from the purple extract first.");
+                return;
+            }
+            addEquipment("dropper");
+            const dropper = equipment.querySelector('[data-equipment="dropper"]');
+            const action = document.createElement("button");
+            action.type = "button";
+            action.className = "dropper-action";
+            action.textContent = "Fill from extract beaker";
+            action.onclick = fillDropper;
+            dropper.append(action);
+            dropper.addEventListener("dragstart", (event) => {
+                event.dataTransfer.setData("text/plain", "loaded-indicator-dropper");
+                event.dataTransfer.effectAllowed = "move";
+            });
+            benchStatus.textContent = "Empty dropper ready. Fill it from the purple extract in the indicator beaker.";
+            setHint("Choose Fill from extract beaker, then add drops to the sample.");
         }
     }
 
@@ -370,13 +748,14 @@
         });
         observationRows.appendChild(row);
         state.classified[state.sample] = true;
+        equipment.querySelector('[data-equipment="dropper"]')?.remove();
         state.sample = null;
         resultPanel.hidden = true;
         classificationPanel.hidden = true;
 
-        if (Object.keys(state.classified).length === 3) {
+        if (Object.keys(state.classified).length === totalSamples) {
             state.step = 10;
-            benchStatus.textContent = "All three samples have been classified. Review your observation log.";
+            benchStatus.textContent = `All ${totalSamples} samples have been classified. Review your observation log.`;
             setHint("Experiment complete. Review your observations: which colour indicated an acid, and which indicated a base?");
         } else {
             state.step = 7;
@@ -412,9 +791,30 @@
     });
 
     document.getElementById("reset-lab").addEventListener("click", () => {
+        window.clearTimeout(testingTimer);
+        window.clearTimeout(testingPhaseTimer);
+        testingTimer = null;
+        testingPhaseTimer = null;
+        dispensing = false;
+        funnelOnBeaker = false;
+        document.querySelector('.shelf-item[data-lab-item="filter"]').disabled = false;
+        window.clearTimeout(crushingTimer);
+        crushingTimer = null;
+        pestlePhase = null;
+        document.querySelector('.shelf-item[data-lab-item="pestle"]').disabled = false;
         state.step = 1;
         state.sample = null;
         state.classified = {};
+        state.container = null;
+        state.dropperLoaded = false;
+        shelf.classList.remove("return-ready");
+        ["petals", "water"].forEach((item) => {
+            const button = document.querySelector(`.shelf-item[data-lab-item="${item}"]`);
+            button.disabled = false;
+            button.draggable = true;
+            button.querySelector(".shelf-icon").textContent = shelfData[item].icon;
+            button.querySelector("span:nth-child(2)").textContent = shelfData[item].label;
+        });
         equipment.replaceChildren();
         observationRows.innerHTML = '<tr class="empty-observation"><td colspan="4">Your observations will appear here.</td></tr>';
         resultPanel.hidden = true;
@@ -760,6 +1160,7 @@
 
     function startMixtureSimulation(methodName) {
         if (!mixtureMethods[methodName]) return;
+        document.getElementById("commercial-lab-app").hidden = true;
         selectedMixtureMethod = methodName;
         mixtureStep = 0;
         mixtureComplete = false;

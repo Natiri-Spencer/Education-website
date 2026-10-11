@@ -5,7 +5,7 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=12">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=25">
 {% endblock %}
 
 {% block content %}
@@ -114,25 +114,25 @@
             <div class="lesson-content" id="lesson-content"></div>
             <template id="acids-lesson-panels">
                 <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
-                    <h2>Introduction</h2><p>Welcome to the CEMASTEA Virtual Lab on Acids, Bases, and Indicators. In this lesson, you will explore household solutions and use a hibiscus indicator to investigate how acids, bases, and neutral solutions can be identified by colour change. Begin with the pre-assessment, then follow the guided experiment and record your observations.</p>
+                    <h2>Introduction</h2><p>Welcome to the virtual lab on Acids, Bases, and Indicators. In this lesson, you will explore household solutions and use a hibiscus indicator to investigate how acids, bases, and neutral solutions can be identified by colour change. Begin with the pre-assessment, then follow the guided experiment and record your observations.</p>
                 </section>
                 <section id="lesson-panel-outcomes" class="lesson-panel" role="tabpanel" hidden>
-                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p><ul><li>Describe how an indicator helps identify acids, bases, and neutral solutions.</li><li>Prepare a natural indicator from hibiscus petals.</li><li>Use colour observations to classify sample solutions and record evidence.</li></ul>
+                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p><ul><li>Describe how an indicator helps identify acids, bases, and neutral solutions.</li><li>Prepare a natural indicator from hibiscus petals.</li><li>Compare commercial indicators and explain when another test is needed.</li><li>Use colour observations to classify sample solutions and record evidence.</li></ul>
                 </section>
                 <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
-                    <h2>Resources</h2><p>The simulation provides a mortar and pestle, hibiscus petals, distilled water, a filter funnel, a beaker, an indicator dropper, and three sample solutions.</p><p class="resource-safety-note"><strong>Safety:</strong> This is a simulation. Do not taste or handle real household chemicals. Ask your teacher before doing any practical activity.</p>
+                    <h2>Resources</h2><p>The simulation provides a mortar and pestle, hibiscus petals, distilled water, a filter funnel, a beaker, an indicator dropper, and six sample solutions. A separate experiment provides clean beakers, a dropper, red and blue litmus paper, methyl orange, phenolphthalein, and model acid, alkali, and neutral solutions.</p><p class="resource-safety-note"><strong>Safety:</strong> This is a simulation. Do not taste or handle real household chemicals. Ask your teacher before doing any practical activity.</p>
                 </section>
                 <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Pre-Assessment</h2><p>Think about these questions before starting. You can return to them after the experiment.</p><ol><li>What is an indicator used for?</li><li>What colour change might help you identify an acid or a base?</li></ol>
                 </section>
                 <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
-                    <h2>Procedure &amp; Experiment</h2><div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">⚗</span><div><h3>INTEGRATED SCIENCE | ACIDS, BASES, AND INDICATORS</h3><p>Grade 7 · Acids, Bases and Indicators</p></div><p>Prepare a hibiscus indicator, add it to lemon juice, soapy water, and plain water, then use the colour changes to classify each sample.</p><button type="button" id="view-experiment" class="orange-button">⛶&nbsp; View Experiment</button></div>
+                    <h2>Procedure &amp; Experiment</h2><div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">⚗</span><div><h3>Experiment 1 · Hibiscus indicator</h3><p>Grade 7 · Acids, Bases and Indicators</p></div><p>Prepare a hibiscus indicator, add it to lemon juice, soapy water, plain water, virtual urine, vinegar, and sugar solution, then use the colour changes to classify each sample.</p><button type="button" id="view-experiment" class="orange-button">⛶&nbsp; View Experiment</button></div><div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">🧪</span><div><h3>Experiment 2 · Commercial indicators</h3><p>Choose, predict, test, compare</p></div><p>Investigate red and blue litmus paper, methyl orange, and phenolphthalein. Design your own tests, watch the colour changes, and use evidence to explain your conclusions.</p><button type="button" class="orange-button" data-open-commercial>Open Commercial Indicators</button></div>
                 </section>
                 <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Post-Assessment</h2><p>After completing the experiment, check your understanding:</p><ol><li>Which sample behaved as an acid, and what colour did the indicator show?</li><li>Which colour change helped you identify a base?</li><li>Why should you record the observed colour before classifying a sample?</li></ol>
                 </section>
                 <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
-                    <h2>Conclusion</h2><p>Indicators provide evidence about the properties of a solution through colour change. Compare all three observations and explain how each colour supported your classification.</p>
+                    <h2>Conclusion</h2><p>Indicators provide evidence about the properties of a solution through colour change. Compare all six observations and explain how each colour supported your classification.</p>
                 </section>
             </template>
             <template id="apparatus-lesson-panels">
@@ -211,7 +211,7 @@
     <section id="simulation-view" class="simulation-view" hidden>
     <section class="lab-app" aria-labelledby="lab-title" data-grade="7">
         <header class="lab-app-header">
-            <div class="lab-logo-cluster" aria-hidden="true"><span class="kenya-mark">KE</span><span class="cemastea-mark">CEMASTEA</span><span class="science-mark">⚗</span></div>
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="science-mark">⚗</span></div>
             <div class="lab-app-title">
                 <h2 id="lab-title">INTEGRATED SCIENCE | ACID, BASES, AND INDICATORS | GRADE 7 ACID BASES AND INDICATORS</h2>
             </div>
@@ -229,12 +229,12 @@
                 </div>
                 <ol id="procedure-steps" class="procedure-steps">
                     <li data-step="1"><span class="step-marker">1</span><span>Place the mortar on the workbench.</span></li>
-                    <li data-step="2"><span class="step-marker">2</span><span>Add hibiscus petals to the mortar.</span></li>
-                    <li data-step="3"><span class="step-marker">3</span><span>Grind the petals with the pestle.</span></li>
-                    <li data-step="4"><span class="step-marker">4</span><span>Add distilled water to extract the pigment.</span></li>
+                    <li data-step="2"><span class="step-marker">2</span><span>Pour hibiscus petals into the mortar, then return the empty dish to the shelf.</span></li>
+                    <li data-step="3"><span class="step-marker">3</span><span>Crush the petals with the pestle, then return it to the shelf.</span></li>
+                    <li data-step="4"><span class="step-marker">4</span><span>Pour distilled water into the mortar. Observe the purple extract, then return the empty water beaker to the shelf.</span></li>
                     <li data-step="5"><span class="step-marker">5</span><span>Place the empty beaker on the workbench.</span></li>
-                    <li data-step="6"><span class="step-marker">6</span><span>Place the filter funnel over the beaker to strain the indicator.</span></li>
-                    <li data-step="7"><span class="step-marker">7</span><span>Select a household solution to test.</span></li>
+                    <li data-step="6"><span class="step-marker">6</span><span>Filter the extract into the beaker, then return the funnel to the shelf.</span></li>
+                    <li data-step="7"><span class="step-marker">7</span><span>Select a sample solution to test.</span></li>
                     <li data-step="8"><span class="step-marker">8</span><span>Add a few drops of indicator to the sample.</span></li>
                     <li data-step="9"><span class="step-marker">9</span><span>Observe the colour and classify the solution.</span></li>
                 </ol>
@@ -269,10 +269,10 @@
                         <button type="button" data-classification="neutral">Neutral</button>
                         <button type="button" data-classification="base">Base</button>
                     </div>
-                    <p class="lab-colour-help">Colour guide for this simulation: red/pink suggests an acid, purple a neutral solution, and green a base.</p>
+                    <p class="lab-colour-help">The virtual urine sample models standing urine made basic by ammonia released as bacteria break down urea. It turns the indicator green. Fresh urine pH varies. Sugar solution models sugar dissolved in pure water.</p><p class="lab-colour-help">Colour guide for this simulation: red/pink suggests an acid, purple a neutral solution, and green a base.</p>
                 </section>
                 <section class="observation-log" aria-labelledby="observation-title">
-                    <div class="observation-heading"><h3 id="observation-title">Observation log</h3><span id="sample-count">0 of 3 samples classified</span></div>
+                    <div class="observation-heading"><h3 id="observation-title">Observation log</h3><span id="sample-count">0 of 6 samples classified</span></div>
                     <div class="table-responsive">
                         <table>
                             <thead><tr><th>Sample</th><th>Indicator colour</th><th>Classification</th><th>What the colour means</th></tr></thead>
@@ -295,6 +295,9 @@
                     <button type="button" class="shelf-item" draggable="true" data-lab-item="lemon"><span class="shelf-icon">🍋</span><span>Lemon juice</span><small>Sample A</small></button>
                     <button type="button" class="shelf-item" draggable="true" data-lab-item="soap"><span class="shelf-icon">🫧</span><span>Soapy water</span><small>Sample B</small></button>
                     <button type="button" class="shelf-item" draggable="true" data-lab-item="plain-water"><span class="shelf-icon">🚰</span><span>Plain water</span><small>Sample C</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="urine"><span class="shelf-icon">🧫</span><span>Standing urine (virtual)</span><small>Sample D · ammonia · basic</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="vinegar"><span class="shelf-icon">🍶</span><span>Vinegar</span><small>Sample E</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="sugar-solution"><span class="shelf-icon">🧊</span><span>Sugar solution</span><small>Sample F</small></button>
                     <button type="button" class="shelf-item" draggable="true" data-lab-item="dropper"><span class="shelf-icon">🧴</span><span>Indicator dropper</span></button>
                 </div>
                 <div class="shelf-cupboard-footer"><span class="cupboard-handle" aria-hidden="true"></span><p>Choose apparatus or a sample to continue the experiment.</p></div>
@@ -302,9 +305,10 @@
         </div>
     </section>
 
+    {% include 'educations/commercial_indicators.xhtml' %}
     <section id="apparatus-lab-app" class="lab-app apparatus-lab-app" aria-labelledby="apparatus-lab-title" hidden>
         <header class="lab-app-header">
-            <div class="lab-logo-cluster" aria-hidden="true"><span class="kenya-mark">KE</span><span class="cemastea-mark">CEMASTEA</span><span class="science-mark">🔬</span></div>
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="science-mark">🔬</span></div>
             <div class="lab-app-title"><h2 id="apparatus-lab-title">INTEGRATED SCIENCE | LABORATORY APPARATUS &amp; INSTRUMENTS | GRADE 7</h2></div>
             <div class="lab-header-actions">
                 <button type="button" id="apparatus-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
@@ -334,8 +338,11 @@
                     <h3 id="apparatus-question">Which instrument would you use to hold and mix a liquid?</h3>
                     <p id="apparatus-feedback" class="apparatus-feedback" role="status">Select an instrument from the shelf.</p>
                 </section>
-                <h3 class="apparatus-shelf-heading">APPARATUS SHELF <span>Choose one instrument</span></h3>
-                <div class="apparatus-choice-grid" id="apparatus-choice-grid">
+                <section class="apparatus-bench" id="apparatus-bench" aria-label="Working bench. Drop the correct instrument here or select it from the shelf.">
+                    <span class="eyebrow">WORKING BENCH</span>
+                    <div id="apparatus-bench-items" class="apparatus-bench-items"><span class="bench-placeholder">Drag an instrument here, or choose it from the shelf.</span></div>
+                </section>
+                <div class="apparatus-choice-grid" id="apparatus-choice-grid" aria-label="Apparatus shelf">
                     <button type="button" class="apparatus-choice" data-apparatus-choice="beaker"><span aria-hidden="true">🧪</span><strong>Beaker</strong><small>Hold or mix liquids</small></button>
                     <button type="button" class="apparatus-choice" data-apparatus-choice="cylinder"><span aria-hidden="true">🥛</span><strong>Measuring cylinder</strong><small>Measure liquid volume</small></button>
                     <button type="button" class="apparatus-choice" data-apparatus-choice="dropper"><span aria-hidden="true">💧</span><strong>Dropper</strong><small>Transfer small amounts</small></button>
@@ -355,7 +362,7 @@
 
     <section id="mixture-lab-app" class="lab-app mixture-lab-app" aria-labelledby="mixture-lab-title" hidden>
         <header class="lab-app-header">
-            <div class="lab-logo-cluster" aria-hidden="true"><span class="kenya-mark">KE</span><span class="cemastea-mark">CEMASTEA</span><span class="science-mark">🧪</span></div>
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="science-mark">🧪</span></div>
             <div class="lab-app-title"><h2 id="mixture-lab-title">INTEGRATED SCIENCE | MIXTURES | GRADE 7</h2></div>
             <div class="lab-header-actions">
                 <button type="button" id="mixture-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
@@ -422,5 +429,6 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=12" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=22" defer></script>
+<script src="{% static 'educations/commercial_indicators.js' %}?v=4" defer></script>
 {% endblock %}

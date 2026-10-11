@@ -16,7 +16,9 @@ An online learning website for CBC learners. Students can find learning material
 - Choose Grade 7, 8, or 9 to open its lab dashboard.
 - Browse labs grouped by subject and strand.
 - Open the Grade 7 **Acids, Bases, and Indicators** lesson.
-- Read the lesson sections, then choose **View Experiment** to try the interactive hibiscus indicator lab.
+- Read the lesson sections, then choose **View Experiment** for the hibiscus lab or **Open Commercial Indicators** for a separate investigation.
+- In the commercial indicators lab, drag clean beakers, samples, and indicators from the shelf, or click the controls. Compare red and blue litmus paper, methyl orange, and phenolphthalein on fresh sample portions.
+- Make a colour prediction, watch the test, and record your conclusion and evidence in the investigation notebook. Notebook entries remain available while navigating between experiments; **Start again** or reloading the page clears them.
 - Other labs are marked **Coming soon** until they are ready.
 
 ## 🛠️ Tech Stack

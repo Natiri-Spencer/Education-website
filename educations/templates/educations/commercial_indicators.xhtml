@@ -1,0 +1,30 @@
+<section id="commercial-lab-app" class="lab-app commercial-lab" aria-labelledby="commercial-title" hidden>
+    <header class="lab-app-header">
+        <div class="lab-app-title"><p class="eyebrow">GRADE 7 · ACIDS, BASES &amp; INDICATORS</p><h2 id="commercial-title">Commercial indicators investigation</h2></div>
+        <div class="lab-header-actions"><button type="button" class="lab-icon-button" id="commercial-fullscreen" aria-label="Toggle full screen">⛶</button><button type="button" class="lab-icon-button lab-close-button" id="commercial-back" aria-label="Back to lesson">×</button></div>
+    </header>
+    <div class="ci-layout">
+        <aside class="ci-planner">
+            <p class="eyebrow">YOU ARE THE SCIENTIST</p><h3>Plan your investigation</h3>
+            <p>Which indicator gives you enough evidence to identify an acid, a base, or a neutral solution?</p>
+            <ol><li>Drag a clean beaker onto the bench.</li><li>Choose a sample and pour it into your selected beaker.</li><li>Predict a colour, then choose an indicator. For liquid indicators, bring a clean dropper, fill it from the chosen indicator bottle, then click or drag the filled dropper onto the sample.</li><li>Observe, record, and compare another indicator on a fresh portion.</li></ol>
+            <label for="ci-prediction">My prediction for this test</label>
+            <select id="ci-prediction"><option value="">Choose a colour…</option><option>Red</option><option>Blue</option><option>Yellow</option><option>Pink</option><option>Colourless</option><option>No change</option></select>
+            <details><summary>Indicator reference</summary><table class="ci-guide"><thead><tr><th>Indicator</th><th>Acid</th><th>Neutral</th><th>Base</th></tr></thead><tbody><tr><td>Red litmus</td><td>Red</td><td>Red</td><td>Blue</td></tr><tr><td>Blue litmus</td><td>Red</td><td>Blue</td><td>Blue</td></tr><tr><td>Methyl orange</td><td>Red*</td><td>Yellow</td><td>Yellow</td></tr><tr><td>Phenolphthalein</td><td>Colourless</td><td>Colourless</td><td>Pink*</td></tr></tbody></table><p>*This experiment uses model pH 2–3 acids and pH 10–11 bases. Indicator transition ranges matter; one unchanged colour may not identify the solution.</p><a href="https://edu.rsc.org/experiments/acid-or-alkali-acidic-or-alkaline-a-litmus-paper-test/1708.article" target="_blank" rel="noopener">Read about indicator tests</a></details>
+            <p class="ci-safety">Virtual chemicals only. Real laboratory chemicals require teacher supervision.</p>
+        </aside>
+        <div class="ci-workspace">
+            <div class="ci-bench-heading"><div><p class="eyebrow">YOUR WORKBENCH</p><h3>Choose your own tests</h3></div><button type="button" id="ci-reset">Start again</button></div>
+            <p id="ci-feedback" class="ci-feedback" role="status" aria-live="polite">Begin by choosing a clean beaker from the shelf. Click controls or drag items to the bench.</p>
+            <div id="ci-bench" class="ci-bench" aria-label="Drop clean beakers here"><p class="ci-empty">Drop a clean beaker here<br><small>Compare up to four beakers side by side.</small></p></div>
+            <button type="button" id="ci-dropper-tool" hidden>Empty dropper</button><p id="ci-tool-status" class="ci-tool-status">Dropper: on the shelf</p>
+            <section id="ci-record" class="ci-record" aria-labelledby="ci-record-title" hidden>
+                <h3 id="ci-record-title">What does your observation show?</h3><p id="ci-observed"></p>
+                <label for="ci-inference">My conclusion from this test</label><select id="ci-inference"><option value="">Choose…</option><option value="acid">Evidence of an acid</option><option value="base">Evidence of a base</option><option value="neutral">Evidence of a neutral solution</option><option value="inconclusive">This test alone is inconclusive</option></select>
+                <label for="ci-reason">My evidence / next test</label><textarea id="ci-reason" rows="2" placeholder="Describe the colour and the test you would compare it with."></textarea><button type="button" id="ci-save">Record observation</button>
+            </section>
+            <section class="ci-notebook" aria-labelledby="ci-notebook-title"><div class="ci-bench-heading"><h3 id="ci-notebook-title">Investigation notebook</h3><span id="ci-test-count">0 tests recorded</span></div><div class="table-responsive"><table><thead><tr><th>Sample</th><th>Indicator</th><th>Prediction</th><th>Observation</th><th>My conclusion &amp; evidence</th><th>Mark &amp; correction</th></tr></thead><tbody id="ci-log"><tr><td colspan="6">Your recorded tests will appear here.</td></tr></tbody></table></div><p>Each recorded test earns one mark for the prediction and one for the conclusion. Written evidence is for learner reflection and teacher review. Compare both litmus papers on separate portions. What combination supports a neutral solution? Why can methyl orange alone not distinguish a base from a neutral solution?</p></section>
+        </div>
+        <aside class="ci-shelf" aria-labelledby="ci-shelf-title"><p class="eyebrow">DRAG OR CLICK</p><h3 id="ci-shelf-title">Apparatus &amp; chemicals</h3><h4>Apparatus</h4><div class="ci-shelf-grid"><button type="button" draggable="true" data-ci-item="beaker"><span>⚗</span>Clean beaker</button><button type="button" draggable="true" data-ci-item="dropper"><span class="ci-shelf-dropper" aria-hidden="true"></span><strong>Clean dropper</strong><small>Fill → add drops</small></button></div><h4>Sample solutions</h4><div id="ci-samples" class="ci-shelf-grid"></div><h4>Indicators</h4><div id="ci-indicators" class="ci-shelf-grid"></div><p>Click a beaker to select it. Each indicator needs a fresh sample portion, so colours are never mixed.</p></aside>
+    </div>
+</section>

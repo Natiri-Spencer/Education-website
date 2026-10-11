@@ -2517,3 +2517,415 @@ body.virtual-labs-body {
     .mixture-method-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mixture-simulation-heading { align-items: flex-start; }
 }
+
+/* Hibiscus preparation: contents stay in the mortar; empty vessels go back. */
+.simulation-view .bench-object[data-equipment="mortar"] { min-width: 9rem; }
+.mortar-contents {
+    display: grid;
+    place-items: center;
+    width: 8rem;
+    min-height: 3.5rem;
+    padding: .4rem;
+    border: 4px solid #b9c5d2;
+    border-radius: 15% 15% 50% 50%;
+    background: #e8edf2;
+    color: #25344a;
+    transition: background-color 1.2s ease, color 1.2s ease;
+}
+[data-contents="petals"] .mortar-contents { background: #c83755; color: white; }
+[data-contents="ground"] .mortar-contents { background: #9d254b; color: white; }
+[data-contents="extract"] .mortar-contents { background: #8056a4; color: white; }
+.pour-container button {
+    margin-top: .4rem;
+    padding: .5rem .65rem;
+    border: 1px solid #a9dc6e;
+    border-radius: .4rem;
+    background: #d8f6b5;
+    color: #17242f;
+    font: inherit;
+    cursor: pointer;
+}
+.pour-container button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.container-poured .container-icon { animation: pour-vessel .8s ease; }
+.container-poured { cursor: grab; }
+.simulation-view .lab-shelf.return-ready { outline: 3px dashed #b8ef7c; outline-offset: -5px; }
+.simulation-view .shelf-item:disabled { opacity: .4; cursor: default; }
+.simulation-view .coloured-sample {
+    border-bottom: 10px solid var(--contents-colour);
+    transition: border-color 1s ease;
+}
+@keyframes pour-vessel { 40%, 65% { transform: translateX(-1rem) rotate(-65deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .container-poured .container-icon { animation: none; }
+    .mortar-contents, .simulation-view .coloured-sample { transition: none; }
+}
+
+/* Keep the filtration apparatus together, including when the bench wraps. */
+.simulation-view .bench-object[data-equipment="beaker"] { min-width: 8rem; justify-content: flex-end; }
+.bench-object[data-equipment="beaker"] > span:first-of-type { display: none; }
+.bench-object[data-equipment="beaker"] > span:nth-of-type(2) { order: -1; }
+.indicator-funnel {
+    position: relative;
+    display: grid;
+    place-items: start center;
+    width: 7rem;
+    height: 4.5rem;
+    padding-top: .2rem;
+    color: #fff;
+    background: #9b759d;
+    clip-path: polygon(0 0, 100% 0, 56% 68%, 56% 100%, 44% 100%, 44% 68%);
+    font-size: .6rem;
+}
+.vessel-liquid {
+    display: grid;
+    place-items: center;
+    width: 6.5rem;
+    min-height: 3.5rem;
+    margin-top: -.15rem;
+    padding: .4rem;
+    border: 3px solid #c4dce9;
+    border-top: 1px solid #c4dce9;
+    border-radius: 0 0 .7rem .7rem;
+    background: #e2eef4;
+    color: #22344a;
+    transition: background-color 1.2s ease;
+}
+.filtered-extract .vessel-liquid { background: #8056a4; color: white; }
+.bench-object[data-equipment="beaker"] > .vessel-liquid {
+    --beaker-fill: transparent;
+    position: relative;
+    isolation: isolate;
+    width: 7rem;
+    height: 7.5rem;
+    margin-top: -.15rem;
+    padding: 3.8rem .8rem .5rem 1.5rem;
+    border: 3px solid #dcf6ff;
+    border-top-width: 2px;
+    border-radius: .12rem .12rem .7rem .7rem;
+    background: linear-gradient(90deg, #ffffff40, #ffffff08 23%, #ffffff00 70%, #ffffff30);
+    color: #203349;
+    box-shadow: inset 4px 0 0 #ffffff25, inset -4px 0 0 #ffffff18, 0 5px 8px #10203330;
+}
+.bench-object[data-equipment="beaker"] > .vessel-liquid::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 35% 3px 3px;
+    border-radius: 45% 45% .45rem .45rem / 5% 5% .45rem .45rem;
+    background: var(--beaker-fill);
+    box-shadow: inset 0 3px 0 #ffffff35;
+    transition: background-color 1.2s ease;
+}
+.bench-object[data-equipment="beaker"] > .vessel-liquid::after {
+    content: '150 ─\A 100 ─\A  50 ─';
+    white-space: pre;
+    position: absolute;
+    top: 1.2rem;
+    left: .25rem;
+    color: #effbff;
+    font: 600 .5rem/1.7rem monospace;
+    text-shadow: 0 1px 2px #203349;
+}
+.bench-object[data-equipment="beaker"]::after {
+    content: '';
+    position: absolute;
+    right: calc(50% - 4rem);
+    bottom: 6.4rem;
+    width: .9rem;
+    height: .9rem;
+    border-right: 3px solid #dcf6ff;
+    border-top: 2px solid #dcf6ff;
+    transform: skewY(-30deg);
+}
+.bench-object.filtered-extract[data-equipment="beaker"] > .vessel-liquid {
+    --beaker-fill: #8056a4;
+    color: white;
+}
+.simulation-view .coloured-sample { border-bottom-width: 1px; }
+.coloured-sample > .vessel-liquid { background: var(--contents-colour); color: white; }
+.bench-object:has(> .vessel-liquid) { position: relative; }
+.dropper-action {
+    border: 1px solid #a9dc6e;
+    border-radius: .4rem;
+    background: #d8f6b5;
+    color: #17242f;
+    padding: .5rem;
+    font: inherit;
+    cursor: pointer;
+}
+.dropper-loaded > span:first-child { background: #8056a4; border-radius: .5rem; }
+.dropper-loaded { cursor: grab; }
+.simulation-view .bench-object.dropper-dispensing {
+    position: absolute;
+    top: -.8rem;
+    right: -.7rem;
+    padding: .1rem;
+    min-width: 2rem;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+}
+.dropper-dispensing > span:nth-child(2) { display: none; }
+.dropper-dispensing::after {
+    content: '•';
+    position: absolute;
+    top: 1rem;
+    color: #8056a4;
+    font-size: 1.5rem;
+    animation: indicator-drop .6s ease-in 3;
+}
+@keyframes indicator-drop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(2.5rem); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+    .vessel-liquid { transition: none; }
+    .dropper-dispensing::after { animation: none; }
+}
+
+/* The pestle works inside the mortar, then returns to the shelf. */
+.bench-object[data-equipment="mortar"] { position: relative; }
+.mortar-pestle {
+    position: absolute;
+    top: 1.6rem;
+    left: calc(50% + .7rem);
+    width: .85rem;
+    height: 4rem;
+    border: 2px solid #d5dbe0;
+    border-radius: .45rem .45rem .7rem .7rem;
+    background: linear-gradient(90deg, #aeb9c4, #fafafa 45%, #abb7c3);
+    box-shadow: 2px 2px 4px #10203355;
+    transform: rotate(28deg);
+    transform-origin: 50% 85%;
+    cursor: grab;
+    z-index: 2;
+}
+.pestle-action {
+    margin-top: .5rem;
+    padding: .5rem;
+    border: 1px solid #a9dc6e;
+    border-radius: .4rem;
+    background: #d8f6b5;
+    color: #17242f;
+    font: inherit;
+    cursor: pointer;
+}
+.pestle-action:disabled { opacity: .65; cursor: wait; }
+.crushing-petals .mortar-pestle { animation: grind-petals .45s ease-in-out 4; }
+.crushing-petals .mortar-contents { animation: crush-pigment 1.8s ease forwards; }
+@keyframes grind-petals {
+    0%, 100% { transform: translate(0, -.45rem) rotate(28deg); }
+    50% { transform: translate(-.8rem, .35rem) rotate(-12deg); }
+}
+@keyframes crush-pigment { from { background-color: #c83755; } to { background-color: #9d254b; } }
+@media (prefers-reduced-motion: reduce) {
+    .crushing-petals .mortar-pestle, .crushing-petals .mortar-contents { animation: none; }
+}
+
+/* Step 8: show each drop arriving before the sample reaches its final colour. */
+#lab-bench .sample-vessel { min-width: 9rem; }
+#lab-bench .sample-vessel > .vessel-liquid {
+    position: relative;
+    isolation: isolate;
+    width: 7rem;
+    min-height: 6rem;
+    margin-top: 3.5rem;
+    border-radius: .15rem .15rem .7rem .7rem;
+    font-size: .65rem;
+    overflow: hidden;
+}
+#lab-bench .bench-object[data-equipment="dropper"] > span:first-child {
+    position: relative;
+    display: block;
+    width: .75rem;
+    height: 3.4rem;
+    margin: .6rem .7rem .2rem;
+    border: 2px solid #d3f2ff;
+    border-radius: .2rem .2rem 45% 45%;
+    background: linear-gradient(90deg, #ffffff65, #ffffff15);
+    font-size: 0;
+}
+#lab-bench .bench-object[data-equipment="dropper"] > span:first-child::before {
+    content: '';
+    position: absolute;
+    top: -.65rem;
+    left: -.3rem;
+    width: 1.1rem;
+    height: 1rem;
+    border-radius: 55% 55% 25% 25%;
+    background: #263c54;
+    border: 1px solid #a4bace;
+}
+#lab-bench .dropper-loaded > span:first-child::after,
+#lab-bench .dropper-dispensing > span:first-child::after {
+    content: '';
+    position: absolute;
+    inset: 25% 1px 2px;
+    border-radius: 0 0 50% 50%;
+    background: #8056a4;
+}
+#lab-bench .bench-object.dropper-dispensing {
+    top: 3.4rem;
+    right: calc(50% - 1.1rem);
+    z-index: 4;
+}
+#lab-bench .dropper-dispensing::after {
+    content: '';
+    width: .45rem;
+    height: .65rem;
+    top: 4.1rem;
+    left: calc(50% - .225rem);
+    border-radius: 50% 50% 65% 65%;
+    background: #8056a4;
+    opacity: 0;
+    animation: sample-indicator-drop .45s .65s ease-in 3;
+}
+#lab-bench .sample-testing > .vessel-liquid {
+    color: #fff;
+    animation: sample-colour-change 3.6s linear forwards;
+}
+#lab-bench .sample-testing > .vessel-liquid::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 22%;
+    top: -1rem;
+    width: 56%;
+    height: 4rem;
+    border-radius: 30% 50% 60% 40%;
+    background: #8056a4;
+    opacity: 0;
+    animation: indicator-mixing-cloud 3.6s ease-out forwards;
+}
+#lab-bench .dropper-finished { display: none; }
+#lab-bench .bench-equipment { align-items: flex-end; }
+#lab-bench .bench-surface { flex-basis: auto; min-height: 18rem; }
+@keyframes sample-indicator-drop {
+    0% { transform: translateY(-.4rem); opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: translateY(1.3rem); opacity: 0; }
+}
+@keyframes sample-colour-change {
+    0%, 25% { background-color: #e2eef4; color: #22344a; }
+    47% { background-color: #bca5ce; color: #22344a; }
+    100% { background-color: var(--contents-colour); color: white; }
+}
+@keyframes indicator-mixing-cloud {
+    0%, 23% { transform: scale(.1); opacity: 0; }
+    34% { transform: scale(.4); opacity: .9; }
+    65% { transform: translateY(1.5rem) scale(1.4) rotate(35deg); opacity: .6; }
+    100% { transform: translateY(2rem) scale(2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #lab-bench .dropper-dispensing::after,
+    #lab-bench .sample-testing > .vessel-liquid::after { animation: none; }
+    #lab-bench .sample-testing > .vessel-liquid { animation: none; background: var(--contents-colour); }
+}
+
+.funnel-return {
+    order: -2;
+    margin-bottom: .4rem;
+    padding: .5rem;
+    border: 1px solid #a9dc6e;
+    border-radius: .4rem;
+    background: #d8f6b5;
+    color: #17242f;
+    font: inherit;
+    cursor: pointer;
+}
+.funnel-return:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+.indicator-funnel[draggable="true"] { cursor: grab; }
+
+/* Independent, learner-led commercial indicator investigation. */
+.commercial-lab { --ci-border: #425b77; color: #eaf2ff; background: #111e32; }
+.simulation-view .commercial-lab {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+}
+.commercial-lab > .ci-layout { flex: 1 0 auto; }
+.simulation-view .commercial-lab:fullscreen {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+}
+.commercial-lab .ci-workspace { padding-bottom: 3rem; }
+.ci-layout { display: grid; grid-template-columns: 12rem minmax(0, 1fr) 13rem; }
+.ci-planner, .ci-shelf { padding: 1.25rem; background: #192a42; }
+.ci-planner { border-right: 1px solid var(--ci-border); }
+.ci-shelf { border-left: 1px solid var(--ci-border); }
+.commercial-lab h3 { font-size: 1.1rem; margin: .4rem 0 1rem; }
+.commercial-lab h4 { font-size: .8rem; margin: 1.1rem 0 .6rem; color: #bacce4; }
+.ci-planner p, .ci-planner li, .ci-shelf p, .ci-notebook p { font-size: .8rem; line-height: 1.65; color: #bed0e8; }
+.ci-planner ol { padding-left: 1.1rem; }
+.ci-planner li { margin-bottom: .7rem; }
+.commercial-lab label { display: block; font-size: .8rem; margin: .8rem 0 .35rem; font-weight: 700; }
+.commercial-lab select, .commercial-lab textarea { width: 100%; padding: .65rem; border: 1px solid #607897; border-radius: .4rem; background: #0e1c2e; color: #f1f6ff; font: inherit; font-size: .8rem; }
+.commercial-lab button { font: inherit; font-size: .75rem; }
+.commercial-lab button:focus-visible, .commercial-lab select:focus-visible, .commercial-lab textarea:focus-visible { outline: 3px solid #c0f875; outline-offset: 3px; }
+.ci-planner details { margin-top: 1.3rem; font-size: .75rem; }
+.ci-planner summary { cursor: pointer; color: #c0f875; }
+.ci-guide { width: 100%; font-size: .6rem; margin: .8rem 0; }
+.ci-guide td, .ci-guide th { padding: .35rem .15rem; border-bottom: 1px solid #425b77; }
+.ci-planner a { color: #bbdcff; }
+.ci-safety { margin-top: 1.5rem; }
+.ci-workspace { padding: 1.25rem; min-width: 0; }
+.ci-bench-heading { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
+.ci-bench-heading button, .ci-vessel-actions button { border: 1px solid #5a7291; border-radius: .4rem; background: #20364e; color: #eaf2ff; padding: .5rem .6rem; }
+.ci-feedback { padding: .8rem; background: #20384f; border-left: 3px solid #c0f875; color: #e8f5ff; font-size: .8rem; min-height: 4rem; }
+.ci-bench { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; min-height: 21rem; padding: 1rem; border: 1px solid #5d7893; border-radius: .7rem; background: linear-gradient(#354e66, #243b52); align-content: start; }
+.ci-empty { grid-column: 1 / -1; text-align: center; align-self: center; color: #d4e4f4; padding: 5rem 0; }
+.ci-beaker-card { position: relative; padding: .7rem; border: 2px solid #5e7591; border-radius: .6rem; background: #15273c; text-align: center; }
+.ci-beaker-card.ci-selected { border-color: #c0f875; box-shadow: 0 0 0 2px #c0f87520; }
+.ci-select { background: transparent; color: #d7edff; border: 0; font-weight: 800; width: 100%; padding: .35rem; cursor: pointer; }
+.ci-select[aria-pressed="true"]::after { content: ' · selected'; color: #c0f875; font-size: .65rem; }
+.ci-sample-name { margin: .3rem 0; min-height: 2rem; font-size: .7rem; color: #c9dbee; }
+.ci-test-tool { height: 4.3rem; position: relative; }
+.ci-glass { position: relative; isolation: isolate; width: 6.5rem; height: 6rem; margin: 0 auto; border: 3px solid #ceeef9; border-top-width: 1px; border-radius: 0 0 .65rem .65rem; background: linear-gradient(90deg, #ffffff30, #ffffff05 60%, #ffffff25); overflow: hidden; }
+.ci-liquid { position: absolute; inset: 28% 3px 3px; background: transparent; border-radius: 40% 40% .4rem .4rem / 5% 5% .4rem .4rem; box-shadow: inset 0 2px 0 #ffffff66; }
+.ci-graduations { position: absolute; left: .25rem; top: 1rem; color: #1d334c; font: 600 .5rem/1.6rem monospace; }
+.ci-colour-label { min-height: 2rem; margin: .6rem 0; font-size: .75rem; color: #e8f5ff; }
+.ci-vessel-actions { display: flex; justify-content: center; gap: .35rem; flex-wrap: wrap; }
+.ci-vessel-actions button { font-size: .65rem; cursor: pointer; }
+.ci-litmus-strip { position: absolute; left: calc(50% - .45rem); top: .2rem; height: 4.5rem; width: .9rem; background: var(--ci-start); border: 1px solid #ffffff80; transform: translateY(1.7rem); z-index: 3; }
+.ci-testing.ci-paper-test .ci-litmus-strip { animation: ci-paper-dip 2.8s ease forwards; }
+.ci-testing-dropper { position: absolute; left: calc(50% - .35rem); top: .25rem; width: .7rem; height: 2.8rem; border: 2px solid #cde9f7; border-radius: .2rem .2rem 45% 45%; background: linear-gradient(to bottom, #d4ebff44 20%, var(--ci-start) 20%); }
+.ci-testing-dropper::before { content: ''; position: absolute; top: -.3rem; left: -.22rem; width: .9rem; height: .7rem; border-radius: 50% 50% 15% 15%; background: #7e98b4; }
+.ci-testing .ci-testing-dropper::after { content: ''; position: absolute; top: 2.8rem; left: .05rem; width: .35rem; height: .5rem; border-radius: 50%; background: var(--ci-start); animation: ci-droplet .5s .3s ease-in 3; opacity: 0; }
+.ci-testing.ci-liquid-test .ci-liquid { animation: ci-mix 2.8s ease forwards; }
+.ci-testing.ci-liquid-test .ci-liquid::after { content: ''; position: absolute; inset: 10% 20%; background: var(--ci-result); border-radius: 45%; animation: ci-cloud 2.8s ease forwards; }
+.ci-record { margin-top: 1rem; padding: 1rem; border: 1px solid #6981a0; border-radius: .6rem; background: #192d44; }
+.ci-record p { color: #d4e7fb; font-size: .8rem; }
+#ci-save { margin-top: .8rem; border: 0; border-radius: .4rem; padding: .7rem 1rem; background: #c0f875; color: #15273c; font-weight: 800; cursor: pointer; }
+#ci-save:disabled { opacity: .5; cursor: default; }
+.ci-tool-status { font-size: .7rem; color: #b7cbe4; margin: .6rem 0; }
+.ci-notebook { margin-top: 1.5rem; }
+.ci-notebook table { width: 100%; font-size: .7rem; }
+.ci-notebook th, .ci-notebook td { padding: .65rem .4rem; border-bottom: 1px solid #425b77; vertical-align: top; }
+#ci-test-count { color: #c0f875; font-size: .7rem; white-space: nowrap; }
+.ci-shelf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.ci-shelf-grid button { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: .5rem; min-height: 5rem; border: 1px solid #526d8d; border-radius: .45rem; padding: .6rem .35rem; background: #223952; color: #e9f4ff; cursor: grab; font-size: .65rem; }
+.ci-shelf-grid button:hover { border-color: #c0f875; background: #2c4864; }
+.ci-shelf-art { display: block; --ci-art: #cae3f2; }
+.ci-art-paper { width: 1.1rem; height: 2.3rem; background: var(--ci-art); border: 1px solid #ffffff66; transform: rotate(15deg); }
+.ci-art-bottle, .ci-art-liquid { width: 1.8rem; height: 2.2rem; margin-top: .3rem; border: 2px solid #b0d3e9; border-radius: .3rem; background: linear-gradient(to bottom, transparent 25%, var(--ci-art) 25%); position: relative; }
+.ci-art-bottle::before, .ci-art-liquid::before { content: ''; position: absolute; width: 1rem; height: .45rem; background: #829bb6; top: -.5rem; left: .25rem; border-radius: .1rem; }
+@keyframes ci-paper-dip { 0% { transform: translateY(-.3rem); background: var(--ci-start); } 30% { transform: translateY(1.7rem); background: var(--ci-start); } 100% { transform: translateY(1.7rem); background: linear-gradient(to bottom, var(--ci-start) 45%, var(--ci-result) 45%); } }
+@keyframes ci-droplet { 0% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; transform: translateY(2.5rem); } }
+@keyframes ci-mix { 0%, 25% { background-color: #e2eef4; } 100% { background-color: var(--ci-result); } }
+@keyframes ci-cloud { 0%, 20% { transform: scale(.1); opacity: 0; } 45% { transform: scale(.7); opacity: .7; } 100% { transform: scale(2) rotate(45deg); opacity: 0; } }
+@media (max-width: 1000px) { .ci-layout { grid-template-columns: 12rem minmax(0, 1fr); } .ci-shelf { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--ci-border); } .ci-shelf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .ci-layout { grid-template-columns: minmax(0, 1fr); } .ci-planner { border-right: 0; border-bottom: 1px solid var(--ci-border); } .ci-shelf { grid-column: 1; } .ci-shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ci-workspace { padding: .7rem; } .ci-bench { padding: .5rem; } }
+@media (max-width: 420px) { .ci-bench { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ci-testing.ci-paper-test .ci-litmus-strip, .ci-testing.ci-liquid-test .ci-liquid, .ci-testing.ci-liquid-test .ci-liquid::after, .ci-testing .ci-testing-dropper::after { animation: none; } }
+.ci-shelf-grid button { user-select: none; }
+.ci-shelf-grid button > * { pointer-events: none; }
+#ci-dropper-tool { margin-top: .8rem; padding: .8rem 1rem; border: 2px solid #c0f875; border-radius: .5rem; color: #edf6ff; background: #243e58; cursor: grab; }
+#ci-dropper-tool::before { content: '💧'; display: inline-block; margin-right: .6rem; padding: .2rem; border-radius: .3rem; background: var(--ci-start); }
+.ci-marking { min-width: 13rem; }
+.ci-marking p { margin: .4rem 0 0; font-size: .7rem; line-height: 1.5; }
+.ci-mark-correct { color: #c0f875; }
+.ci-mark-review { color: #ffd38a; }
+.ci-shelf-grid [data-ci-item="dropper"] { border: 2px solid #c0f875; min-height: 7rem; }
+.ci-shelf-dropper { position: relative; display: block; width: .7rem; height: 3rem; margin: .6rem auto .2rem; border: 2px solid #d3efff; border-radius: .15rem .15rem 50% 50%; background: linear-gradient(to bottom, #ffffff20 20%, var(--ci-dropper-fill, transparent) 20%); transform: rotate(20deg); }
+.ci-shelf-dropper::before { content: ''; position: absolute; width: 1.1rem; height: .9rem; top: -.65rem; left: -.3rem; border-radius: 50% 50% 20% 20%; background: #90acc8; border: 1px solid #d3efff; }
+.ci-shelf-grid [data-ci-item="dropper"] small { color: #c0f875; }
