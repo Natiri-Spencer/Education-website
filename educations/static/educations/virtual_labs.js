@@ -1075,6 +1075,7 @@
     let mixtureComplete = false;
 
     function renderMixtureSimulation() {
+        document.getElementById("mixture-lab-app").dataset.activeMethod = selectedMixtureMethod;
         const method = mixtureMethods[selectedMixtureMethod];
         const finished = mixtureComplete;
         const step = method.steps[mixtureStep];

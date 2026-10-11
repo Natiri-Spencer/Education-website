@@ -5,7 +5,7 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=25">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=26">
 {% endblock %}
 
 {% block content %}
@@ -188,9 +188,9 @@
                 </section>
                 <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Procedure &amp; Experiment</h2>
-                    <p>Choose a method to open its guided simulation. Follow the steps and observe what is collected and what remains behind.</p>
+                    <p>Choose a separation method. In evaporation, assemble the apparatus, control the heating, and record your observations in the notebook.</p>
                     <div class="mixture-method-grid">
-                        <article class="mixture-method-card"><span aria-hidden="true">♨️</span><h3>Evaporation</h3><p>Separate salt from a salt solution.</p><button type="button" class="orange-button" data-mixture-method="evaporation">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">♨️</span><h3>Evaporation</h3><p>Recover salt with animated apparatus and a checked observation notebook.</p><button type="button" class="orange-button" data-mixture-method="evaporation">Open Experiment</button></article>
                         <article class="mixture-method-card"><span aria-hidden="true">❄️</span><h3>Sublimation</h3><p>Separate ammonium chloride from sand.</p><button type="button" class="orange-button" data-mixture-method="sublimation">View Simulation</button></article>
                         <article class="mixture-method-card"><span aria-hidden="true">🌡️</span><h3>Fractional Distillation</h3><p>Separate a water and ethanol mixture.</p><button type="button" class="orange-button" data-mixture-method="distillation">View Simulation</button></article>
                         <article class="mixture-method-card"><span aria-hidden="true">🧻</span><h3>Paper Chromatography</h3><p>Separate soluble pigments from groundnut skin extract.</p><button type="button" class="orange-button" data-mixture-method="chromatography">View Simulation</button></article>
@@ -372,6 +372,7 @@
         <div class="mixture-simulation-layout">
             <aside class="mixture-method-sidebar" aria-labelledby="mixture-method-heading">
                 <div class="lab-panel-heading"><h2 id="mixture-method-heading">SEPARATION METHODS</h2></div>
+                <ol class="evap-procedure shared-procedure"><li>Place the heatproof mat on the workbench.</li><li>Place the Bunsen burner on the mat.</li><li>Position the tripod over the burner.</li><li>Lay wire gauze on the tripod.</li><li>Place the evaporating dish on the gauze.</li><li>Pour salt solution into the dish and return the empty beaker.</li><li>Predict what will remain, then start gentle heating.</li><li>Observe evaporation and salt crystals. Allow the dish to cool.</li><li>Record and check your observations.</li></ol>
                 <nav class="mixture-method-nav" aria-label="Choose a separation method">
                     <button type="button" data-mixture-select="evaporation" aria-pressed="true">Evaporation <small>Salt solution</small></button>
                     <button type="button" data-mixture-select="sublimation" aria-pressed="false">Sublimation <small>Ammonium chloride &amp; sand</small></button>
@@ -386,6 +387,7 @@
                     <div><p class="eyebrow">GRADE 7 · INTEGRATED SCIENCE</p><h2 id="mixture-method-title">Evaporation</h2><p id="mixture-objective">Separate dissolved salt from salt solution.</p><p id="mixture-method-safety" class="mixture-method-safety"></p></div>
                     <span class="mixture-step-count" id="mixture-step-count">Step 1</span>
                 </div>
+                {% include 'educations/evaporation.xhtml' %}
                 <div class="mixture-progress-track" role="progressbar" aria-label="Simulation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="mixture-progress-fill"></span></div>
                 <div class="mixture-simulation-columns">
                     <section class="mixture-scene-card" aria-label="Simulation scene">
@@ -429,6 +431,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=22" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=23" defer></script>
 <script src="{% static 'educations/commercial_indicators.js' %}?v=4" defer></script>
+<script src="{% static 'educations/evaporation.js' %}?v=2" defer></script>
 {% endblock %}

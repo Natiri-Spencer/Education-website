@@ -2929,3 +2929,109 @@ body.virtual-labs-body {
 .ci-shelf-dropper { position: relative; display: block; width: .7rem; height: 3rem; margin: .6rem auto .2rem; border: 2px solid #d3efff; border-radius: .15rem .15rem 50% 50%; background: linear-gradient(to bottom, #ffffff20 20%, var(--ci-dropper-fill, transparent) 20%); transform: rotate(20deg); }
 .ci-shelf-dropper::before { content: ''; position: absolute; width: 1.1rem; height: .9rem; top: -.65rem; left: -.3rem; border-radius: 50% 50% 20% 20%; background: #90acc8; border: 1px solid #d3efff; }
 .ci-shelf-grid [data-ci-item="dropper"] small { color: #c0f875; }
+.evap-activity { display: none; }
+.simulation-view .mixture-lab-app[data-active-method="evaporation"] { height: auto; min-height: 100dvh; overflow: visible; }
+.mixture-lab-app:fullscreen { height: 100dvh; overflow: auto; }
+[data-active-method="evaporation"] .evap-activity { display: block; }
+[data-active-method="evaporation"] .mixture-progress-track,
+[data-active-method="evaporation"] .mixture-simulation-columns,
+[data-active-method="evaporation"] .mixture-apparatus-shelf,
+[data-active-method="evaporation"] #mixture-live-feedback { display: none; }
+[data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: 210px minmax(0, 1fr); }
+.evap-layout { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 1rem; }
+.evap-feedback, .evap-observation { padding: .8rem; background: #203952; border-left: 3px solid #b5ed61; }
+.evap-bench { position: relative; min-height: 300px; overflow: hidden; border: 1px solid #58748b; border-radius: 12px; background: linear-gradient(#112338 83%, #718599 83%); }
+.evap-bench [hidden] { display: none !important; }
+.evap-mat, .evap-burner, .evap-tripod, .evap-gauze, .evap-dish { position: absolute; left: calc(50% - 90px); animation: evap-place .7s ease-out; }
+.evap-mat { width: 210px; height: 12px; bottom: 48px; margin-left: -15px; background: #38424c; border: 2px solid #b5c4cf; transform: skewX(-12deg); }
+.evap-burner { bottom: 62px; width: 180px; height: 100px; }
+.evap-barrel { position: absolute; bottom: 10px; left: 79px; width: 22px; height: 62px; background: linear-gradient(90deg,#647888,#d4e1e9,#526471); border-radius: 3px; }
+.evap-base { position: absolute; bottom: 0; left: 58px; width: 64px; height: 12px; background: #557385; border: 2px solid #adc7d7; border-radius: 50%; }
+.evap-hose { position: absolute; bottom: 4px; left: 100px; width: 75px; height: 26px; border-bottom: 7px solid #ba704d; border-right: 7px solid #ba704d; border-radius: 0 0 20px 0; }
+.evap-flame { display: none; position: absolute; bottom: 72px; left: 78px; width: 24px; height: 48px; border-radius: 65% 35% 45% 45%; background: radial-gradient(ellipse at bottom,#d9faff 5%,#62cfff 30%,#2583ee 65%,transparent 72%); transform-origin: bottom; }
+[data-heating="true"] .evap-flame { display: block; animation: evap-flame .3s infinite alternate; }
+.evap-tripod { bottom: 62px; width: 180px; height: 136px; border-top: 7px solid #a5bac8; border-radius: 30% 30% 0 0 / 8% 8% 0 0; }
+.evap-tripod i { position: absolute; top: 0; height: 132px; width: 6px; background: linear-gradient(90deg,#596f7c,#c1d3dc); transform-origin: top; }
+.evap-tripod i:nth-child(1) { left: 25px; rotate: 12deg; }
+.evap-tripod i:nth-child(2) { right: 25px; rotate: -12deg; }
+.evap-tripod i:nth-child(3) { left: 87px; opacity: .45; }
+.evap-gauze { bottom: 198px; width: 190px; margin-left: -5px; height: 8px; border: 1px solid #d1e0e8; background: repeating-linear-gradient(90deg,#9db5c4 0 2px,#354c5d 2px 5px); }
+.evap-dish { bottom: 206px; width: 180px; height: 62px; border: 5px solid #e6edf2; border-top-width: 3px; border-radius: 10% 10% 48% 48%; background: #a4bac9; }
+.evap-bench { min-height: 390px; background: linear-gradient(#112338 calc(100% - 60px),#718599 calc(100% - 60px)); }
+@keyframes evap-flame { to { scale: .92 1.08; rotate: 3deg; } }
+.evap-water { position: absolute; bottom: 3px; left: 4px; right: 4px; height: var(--evap-level, 0%); background: #a7dfef; border-radius: 5% 5% 50% 50%; transition: height .25s linear; }
+.evap-crystals { position: absolute; bottom: 0; width: 100%; color: white; text-align: center; line-height: 16px; font-size: 22px; transition: opacity .7s; }
+[data-phase="dry"] .evap-crystals { animation: evap-crystal 2s ease-out; }
+.evap-vapour { position: absolute; bottom: 60px; width: 100%; height: 80px; }
+.evap-vapour i { position: absolute; left: 20%; width: 14px; height: 40px; border-left: 2px solid #d7edf4; border-radius: 50%; opacity: 0; }
+.evap-vapour i:nth-child(2) { left: 50%; animation-delay: .5s !important; }
+.evap-vapour i:nth-child(3) { left: 75%; animation-delay: 1s !important; }
+[data-heating="true"] .evap-vapour i { animation: evap-steam 1.5s infinite; }
+.evap-source { position: absolute; top: 30px; right: 25px; width: 65px; height: 90px; border: 3px solid #d8ecf5; border-top: 1px solid #d8ecf5; border-radius: 0 0 12px 12px; animation: evap-place .7s ease-out; }
+.evap-source div { position: absolute; bottom: 3px; left: 3px; right: 3px; height: 65%; background: #a7dfef; transition: height 1s; }
+.evap-source span { position: absolute; top: 100%; width: 100px; left: -15px; text-align: center; font-size: 11px; }
+.evap-source.evap-pouring { animation: evap-pour 1.5s ease-in-out; }
+.evap-pouring div { height: 0; }
+.evap-pouring::after { content: ''; position: absolute; left: -55px; top: -5px; width: 55px; height: 5px; background: #a7dfef; transform: rotate(-25deg); animation: evap-stream 1.5s both; }
+#evap-bench-label { position: absolute; bottom: 4px; left: 10px; right: 10px; margin: 0; text-align: center; color: #122234; font-size: 12px; }
+.evap-controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0; }
+.evap-activity button { padding: .6rem .8rem; border: 1px solid #607c93; border-radius: 7px; cursor: pointer; background: #263f56; color: white; }
+.evap-activity button:disabled { opacity: .5; cursor: default; }
+.evap-activity select, .evap-activity textarea { width: 100%; padding: .6rem; background: #102238; color: white; border: 1px solid #607c93; border-radius: 6px; }
+.evap-activity label { display: block; margin: .5rem 0; font-weight: 600; }
+.evap-shelf { padding: .8rem; border: 1px solid #58748b; border-radius: 10px; }
+.evap-shelf-items { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.evap-shelf-items button { font-size: 11px; }
+.evap-shelf-items span { display: block; font-size: 30px; color: #ade2f1; }
+.evap-shelf p { font-size: .8rem; }
+.evap-notebook { margin-top: 1rem; padding: 1rem; border: 1px solid #58748b; border-radius: 10px; }
+.evap-answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: .8rem; }
+.evap-notebook table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.evap-notebook td, .evap-notebook th { padding: .7rem; border-bottom: 1px solid #456078; text-align: left; vertical-align: top; }
+#evap-save { background: #b5ed61; color: #102238; font-weight: bold; }
+@keyframes evap-place { from { opacity: 0; translate: 100px -60px; } to { opacity: 1; translate: 0 0; } }
+@keyframes evap-pour { 40%, 65% { translate: -110px 5px; rotate: -65deg; } }
+@keyframes evap-stream { 0%, 25%, 85%, 100% { opacity: 0; } 40%, 65% { opacity: 1; } }
+@keyframes evap-steam { from { opacity: 0; translate: 0 20px; } 35% { opacity: .6; } to { opacity: 0; translate: 10px -50px; } }
+@keyframes evap-crystal { from { scale: .8; } to { scale: 1; } }
+@media (max-width: 850px) { [data-active-method="evaporation"] .mixture-simulation-layout, .evap-layout { grid-template-columns: 1fr; } .evap-shelf-items { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 500px) { .evap-answer-grid { grid-template-columns: 1fr; } .evap-shelf-items { grid-template-columns: 1fr 1fr; } }
+@media (prefers-reduced-motion: reduce) { .evap-activity *, .evap-activity *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+.evap-source.evap-returning { animation: evap-return .65s both; }
+[data-hot="false"][data-phase="dry"] .evap-dish { transition: box-shadow 2s; box-shadow: 0 0 12px #a7dfef44; }
+@keyframes evap-return { to { translate: 180px -80px; opacity: 0; } }
+.evap-water, .evap-source div { background: linear-gradient(#edf9fcaa, #d8ebf244); border-top: 1px solid #f4fbff; }
+.evap-source { right: auto; left: calc(50% + 130px); }
+[data-active-method="evaporation"] #mixture-step-count { display: none; }
+.evap-dish { transition: box-shadow 2s; }
+[data-hot="true"] .evap-dish { box-shadow: 0 0 14px #ef855c88; }
+[data-hot="false"][data-phase="dry"] .evap-dish { box-shadow: none; }
+@media (max-width: 500px) { .evap-source { left: auto; right: 12px; } }
+
+/* Evaporation uses the procedure / workbench / shelf layout. */
+.evap-procedure { display: none; }
+[data-active-method="evaporation"] .evap-procedure { display: block; list-style: none; counter-reset: evap-step; padding: .3rem 0; }
+.evap-procedure li { position: relative; counter-increment: evap-step; padding: .5rem 0 .5rem 2.2rem; font-size: .85rem; line-height: 1.6; }
+.evap-procedure li::before { content: counter(evap-step); position: absolute; left: 0; top: .65rem; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #f3f7fc; color: #55718e; font-size: .7rem; font-weight: bold; }
+.simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: minmax(270px,18%) minmax(0,1fr) minmax(320px,24%); height: auto; min-height: calc(100dvh - 3rem); overflow: visible; }
+.simulation-view [data-active-method="evaporation"] .mixture-simulation-main { display: contents; }
+[data-active-method="evaporation"] .mixture-simulation-heading { display: none; }
+.simulation-view [data-active-method="evaporation"] .evap-activity { display: grid; grid-column: 2 / 4; grid-template-columns: minmax(0,1fr) max(320px,24vw); align-content: start; }
+[data-active-method="evaporation"] .evap-intro { grid-column: 1; padding: .6rem 1rem; margin: 0; font-size: .8rem; background: #192a42; }
+[data-active-method="evaporation"] .evap-layout { display: contents; }
+[data-active-method="evaporation"] .evap-layout > div { grid-column: 1; min-width: 0; }
+.simulation-view [data-active-method="evaporation"] .evap-shelf { grid-column: 2; grid-row: 1 / 4; min-width: 0; padding: .6rem .8rem 2rem; border: 0; border-left: 1px solid #344c69; border-radius: 0; background: #192a42; }
+[data-active-method="evaporation"] .evap-notebook { grid-column: 1; margin: 0; padding: 1rem; border: 0; border-top: 1px solid #344c69; border-radius: 0; background: #192a42; }
+[data-active-method="evaporation"] .evap-feedback { margin: 0; }
+.evap-shelf .shared-objective { padding: .7rem; border: 1px solid #344c69; border-radius: 6px; background: #18283e; }
+.evap-shelf .shared-objective small { font-size: .65rem; font-weight: bold; }
+.evap-shelf > h3 { width: fit-content; margin: .8rem auto; padding: .5rem .8rem; border: 2px solid #416a71; border-radius: 4px; color: #43e0d4; font-size: .7rem; letter-spacing: .12em; }
+.evap-shelf-items { gap: .3rem; padding: .3rem; border: 3px solid #344f70; }
+.evap-shelf-items button { min-height: 120px; border: 3px solid #344f70; border-radius: 0; background: linear-gradient(#203650,#192a42); }
+.simulation-view .evap-bench { min-height: 570px; border: 0; border-radius: 0; background: linear-gradient(#879bb0,#879bb0) left 8px bottom 8px / calc(100% - 16px) 280px no-repeat,repeating-linear-gradient(0deg,transparent 0 43px,#263b53 44px 45px),repeating-linear-gradient(90deg,#102036 0 78px,#263b53 79px 80px); }
+.evap-activity .work-area-heading { position: relative; }
+.evap-activity .drop-hint { pointer-events: none; }
+.evap-controls, .evap-predict-label, #evap-prediction, .evap-observation { margin-left: 1rem; margin-right: 1rem; }
+.evap-activity #evap-prediction { width: calc(100% - 2rem); }
+@media (max-width: 1050px) { .simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: 220px minmax(0,1fr) 240px; } .simulation-view [data-active-method="evaporation"] .evap-activity { grid-template-columns: minmax(0,1fr) 240px; } }
+@media (max-width: 800px) { .simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: minmax(0,1fr); } .simulation-view [data-active-method="evaporation"] .evap-activity { grid-column: 1; grid-template-columns: minmax(0,1fr); } .simulation-view [data-active-method="evaporation"] .evap-shelf { grid-column: 1; grid-row: auto; } .simulation-view .evap-bench { min-height: 450px; } }
