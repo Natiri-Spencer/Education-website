@@ -92,3 +92,11 @@ To accept M-Pesa payments, add these Daraja settings to your local `.env` file o
 - `MPESA_CALLBACK_URL` — your public HTTPS address ending in `/payments/mpesa/callback/`.
 
 Test payments in the Daraja sandbox before switching to production. Never commit these credentials to GitHub.
+
+### Grade 7 animated separation experiments
+
+Mixtures includes hands-on sublimation, paper chromatography, fractional distillation and filtration alongside evaporation. Learners assemble labelled SVG apparatus from a draggable/clickable shelf and run each animated action. Animations can pause and resume; leaving an experiment pauses it. Each method has a separately saved observation notebook with marks and corrections. Filtration uses three concise questions: residue, filtrate and method, marked out of three. Other methods use two marked choices and optional written notes for teacher review. Browser local storage retains notebook entries across reloads; resetting apparatus does not erase them. Clear this notebook affects only the selected method. Notes are local to the browser, not synced to an account.
+
+The chromatography bands are illustrative, and the distillation model produces an ethanol-rich fraction rather than claiming pure ethanol. Distillation uses electric heating, a packed column, a correctly positioned thermometer, a condenser with lower water inlet and upper outlet, and an open receiver. Sublimation separates ammonium chloride from common salt in a glass beaker, using a visible Bunsen flame and a supported cold-water round-bottom flask to collect a white deposit in a fume cupboard. Reference links are available under About this model on each shelf.
+
+Manual verification: assemble each setup in order; run all actions; pause/resume an action; record correct and incorrect answers; change methods and return; reset apparatus; reload the page and confirm method-specific entries remain.

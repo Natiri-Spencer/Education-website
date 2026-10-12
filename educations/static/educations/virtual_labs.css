@@ -2930,7 +2930,7 @@ body.virtual-labs-body {
 .ci-shelf-dropper::before { content: ''; position: absolute; width: 1.1rem; height: .9rem; top: -.65rem; left: -.3rem; border-radius: 50% 50% 20% 20%; background: #90acc8; border: 1px solid #d3efff; }
 .ci-shelf-grid [data-ci-item="dropper"] small { color: #c0f875; }
 .evap-activity { display: none; }
-.simulation-view .mixture-lab-app[data-active-method="evaporation"] { height: auto; min-height: 100dvh; overflow: visible; }
+.simulation-view .mixture-lab-app { height: auto; min-height: 100dvh; overflow: visible; }
 .mixture-lab-app:fullscreen { height: 100dvh; overflow: auto; }
 [data-active-method="evaporation"] .evap-activity { display: block; }
 [data-active-method="evaporation"] .mixture-progress-track,
@@ -3007,31 +3007,102 @@ body.virtual-labs-body {
 [data-hot="true"] .evap-dish { box-shadow: 0 0 14px #ef855c88; }
 [data-hot="false"][data-phase="dry"] .evap-dish { box-shadow: none; }
 @media (max-width: 500px) { .evap-source { left: auto; right: 12px; } }
-
-/* Evaporation uses the procedure / workbench / shelf layout. */
+/* Shared experiment shell: procedure | workbench and notebook | apparatus shelf. */
+.simulation-view .lab-app { height: auto; min-height: 100dvh; overflow: visible; }
+.simulation-view .lab-app:fullscreen { height: 100dvh; overflow: auto; }
+.simulation-view .lab-layout,
+.simulation-view .ci-layout,
+.simulation-view .apparatus-activity-layout,
+.simulation-view .mixture-simulation-layout,
+.simulation-view [data-active-method="evaporation"] .mixture-simulation-layout {
+    display: grid; grid-template-columns: minmax(270px,18%) minmax(0,1fr) minmax(320px,24%);
+    height: auto; min-height: calc(100dvh - 3rem); overflow: visible; align-items: stretch; gap: 0;
+}
+.simulation-view .lab-layout.procedure-collapsed { grid-template-columns: 3.2rem minmax(0,1fr) minmax(320px,24%); }
+.simulation-view :is(.ci-planner,.apparatus-procedure,.mixture-method-sidebar,.lab-procedure) {
+    min-width: 0; padding: 0 .8rem 2rem; background: #192a42; color: #c1d4ed; border-right: 1px solid #344c69;
+}
+.simulation-view :is(.ci-planner,.apparatus-procedure,.mixture-method-sidebar) > .lab-panel-heading { margin: 0 -.8rem 1rem; }
+.simulation-view :is(.ci-workspace,.apparatus-workspace,.mixture-simulation-main) { min-width: 0; padding: 0; background: #102036; }
+.simulation-view :is(.ci-shelf,.shared-apparatus-shelf,.mixture-apparatus-shelf,.evap-shelf) {
+    min-width: 0; padding: .6rem .8rem 2rem; border: 0; border-left: 1px solid #344c69; border-radius: 0; background: #192a42; color: #eaf3ff;
+}
+.shared-objective { margin: 0 0 .8rem; padding: .7rem; border: 1px solid #344c69; border-radius: 6px; background: #18283e; }
+.shared-objective small { font-size: .65rem; font-weight: 700; }
+.shared-objective p { margin: .45rem 0 0; font-size: .8rem; color: #eaf3ff; }
+.simulation-view :is(.ci-shelf,.shared-apparatus-shelf,.evap-shelf) > h3,
+.simulation-view .mixture-shelf-heading h2 { width: fit-content; margin: .8rem auto; padding: .5rem .8rem; border: 2px solid #416a71; border-radius: 4px; font-size: .7rem; letter-spacing: .12em; color: #43e0d4; }
+.simulation-view :is(.ci-shelf-grid,.apparatus-choice-grid,.evap-shelf-items,.mixture-shelf-items) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .3rem; padding: .3rem; margin: 0; border: 3px solid #344f70; }
+.simulation-view :is(.ci-shelf-grid button,.apparatus-choice,.evap-shelf-items button,.mixture-shelf-items li) { min-height: 120px; padding: .8rem .4rem; border: 3px solid #344f70; border-radius: 0; background: linear-gradient(#203650,#192a42); color: #eef7ff; text-align: center; font-size: .7rem; }
+.simulation-view :is(.ci-shelf-grid button,.apparatus-choice,.evap-shelf-items button) { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; }
+.simulation-view :is(.ci-bench,.apparatus-bench,.mixture-scene-card) {
+    position: relative; min-height: 570px; border: 0; border-radius: 0; margin: 0; padding: 340px 1rem 1rem;
+    background: linear-gradient(#879bb0,#879bb0) left 8px bottom 8px / calc(100% - 16px) 280px no-repeat,
+      repeating-linear-gradient(0deg,transparent 0 43px,#263b53 44px 45px), repeating-linear-gradient(90deg,#102036 0 78px,#263b53 79px 80px);
+}
+.simulation-view .ci-bench { align-content: end; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; }
+.simulation-view .ci-empty { grid-column: 1 / -1; color: #20354c; }
+.simulation-view .ci-bench-heading { margin: 0; padding: .5rem 1rem; background: #192a42; }
+.simulation-view .ci-feedback { margin: 0; border-radius: 0; padding: .6rem 1rem; }
+.simulation-view :is(.ci-record,.ci-notebook,.evap-notebook) { margin: 0; padding: 1rem; border: 0; border-top: 1px solid #344c69; border-radius: 0; background: #192a42; }
+.simulation-view .ci-tool-status, .simulation-view #ci-dropper-tool { margin: .6rem 1rem; }
+.simulation-view .apparatus-question-card { margin: 0; padding: 1rem; border-radius: 0; }
+.simulation-view .apparatus-activity-topline { padding: .8rem 1rem; }
+.simulation-view .apparatus-bench { display: flex; flex-direction: column; justify-content: end; }
+.simulation-view .apparatus-bench-items { min-height: 150px; }
+.simulation-view .apparatus-result-card, .simulation-view .apparatus-complete { margin: 1rem; }
+.simulation-view .mixture-simulation-columns { display: block; }
+.simulation-view .mixture-step-card { padding: .8rem 0; border: 0; background: transparent; }
+.simulation-view .mixture-simulation-heading { padding: 1rem; margin: 0; }
+.simulation-view .mixture-scene { min-height: 160px; background: transparent; }
+.simulation-view .mixture-scene-card > p { color: #132b42; }
+.shared-procedure { list-style: none; counter-reset: shared-step; padding: .3rem 0; }
+.shared-procedure li, .ci-planner ol li { position: relative; padding: .5rem 0 .5rem 2.2rem; margin: 0; font-size: .85rem; line-height: 1.6; counter-increment: shared-step; }
+.shared-procedure li::before, .ci-planner ol li::before { content: counter(shared-step); position: absolute; left: 0; top: .65rem; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #f3f7fc; color: #55718e; font-size: .7rem; font-weight: bold; }
+.ci-planner ol { counter-reset: shared-step; list-style: none; padding: 0; }
 .evap-procedure { display: none; }
-[data-active-method="evaporation"] .evap-procedure { display: block; list-style: none; counter-reset: evap-step; padding: .3rem 0; }
-.evap-procedure li { position: relative; counter-increment: evap-step; padding: .5rem 0 .5rem 2.2rem; font-size: .85rem; line-height: 1.6; }
-.evap-procedure li::before { content: counter(evap-step); position: absolute; left: 0; top: .65rem; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #f3f7fc; color: #55718e; font-size: .7rem; font-weight: bold; }
-.simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: minmax(270px,18%) minmax(0,1fr) minmax(320px,24%); height: auto; min-height: calc(100dvh - 3rem); overflow: visible; }
+[data-active-method="evaporation"] .evap-procedure { display: block; }
+[data-active-method="evaporation"] .mixture-method-sidebar .mixture-step-card { display: none; }
+.shared-method-label { font-size: .8rem; border-top: 1px solid #344c69; padding-top: 1rem; }
 .simulation-view [data-active-method="evaporation"] .mixture-simulation-main { display: contents; }
 [data-active-method="evaporation"] .mixture-simulation-heading { display: none; }
 .simulation-view [data-active-method="evaporation"] .evap-activity { display: grid; grid-column: 2 / 4; grid-template-columns: minmax(0,1fr) max(320px,24vw); align-content: start; }
 [data-active-method="evaporation"] .evap-intro { grid-column: 1; padding: .6rem 1rem; margin: 0; font-size: .8rem; background: #192a42; }
 [data-active-method="evaporation"] .evap-layout { display: contents; }
 [data-active-method="evaporation"] .evap-layout > div { grid-column: 1; min-width: 0; }
-.simulation-view [data-active-method="evaporation"] .evap-shelf { grid-column: 2; grid-row: 1 / 4; min-width: 0; padding: .6rem .8rem 2rem; border: 0; border-left: 1px solid #344c69; border-radius: 0; background: #192a42; }
-[data-active-method="evaporation"] .evap-notebook { grid-column: 1; margin: 0; padding: 1rem; border: 0; border-top: 1px solid #344c69; border-radius: 0; background: #192a42; }
+.simulation-view [data-active-method="evaporation"] .evap-shelf { grid-column: 2; grid-row: 1 / 4; }
+[data-active-method="evaporation"] .evap-notebook { grid-column: 1; }
 [data-active-method="evaporation"] .evap-feedback { margin: 0; }
-.evap-shelf .shared-objective { padding: .7rem; border: 1px solid #344c69; border-radius: 6px; background: #18283e; }
-.evap-shelf .shared-objective small { font-size: .65rem; font-weight: bold; }
-.evap-shelf > h3 { width: fit-content; margin: .8rem auto; padding: .5rem .8rem; border: 2px solid #416a71; border-radius: 4px; color: #43e0d4; font-size: .7rem; letter-spacing: .12em; }
-.evap-shelf-items { gap: .3rem; padding: .3rem; border: 3px solid #344f70; }
-.evap-shelf-items button { min-height: 120px; border: 3px solid #344f70; border-radius: 0; background: linear-gradient(#203650,#192a42); }
 .simulation-view .evap-bench { min-height: 570px; border: 0; border-radius: 0; background: linear-gradient(#879bb0,#879bb0) left 8px bottom 8px / calc(100% - 16px) 280px no-repeat,repeating-linear-gradient(0deg,transparent 0 43px,#263b53 44px 45px),repeating-linear-gradient(90deg,#102036 0 78px,#263b53 79px 80px); }
-.evap-activity .work-area-heading { position: relative; }
-.evap-activity .drop-hint { pointer-events: none; }
 .evap-controls, .evap-predict-label, #evap-prediction, .evap-observation { margin-left: 1rem; margin-right: 1rem; }
 .evap-activity #evap-prediction { width: calc(100% - 2rem); }
-@media (max-width: 1050px) { .simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: 220px minmax(0,1fr) 240px; } .simulation-view [data-active-method="evaporation"] .evap-activity { grid-template-columns: minmax(0,1fr) 240px; } }
-@media (max-width: 800px) { .simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: minmax(0,1fr); } .simulation-view [data-active-method="evaporation"] .evap-activity { grid-column: 1; grid-template-columns: minmax(0,1fr); } .simulation-view [data-active-method="evaporation"] .evap-shelf { grid-column: 1; grid-row: auto; } .simulation-view .evap-bench { min-height: 450px; } }
+@media (max-width: 1050px) {
+ .simulation-view :is(.lab-layout,.ci-layout,.apparatus-activity-layout,.mixture-simulation-layout), .simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: 220px minmax(0,1fr) 240px; }
+ .simulation-view [data-active-method="evaporation"] .evap-activity { grid-template-columns: minmax(0,1fr) 240px; }
+ .simulation-view .ci-shelf { grid-column: auto; }
+}
+@media (max-width: 800px) {
+ .simulation-view :is(.lab-layout,.ci-layout,.apparatus-activity-layout,.mixture-simulation-layout), .simulation-view [data-active-method="evaporation"] .mixture-simulation-layout { grid-template-columns: minmax(0,1fr); }
+ .simulation-view [data-active-method="evaporation"] .evap-activity { grid-column: 1; grid-template-columns: minmax(0,1fr); }
+ .simulation-view [data-active-method="evaporation"] .evap-shelf { grid-column: 1; grid-row: auto; }
+ .simulation-view :is(.ci-bench,.apparatus-bench,.mixture-scene-card,.evap-bench) { min-height: 450px; padding-top: 230px; }
+ .simulation-view .evap-bench { padding: 0; }
+ .simulation-view :is(.lab-shelf,.ci-shelf,.shared-apparatus-shelf,.mixture-apparatus-shelf) { grid-column: 1; }
+}
+.simulation-view [data-active-method="evaporation"] .mixture-simulation-columns { display: none; }
+[data-active-method="evaporation"] .mixture-workbench-label { display: none; }
+.simulation-view :is(.ci-bench,.apparatus-bench,.mixture-scene-card,.evap-bench)::after { content: ''; position: absolute; right: 28px; bottom: 279px; width: 74px; height: 13px; border: 3px solid #4c6178; border-radius: 0 0 25px 25px; background: #dbe4ed; pointer-events: none; }
+.simulation-view :is(.ci-bench,.apparatus-bench,.mixture-scene-card,.evap-bench)::before { content: ''; position: absolute; right: 51px; bottom: 295px; width: 17px; height: 28px; border: 5px solid #62788f; border-bottom: 0; border-radius: 14px 14px 0 0; pointer-events: none; }
+.simulation-view .apparatus-procedure .apparatus-question-card { position: static; padding: .8rem; margin: 0; background: #20364d; border: 1px solid #344c69; }
+.simulation-view .apparatus-procedure .apparatus-question-icon { display: none; }
+.simulation-view .apparatus-procedure .apparatus-question-card h3 { font-size: 1rem; }
+.simulation-view .apparatus-procedure-steps { list-style: none; counter-reset: shared-step; padding-left: 0; }
+.simulation-view .apparatus-procedure-steps li { position: relative; counter-increment: shared-step; padding-left: 2.2rem; font-size: .85rem; }
+.simulation-view .apparatus-procedure-steps li::before { content: counter(shared-step); position: absolute; left: .1rem; top: .6rem; width: 23px; height: 23px; display: grid; place-items: center; background: #f3f7fc; color: #55718e; border-radius: 50%; font-size: .7rem; font-weight: bold; }
+.simulation-view .ci-shelf-grid button > span:not([class]) { font-size: 2rem; }
+.simulation-view .ci-bench-heading h3 { font-size: .9rem; margin: .2rem 0; }
+.simulation-view .ci-planner ol { list-style: none; padding-left: 0; }
+/* Anchor bench hints to their own bar so they cannot cover shelf controls. */
+.simulation-view .work-area-heading { position: relative; }
+.simulation-view .drop-hint { pointer-events: none; }
+@media (max-width: 1050px) { .simulation-view .work-area-heading .drop-hint { position: static; font-size: .6rem; } }

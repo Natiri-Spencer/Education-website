@@ -1,0 +1,19 @@
+<section id="separation-activity" class="separation-activity" hidden aria-label="Hands-on separation experiment">
+    <div class="sep-workspace">
+        <div class="sep-toolbar"><span id="sep-stage">Setup</span><button type="button" id="sep-reset">Reset apparatus</button></div>
+        <p id="sep-feedback" role="status" aria-live="polite"></p>
+        <div id="sep-bench" class="sep-bench" tabindex="0" aria-label="Drop apparatus on the workbench"><svg id="sep-drawing" viewBox="0 0 640 450" role="img" aria-label="Separation apparatus"></svg></div>
+        <div class="work-area-heading"><span>WORKBENCH</span><span class="drop-hint">Drag or click shelf items</span></div>
+        <div class="sep-controls"><button type="button" id="sep-action" disabled>Assemble apparatus</button><button type="button" id="sep-pause" hidden>Pause animation</button><progress id="sep-progress" max="100" value="0" aria-label="Animation progress"></progress></div>
+        <p id="sep-observation" class="sep-observation" aria-live="polite"></p>
+        <section class="sep-notebook" aria-labelledby="sep-notebook-title"><h3 id="sep-notebook-title">Observation notebook</h3><p id="sep-storage"></p>
+            <div id="sep-general-questions"><label for="sep-note">My observation <small>(optional note)</small></label><textarea id="sep-note" rows="2" placeholder="Describe what you see at this stage."></textarea>
+            <div class="sep-answers"><div><label for="sep-appearance">What can you observe?</label><select id="sep-appearance"></select></div><div><label for="sep-conclusion">What does this show?</label><select id="sep-conclusion"></select></div></div>
+            </div><fieldset id="sep-filtration-questions" hidden><legend>Identify</legend><div class="sep-answers"><div><label for="sep-residue-answer">Residue</label><select id="sep-residue-answer"><option value="">Choose...</option><option>Sand</option><option>Water</option><option>Sand and water mixture</option></select></div><div><label for="sep-filtrate-answer">Filtrate</label><select id="sep-filtrate-answer"><option value="">Choose...</option><option>Sand</option><option>Water</option><option>Sand and water mixture</option></select></div><div><label for="sep-method-answer">Method</label><select id="sep-method-answer"><option value="">Choose...</option><option>Evaporation</option><option>Filtration</option><option>Sublimation</option><option>Paper chromatography</option><option>Fractional distillation</option></select></div></div></fieldset>
+            <button type="button" id="sep-record">Record &amp; check</button><p id="sep-mark" role="status"></p>
+            <div class="table-responsive"><table><thead><tr><th>Stage</th><th>My observation &amp; answers</th><th>Mark &amp; correction</th></tr></thead><tbody id="sep-log"></tbody></table></div>
+            <button type="button" id="sep-clear">Clear this notebook</button>
+        </section>
+    </div>
+    <aside class="sep-shelf"><div class="shared-objective"><small>EXPERIMENT OBJECTIVE</small><p id="sep-objective"></p></div><h3>APPARATUS SHELF</h3><div id="sep-shelf-items"></div><p id="sep-safety"></p><p>Animations use accelerated time. Arrows and particles represent movement; they are not literal views of invisible vapour.</p><details class="sep-reference"><summary>About this model</summary><p id="sep-model-note"></p><a id="sep-reference-link" target="_blank" rel="noopener">Science reference · Royal Society of Chemistry</a></details></aside>
+</section>

@@ -5,7 +5,8 @@
 {% block body_class %}virtual-labs-body{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=26">
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=30">
+<link rel="stylesheet" href="{% static 'educations/separation_lab.css' %}?v=5">
 {% endblock %}
 
 {% block content %}
@@ -179,7 +180,7 @@
                 </section>
                 <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Resources</h2>
-                    <p>The simulations show salt solution, ammonium chloride and sand, water and ethanol, groundnut-skin extract, and sand mixed with water. Virtual apparatus includes an evaporating dish, heat source, fractionating column, condenser, chromatography paper, funnel, and filter paper.</p>
+                    <p>The simulations show salt solution, ammonium chloride and common salt, water and ethanol, groundnut-skin extract, and sand mixed with water. Virtual apparatus includes an evaporating dish, heat source, fractionating column, condenser, chromatography paper, funnel, and filter paper.</p>
                     <p class="resource-safety-note"><strong>Simulation only:</strong> Ammonium chloride dust or vapour can be harmful, ethanol is flammable, and groundnuts can cause severe allergic reactions. Do not try these activities at home. Real laboratory work needs teacher supervision, suitable ventilation, and the correct safety equipment.</p>
                 </section>
                 <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
@@ -188,13 +189,13 @@
                 </section>
                 <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
                     <h2>Procedure &amp; Experiment</h2>
-                    <p>Choose a separation method. In evaporation, assemble the apparatus, control the heating, and record your observations in the notebook.</p>
+                    <p>Choose a separation method. Assemble the apparatus, run each animated action, and record and check observations in its own notebook.</p>
                     <div class="mixture-method-grid">
                         <article class="mixture-method-card"><span aria-hidden="true">♨️</span><h3>Evaporation</h3><p>Recover salt with animated apparatus and a checked observation notebook.</p><button type="button" class="orange-button" data-mixture-method="evaporation">Open Experiment</button></article>
-                        <article class="mixture-method-card"><span aria-hidden="true">❄️</span><h3>Sublimation</h3><p>Separate ammonium chloride from sand.</p><button type="button" class="orange-button" data-mixture-method="sublimation">View Simulation</button></article>
-                        <article class="mixture-method-card"><span aria-hidden="true">🌡️</span><h3>Fractional Distillation</h3><p>Separate a water and ethanol mixture.</p><button type="button" class="orange-button" data-mixture-method="distillation">View Simulation</button></article>
-                        <article class="mixture-method-card"><span aria-hidden="true">🧻</span><h3>Paper Chromatography</h3><p>Separate soluble pigments from groundnut skin extract.</p><button type="button" class="orange-button" data-mixture-method="chromatography">View Simulation</button></article>
-                        <article class="mixture-method-card"><span aria-hidden="true">🧪</span><h3>Filtration</h3><p>Separate sand from water.</p><button type="button" class="orange-button" data-mixture-method="filtration">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">❄️</span><h3>Sublimation</h3><p>Separate ammonium chloride from common salt.</p><button type="button" class="orange-button" data-mixture-method="sublimation">Open Experiment</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🌡️</span><h3>Fractional Distillation</h3><p>Separate a water and ethanol mixture.</p><button type="button" class="orange-button" data-mixture-method="distillation">Open Experiment</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🧻</span><h3>Paper Chromatography</h3><p>Separate soluble pigments from groundnut skin extract.</p><button type="button" class="orange-button" data-mixture-method="chromatography">Open Experiment</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🧪</span><h3>Filtration</h3><p>Separate sand from water.</p><button type="button" class="orange-button" data-mixture-method="filtration">Open Experiment</button></article>
                     </div>
                 </section>
                 <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
@@ -318,6 +319,12 @@
         <div class="apparatus-activity-layout">
             <aside class="apparatus-procedure" aria-labelledby="apparatus-procedure-title">
                 <div class="lab-panel-heading"><h2 id="apparatus-procedure-title">PROCEDURE</h2><span class="apparatus-counter" id="apparatus-counter">1 of 6</span></div>
+                <section class="apparatus-question-card" aria-live="polite">
+                    <span class="apparatus-question-icon" aria-hidden="true">🧪</span>
+                    <p class="eyebrow">YOUR TASK</p>
+                    <h3 id="apparatus-question">Which instrument would you use to hold and mix a liquid?</h3>
+                    <p id="apparatus-feedback" class="apparatus-feedback" role="status">Select an instrument from the shelf.</p>
+                </section>
                 <ol id="apparatus-procedure-steps" class="apparatus-procedure-steps">
                     <li class="active" data-apparatus-step="1">Choose an instrument to hold and mix a liquid.</li>
                     <li data-apparatus-step="2">Choose an instrument to measure liquid volume accurately.</li>
@@ -332,17 +339,19 @@
             <main class="apparatus-workspace">
                 <div class="apparatus-activity-topline"><span class="eyebrow">INSTRUMENT IDENTIFICATION</span><span id="apparatus-progress-label">0 of 6 matched</span></div>
                 <div class="apparatus-progress-track" role="progressbar" aria-label="Activity progress" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><span id="apparatus-progress-fill"></span></div>
-                <section class="apparatus-question-card" aria-live="polite">
-                    <span class="apparatus-question-icon" aria-hidden="true">🧪</span>
-                    <p class="eyebrow">YOUR TASK</p>
-                    <h3 id="apparatus-question">Which instrument would you use to hold and mix a liquid?</h3>
-                    <p id="apparatus-feedback" class="apparatus-feedback" role="status">Select an instrument from the shelf.</p>
-                </section>
+
                 <section class="apparatus-bench" id="apparatus-bench" aria-label="Working bench. Drop the correct instrument here or select it from the shelf.">
-                    <span class="eyebrow">WORKING BENCH</span>
+
                     <div id="apparatus-bench-items" class="apparatus-bench-items"><span class="bench-placeholder">Drag an instrument here, or choose it from the shelf.</span></div>
                 </section>
-                <div class="apparatus-choice-grid" id="apparatus-choice-grid" aria-label="Apparatus shelf">
+                <div class="work-area-heading"><span>WORKBENCH</span><span class="drop-hint">Click an item or drag it here</span></div><div class="apparatus-result-card" id="apparatus-result-card" hidden>
+                    <span id="apparatus-result-icon" aria-hidden="true">✓</span>
+                    <div><strong id="apparatus-result-title">Correct</strong><p id="apparatus-result-description"></p></div>
+                    <button type="button" id="apparatus-next" class="orange-button">NEXT&nbsp; →</button>
+                </div>
+                <p id="apparatus-complete" class="apparatus-complete" hidden>Well done! You matched all six instruments to their uses. Review the equipment, then start again to practise.</p>
+            </main>
+            <aside class="shared-apparatus-shelf"><div class="shared-objective"><small>EXPERIMENT OBJECTIVE</small><p>Match laboratory instruments to their uses.</p></div><h3>APPARATUS SHELF</h3>                <div class="apparatus-choice-grid" id="apparatus-choice-grid" aria-label="Apparatus shelf">
                     <button type="button" class="apparatus-choice" data-apparatus-choice="beaker"><span aria-hidden="true">🧪</span><strong>Beaker</strong><small>Hold or mix liquids</small></button>
                     <button type="button" class="apparatus-choice" data-apparatus-choice="cylinder"><span aria-hidden="true">🥛</span><strong>Measuring cylinder</strong><small>Measure liquid volume</small></button>
                     <button type="button" class="apparatus-choice" data-apparatus-choice="dropper"><span aria-hidden="true">💧</span><strong>Dropper</strong><small>Transfer small amounts</small></button>
@@ -350,13 +359,7 @@
                     <button type="button" class="apparatus-choice" data-apparatus-choice="thermometer"><span aria-hidden="true">🌡️</span><strong>Thermometer</strong><small>Measure temperature</small></button>
                     <button type="button" class="apparatus-choice" data-apparatus-choice="microscope"><span aria-hidden="true">🔬</span><strong>Microscope</strong><small>Magnify tiny objects</small></button>
                 </div>
-                <div class="apparatus-result-card" id="apparatus-result-card" hidden>
-                    <span id="apparatus-result-icon" aria-hidden="true">✓</span>
-                    <div><strong id="apparatus-result-title">Correct</strong><p id="apparatus-result-description"></p></div>
-                    <button type="button" id="apparatus-next" class="orange-button">NEXT&nbsp; →</button>
-                </div>
-                <p id="apparatus-complete" class="apparatus-complete" hidden>Well done! You matched all six instruments to their uses. Review the equipment, then start again to practise.</p>
-            </main>
+</aside>
         </div>
     </section>
 
@@ -371,11 +374,23 @@
         </header>
         <div class="mixture-simulation-layout">
             <aside class="mixture-method-sidebar" aria-labelledby="mixture-method-heading">
-                <div class="lab-panel-heading"><h2 id="mixture-method-heading">SEPARATION METHODS</h2></div>
-                <ol class="evap-procedure shared-procedure"><li>Place the heatproof mat on the workbench.</li><li>Place the Bunsen burner on the mat.</li><li>Position the tripod over the burner.</li><li>Lay wire gauze on the tripod.</li><li>Place the evaporating dish on the gauze.</li><li>Pour salt solution into the dish and return the empty beaker.</li><li>Predict what will remain, then start gentle heating.</li><li>Observe evaporation and salt crystals. Allow the dish to cool.</li><li>Record and check your observations.</li></ol>
+                <div class="lab-panel-heading"><h2 id="mixture-method-heading">PROCEDURE</h2></div>
+<ol id="sep-procedure" class="shared-procedure" hidden></ol><ol class="evap-procedure shared-procedure"><li>Place the heatproof mat on the workbench.</li><li>Place the Bunsen burner on the mat.</li><li>Position the tripod over the burner.</li><li>Lay wire gauze on the tripod.</li><li>Place the evaporating dish on the gauze.</li><li>Pour salt solution into the dish and return the empty beaker.</li><li>Predict what will remain, then start gentle heating.</li><li>Observe evaporation and salt crystals. Allow the dish to cool.</li><li>Record and check your observations.</li></ol>
+                    <section class="mixture-step-card" aria-live="polite">
+                        <p class="eyebrow">PROCEDURE</p>
+                        <ol id="mixture-step-list" class="mixture-step-list"></ol>
+                        <h3 id="mixture-step-title">Place the salt solution in an evaporating dish.</h3>
+                        <p id="mixture-step-description">The salt is dissolved in the water, so it cannot be removed with filter paper.</p>
+                        <div class="mixture-result-note" id="mixture-result-note" hidden></div>
+                        <div class="mixture-controls">
+                            <button type="button" id="mixture-previous" class="mixture-secondary-button">← Previous</button>
+                            <button type="button" id="mixture-next" class="orange-button">Next step →</button>
+                            <button type="button" id="mixture-reset" class="mixture-secondary-button">Start again ↻</button>
+                        </div>
+                    </section><h3 class="shared-method-label">Separation methods</h3>
                 <nav class="mixture-method-nav" aria-label="Choose a separation method">
                     <button type="button" data-mixture-select="evaporation" aria-pressed="true">Evaporation <small>Salt solution</small></button>
-                    <button type="button" data-mixture-select="sublimation" aria-pressed="false">Sublimation <small>Ammonium chloride &amp; sand</small></button>
+                    <button type="button" data-mixture-select="sublimation" aria-pressed="false">Sublimation <small>Ammonium chloride &amp; common salt</small></button>
                     <button type="button" data-mixture-select="distillation" aria-pressed="false">Fractional distillation <small>Water &amp; ethanol</small></button>
                     <button type="button" data-mixture-select="chromatography" aria-pressed="false">Paper chromatography <small>Groundnut skin extract</small></button>
                     <button type="button" data-mixture-select="filtration" aria-pressed="false">Filtration <small>Sand &amp; water</small></button>
@@ -388,6 +403,7 @@
                     <span class="mixture-step-count" id="mixture-step-count">Step 1</span>
                 </div>
                 {% include 'educations/evaporation.xhtml' %}
+                {% include 'educations/separation_lab.xhtml' %}
                 <div class="mixture-progress-track" role="progressbar" aria-label="Simulation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="mixture-progress-fill"></span></div>
                 <div class="mixture-simulation-columns">
                     <section class="mixture-scene-card" aria-label="Simulation scene">
@@ -402,19 +418,9 @@
                             <p id="mixture-color-text"></p>
                         </div>
                     </section>
-                    <section class="mixture-step-card" aria-live="polite">
-                        <p class="eyebrow">PROCEDURE</p>
-                        <ol id="mixture-step-list" class="mixture-step-list"></ol>
-                        <h3 id="mixture-step-title">Place the salt solution in an evaporating dish.</h3>
-                        <p id="mixture-step-description">The salt is dissolved in the water, so it cannot be removed with filter paper.</p>
-                        <div class="mixture-result-note" id="mixture-result-note" hidden></div>
-                        <div class="mixture-controls">
-                            <button type="button" id="mixture-previous" class="mixture-secondary-button">← Previous</button>
-                            <button type="button" id="mixture-next" class="orange-button">Next step →</button>
-                            <button type="button" id="mixture-reset" class="mixture-secondary-button">Start again ↻</button>
-                        </div>
-                    </section>
+
                 </div>
+                <div class="work-area-heading mixture-workbench-label"><span>WORKBENCH</span><span class="drop-hint">Follow the procedure to explore this method</span></div>
                 <p id="mixture-live-feedback" class="mixture-live-feedback" role="status" aria-live="polite"></p>
             </main>
             <aside class="mixture-apparatus-shelf" aria-labelledby="mixture-shelf-title">
@@ -434,4 +440,5 @@
 <script src="{% static 'educations/virtual_labs.js' %}?v=23" defer></script>
 <script src="{% static 'educations/commercial_indicators.js' %}?v=4" defer></script>
 <script src="{% static 'educations/evaporation.js' %}?v=2" defer></script>
+<script src="{% static 'educations/separation_lab.js' %}?v=9" defer></script>
 {% endblock %}
