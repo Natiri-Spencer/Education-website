@@ -104,6 +104,9 @@
             return;
         }
         if (!event.target.closest("#view-experiment")) return;
+        document.getElementById("notebook-lab-app").hidden = true;
+        document.getElementById("electrical-lab-app").hidden = true;
+        document.getElementById("magnetism-lab-app").hidden = true;
         document.getElementById("commercial-lab-app").hidden = true;
         document.querySelector("#simulation-view > .lab-app").hidden = selectedLesson !== "acids";
         document.getElementById("apparatus-lab-app").hidden = selectedLesson !== "apparatus";
@@ -168,6 +171,12 @@
     const resultText = document.getElementById("result-text");
     const classificationPanel = document.getElementById("classification-panel");
     const observationRows = document.getElementById("observation-rows");
+    const notebookStore = window.Grade7Notebooks;
+    let hibiscusEntries = notebookStore.load('grade7-hibiscus-notebook-v1');
+    function renderHibiscusNotebook(){notebookStore.render(observationRows,hibiscusEntries,5,'Your checked observations will appear here.','empty-observation');}
+    function recordHibiscus(value){const sample=samples[state.sample],correct=value===sample.className;hibiscusEntries.push([sample.name,sample.colour,value[0].toUpperCase()+value.slice(1),sample.explanation,correct?'1/1. Correct.':'0/1. Expected: '+sample.className+'.']);notebookStore.save('grade7-hibiscus-notebook-v1',hibiscusEntries);renderHibiscusNotebook();}
+    document.getElementById('hibiscus-clear-notebook').onclick=()=>{hibiscusEntries=[];notebookStore.save('grade7-hibiscus-notebook-v1',hibiscusEntries);renderHibiscusNotebook();};
+    renderHibiscusNotebook();
     const sampleCount = document.getElementById("sample-count");
     const progressFill = document.getElementById("lab-progress-fill");
     const progressTrack = document.querySelector(".lab-progress-track");
@@ -733,20 +742,12 @@
     function classify(value) {
         if (state.step !== 9 || !state.sample) return;
         const sample = samples[state.sample];
+        recordHibiscus(value);
         if (value !== sample.className) {
             setHint(`Try again. The ${sample.colour.toLowerCase()} colour is your clue; compare it with the colour guide.`);
             return;
         }
 
-        const emptyRow = observationRows.querySelector(".empty-observation");
-        if (emptyRow) emptyRow.remove();
-        const row = document.createElement("tr");
-        [sample.name, sample.colour, value[0].toUpperCase() + value.slice(1), sample.explanation].forEach((text) => {
-            const cell = document.createElement("td");
-            cell.textContent = text;
-            row.appendChild(cell);
-        });
-        observationRows.appendChild(row);
         state.classified[state.sample] = true;
         equipment.querySelector('[data-equipment="dropper"]')?.remove();
         state.sample = null;
@@ -816,7 +817,7 @@
             button.querySelector("span:nth-child(2)").textContent = shelfData[item].label;
         });
         equipment.replaceChildren();
-        observationRows.innerHTML = '<tr class="empty-observation"><td colspan="4">Your observations will appear here.</td></tr>';
+        renderHibiscusNotebook();
         resultPanel.hidden = true;
         classificationPanel.hidden = true;
         benchStatus.textContent = "Your workbench is ready. Add the mortar to begin.";
@@ -848,6 +849,10 @@
         { prompt: "Which instrument measures how hot or cold a substance is?", answer: "thermometer", name: "Thermometer", explanation: "A thermometer measures temperature. Use one with a range suitable for the substance." },
         { prompt: "Which instrument helps you see the details of a tiny specimen?", answer: "microscope", name: "Microscope", explanation: "A microscope magnifies small specimens so details that are hard to see with the eye become visible." },
     ];
+    let apparatusEntries=notebookStore.load('grade7-apparatus-notebook-v1');
+    function renderApparatusNotebook(){notebookStore.render(document.getElementById('apparatus-notebook-rows'),apparatusEntries,4);}
+    document.getElementById('apparatus-clear-notebook').onclick=()=>{apparatusEntries=[];notebookStore.save('grade7-apparatus-notebook-v1',apparatusEntries);renderApparatusNotebook();};
+    renderApparatusNotebook();
     const apparatusState = { step: 0, completed: 0 };
     const apparatusQuestion = document.getElementById("apparatus-question");
     const apparatusFeedback = document.getElementById("apparatus-feedback");
@@ -881,6 +886,9 @@
         button.addEventListener("click", () => {
             const task = apparatusTasks[apparatusState.step];
             if (!task) return;
+            const correct=button.dataset.apparatusChoice===task.answer;
+            apparatusEntries.push([task.prompt,button.querySelector('strong').textContent,task.explanation,correct?'1/1. Correct.':'0/1. Expected: '+task.name+'.']);
+            notebookStore.save('grade7-apparatus-notebook-v1',apparatusEntries);renderApparatusNotebook();
             if (button.dataset.apparatusChoice !== task.answer) {
                 button.classList.add("is-wrong");
                 apparatusFeedback.textContent = "Not quite. Think about the job the instrument needs to do, then try again.";
@@ -1161,6 +1169,8 @@
 
     function startMixtureSimulation(methodName) {
         if (!mixtureMethods[methodName]) return;
+        document.getElementById("electrical-lab-app").hidden = true;
+        document.getElementById("magnetism-lab-app").hidden = true;
         document.getElementById("commercial-lab-app").hidden = true;
         selectedMixtureMethod = methodName;
         mixtureStep = 0;

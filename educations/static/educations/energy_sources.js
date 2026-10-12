@@ -1,0 +1,38 @@
+(() => {
+ const app=document.getElementById('sources-lab-app');if(!app)return;
+ const el=id=>document.getElementById('solar-'+id),store=window.Grade7Notebooks,key='grade7-electrical-sources';
+ let placed=new Set(),wires=[],selected=null,cover=0,lastBookX=465,notes=store.load(key);
+ const items={panel:'Solar panel',holder:'Bulb holder',bulb:'Bulb',wire:'Connecting wires',book:'Book'};
+ const ports={p1:[180,170],p2:[420,170],h1:[300,380],h2:[440,380]};
+ function ready(){return ['panel','holder','bulb','wire'].every(id=>placed.has(id))&&wires.length===2;}
+ function brightness(){return cover===100?'Off':cover>0?'Dim':'Bright';}
+ function notebook(){store.render(el('log'),notes,4);}
+ function add(id){if(!items[id])return;if(id==='book'&&!placed.has('panel')){el('status').textContent='Place the solar panel before covering it.';return;}placed.add(id);selected=null;el('status').textContent=items[id]+' placed on the workbench.';render();}
+ function setCover(value){if(!placed.has('book')){el('status').textContent='Bring the book from the shelf first.';return;}cover=Number(value);render();}
+ function terminal(id){if(!placed.has('wire')){el('status').textContent='Bring the connecting wires from the shelf first.';return;}if(!selected){selected=id;el('status').textContent='Now select a terminal on the other apparatus.';render();return;}const first=selected;selected=null;if(first[0]===id[0]){el('status').textContent='Connect a panel terminal to a bulb holder terminal.';}else if(wires.some(pair=>pair.includes(first)||pair.includes(id))){el('status').textContent='This terminal already has a wire. Remove wires to reconnect.';}else{wires.push([first,id]);el('status').textContent=wires.length===2?'Both wires connected. Observe the bulb.':'Connect the remaining two terminals.';}render();}
+ function render(){
+  el('cover').disabled=!placed.has('book');el('cover').value=cover;el('coverage').textContent=cover+'%';
+  el('shelf').replaceChildren();Object.entries(items).forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label+(placed.has(id)?' — on bench':'');b.disabled=placed.has(id);b.draggable=!b.disabled;b.addEventListener('click',()=>add(id));b.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',id));el('shelf').append(b);});
+  const on=ready(),level=on?(cover===100?0:cover>0?.28:1):0;
+  let svg='<defs><radialGradient id="solar-glow"><stop stop-color="#fff8a0" stop-opacity=".9"/><stop offset="1" stop-color="#ffe866" stop-opacity="0"/></radialGradient></defs><rect width="800" height="510" fill="#318dd7"/><circle cx="715" cy="70" r="42" fill="#ffe25a"/><path d="M0 430 Q200 370 400 430 T800 420 V510 H0" fill="#62a877"/><g fill="#edf7ff"><ellipse cx="100" cy="70" rx="65" ry="20"/><ellipse cx="550" cy="100" rx="65" ry="20"/></g>';
+  wires.forEach(([a,b])=>{const p=ports[a],q=ports[b];svg+=`<path d="M${p} C${p[0]},300 ${q[0]},300 ${q}" fill="none" stroke="#162235" stroke-width="5"/>`;});
+  if(placed.has('panel')){svg+='<rect x="190" y="120" width="220" height="155" rx="5" fill="#172a66" stroke="#aec3d5" stroke-width="9"/>';for(let x=210;x<410;x+=25)svg+=`<path d="M${x} 125 V270" stroke="#5c80bb"/>`;for(let y=145;y<275;y+=25)svg+=`<path d="M195 ${y} H405" stroke="#5c80bb"/>`;svg+='<text x="300" y="305" text-anchor="middle">SOLAR PANEL</text>';}
+  const bookX=cover?190-220*(1-cover/100):465;
+  if(placed.has('book'))svg+=`<g class="solar-book" transform="translate(${bookX} 0)"><g><animateTransform attributeName="transform" type="translate" from="${lastBookX-bookX} 0" to="0 0" dur=".55s" fill="freeze"/><rect y="120" width="220" height="155" rx="5" fill="#8a4925" stroke="#f6d9a8" stroke-width="5"/><text x="110" y="195" text-anchor="middle" fill="white">SCIENCE BOOK</text></g></g>`;
+  if(placed.has('holder'))svg+='<rect x="290" y="370" width="160" height="40" rx="10" fill="#243544" stroke="#adbfcb" stroke-width="3"/><text x="370" y="450" text-anchor="middle">BULB HOLDER</text>';
+  if(placed.has('bulb')){const x=placed.has('holder')?370:600,y=placed.has('holder')?335:330;svg+=`<circle cx="${x}" cy="${y}" r="78" fill="url(#solar-glow)" style="opacity:${level};transition:opacity .5s"/><path d="M${x-15} ${y+38} h30 v-18 q35 -50 -15 -52 q-50 2 -15 52 Z" fill="${level?'#fff4a2':'#e2edf3'}" stroke="#a0b7c7" stroke-width="3"/><path d="M${x-10} ${y+20} l7 -20 l6 0 l7 20" fill="none" stroke="#897446" stroke-width="2"/>`;}
+  Object.entries(ports).forEach(([id,p])=>{if(!placed.has(id[0]==='p'?'panel':'holder'))return;svg+=`<g data-solar-port="${id}" role="button" tabindex="0" aria-label="${id[0]==='p'?'Panel':'Holder'} terminal ${id[1]}" class="solar-terminal"><circle cx="${p[0]}" cy="${p[1]}" r="12" fill="${selected===id?'#baf45d':'#fff'}" stroke="#175db2" stroke-width="4"/></g>`;});
+  lastBookX=bookX;el('drawing').innerHTML=svg;el('drawing').querySelectorAll('[data-solar-port]').forEach(node=>{node.addEventListener('click',()=>terminal(node.dataset.solarPort));node.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();terminal(node.dataset.solarPort);}});});
+  el('observation').textContent=on?`${cover}% covered: bulb ${brightness().toLowerCase()}. `+(cover===100?'No sunlight reaches the panel.':cover?'Less sunlight reaches the panel.':'Sunlight reaches the uncovered panel.'):'Build the circuit: place the panel, holder, bulb and wires; connect both pairs of terminals.';
+ }
+ el('bench').addEventListener('dragover',e=>e.preventDefault());el('bench').addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');add(id);if(id==='book'&&placed.has('book'))setCover(50);});
+ el('cover').addEventListener('input',e=>setCover(e.target.value));['uncover','partial','full'].forEach((id,i)=>el(id).addEventListener('click',()=>setCover([0,50,100][i])));
+ el('unwire').addEventListener('click',()=>{wires=[];selected=null;render();});el('reset').addEventListener('click',()=>{placed=new Set();wires=[];selected=null;cover=0;el('status').textContent='Choose apparatus from the shelf to begin.';render();});
+ el('record').addEventListener('click',()=>{if(!ready()){el('mark').textContent='Complete the circuit before recording a shading test.';return;}const answer=el('answer').value,reason=el('reason').value;if(!answer||!reason){el('mark').textContent='Choose the brightness and your conclusion.';return;}const score=Number(answer===brightness())+Number(reason==='sunlight'),mark=`${score}/2. `+(score===2?'Correct.':`Expected: bulb ${brightness().toLowerCase()}; the panel needs sunlight to supply electrical energy.`);notes.push([cover+'%',answer+(el('note').value?' — '+el('note').value:''),el('reason').selectedOptions[0].textContent,mark]);const saved=store.save(key,notes);notebook();el('mark').textContent=mark+(saved?'':' Browser storage is unavailable; keep this page open to retain entries.');});
+ el('clear').addEventListener('click',()=>{notes=[];store.save(key,notes);notebook();el('mark').textContent='Notebook cleared.';});
+ el('back').addEventListener('click',()=>{app.hidden=true;document.getElementById('electrical-lab-app').hidden=false;});
+ el('fullscreen').addEventListener('click',()=>{const task=document.fullscreenElement?document.exitFullscreen():app.requestFullscreen?.();task?.catch(()=>{el('status').textContent='Full screen is unavailable in this browser.';});});
+ document.getElementById('ee-open-sources').addEventListener('click',()=>{document.getElementById('electrical-lab-app').hidden=true;app.hidden=false;render();notebook();});
+ document.getElementById('brand-back')?.addEventListener('click',e=>{if(app.hidden)return;e.preventDefault();e.stopImmediatePropagation();el('back').click();},true);
+ render();notebook();
+})();

@@ -40,7 +40,11 @@
     let busy = false;
     let timer = null;
     let sequence = 0;
-    let notebook = [];
+    const notebookStore=window.Grade7Notebooks;
+    let notebook = notebookStore.load('grade7-commercial-notebook-v1');
+    function renderNotebook(){notebookStore.render(root.querySelector('#ci-log'),notebook.map(entry=>entry.cells||[]),6,'Your recorded tests will appear here.');root.querySelector('#ci-test-count').textContent=notebook.length+' tests recorded';}
+    renderNotebook();
+    root.querySelector('#ci-clear-notebook').onclick=()=>{notebook=[];notebookStore.save('grade7-commercial-notebook-v1',notebook);vessels.forEach(v=>v.saved=false);renderNotebook();renderRecord();};
     const tell = (text) => { feedback.textContent = text; };
     function renderDropper() {
         const shelfDropper = root.querySelector('[data-ci-item="dropper"]');
@@ -278,7 +282,8 @@
         notes.textContent = `Prediction: ${matched ? "✓" : `✗ Expected ${v.result.colour}${v.result.changed ? "" : " / No change"}`}. Conclusion: ${conclusionCorrect ? "✓" : "✗"}. ${correction}`;
         markingCell.append(grade, notes);
         row.append(markingCell);
-        notebook.push({ sample: v.sample, indicator: v.indicator, changed: v.result.changed });
+        notebook.push({ sample: v.sample, indicator: v.indicator, changed: v.result.changed, cells: [...row.children].map(cell=>cell===markingCell?grade.textContent+' '+notes.textContent:cell.textContent) });
+        notebookStore.save('grade7-commercial-notebook-v1',notebook);
         v.saved = true;
         root.querySelector("#ci-test-count").textContent = `${notebook.length} tests recorded`;
         tell(`${matched ? "Your prediction matched." : "Your prediction differed from the observation."} ${v.inference === supported ? "Your conclusion is supported by your recorded evidence." : `Reconsider your conclusion: the evidence supports ${supported === "inconclusive" ? "more than one possibility; compare another indicator" : supported}.`} Try a fresh portion to compare.`);
@@ -286,12 +291,11 @@
     };
     root.querySelector("#ci-reset").onclick = () => {
         window.clearTimeout(timer); timer = null; busy = false;
-        vessels = []; selected = null; notebook = []; sequence = 0; dropperReady = false; loadedIndicator = null;
+        vessels = []; selected = null; sequence = 0; dropperReady = false; loadedIndicator = null;
         renderDropper();
         root.querySelector("#ci-dropper-tool").hidden = true;
         bench.innerHTML = '<p class="ci-empty">Drop a clean beaker here<br><small>Compare up to four beakers side by side.</small></p>';
-        root.querySelector("#ci-log").innerHTML = '<tr><td colspan="6">Your recorded tests will appear here.</td></tr>';
-        root.querySelector("#ci-test-count").textContent = "0 tests recorded";
+        renderNotebook();
         root.querySelector("#ci-tool-status").textContent = "Dropper: on the shelf";
         prediction.value = ""; renderRecord(); tell("New investigation ready. Choose a clean beaker to begin.");
     };

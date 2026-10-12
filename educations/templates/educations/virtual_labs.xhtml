@@ -7,6 +7,10 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=30">
 <link rel="stylesheet" href="{% static 'educations/separation_lab.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'educations/magnetism.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/electrical_energy.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/energy_sources.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/lab_notebooks.css' %}?v=1">
 {% endblock %}
 
 {% block content %}
@@ -45,6 +49,7 @@
             <div class="sidebar-rule"></div>
             <p class="sidebar-section-label">GENERAL</p>
             <button type="button" class="sidebar-link active" id="dashboard-home">⌂&nbsp; Home</button>
+            <button type="button" class="sidebar-link" id="open-lab-notebooks" {% if not grade_has_labs %}hidden{% endif %}>My lab notebooks</button>
             <p class="sidebar-section-label">EXPLORE GRADE <span id="sidebar-grade-number">{{ selected_grade|default:"7" }}</span> LABS</p>
             <button type="button" class="sidebar-link science-sidebar-link" id="science-toggle" aria-expanded="true">⚗&nbsp; INTEGRATED SCIENCE <span>⌄</span></button>
             <button type="button" class="sidebar-link sidebar-sub-link" id="science-home">Scientific Investigation</button>
@@ -81,8 +86,8 @@
             <section class="lab-card-group" aria-labelledby="force-energy-heading" {% if not grade_has_labs %}hidden{% endif %}>
                 <h3 id="force-energy-heading">Force &amp; Energy</h3>
                 <div class="lesson-card-grid">
-                    <article class="lesson-card lesson-card-orange coming-soon-card"><span class="lesson-card-icon" aria-hidden="true">🔬</span><h4>Magnetism</h4><span class="availability-pill">Coming soon</span><span class="lesson-card-arrow" aria-hidden="true">→</span></article>
-                    <article class="lesson-card lesson-card-blue coming-soon-card"><span class="lesson-card-icon" aria-hidden="true">🔬</span><h4>Electrical Energy</h4><span class="availability-pill">Coming soon</span><span class="lesson-card-arrow" aria-hidden="true">→</span></article>
+                    <button type="button" id="open-magnetism-lesson" class="lesson-card lesson-card-orange available-lesson" {% if not grade_has_labs %}hidden{% endif %}><span class="lesson-card-icon" aria-hidden="true">&#129522;</span><span class="lesson-card-title">Magnetism</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">&#8594;</span></button>
+                    <button type="button" id="open-electrical-lesson" class="lesson-card lesson-card-blue available-lesson" {% if not grade_has_labs %}hidden{% endif %}><span class="lesson-card-icon" aria-hidden="true">&#9889;</span><span class="lesson-card-title">Electrical Energy</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">&#8594;</span></button>
                 </div>
             </section>
             <p id="grade-coming-note" class="grade-coming-note" {% if grade_has_labs %}hidden{% endif %}>More labs for this grade are being prepared.</p>
@@ -273,13 +278,14 @@
                     <p class="lab-colour-help">The virtual urine sample models standing urine made basic by ammonia released as bacteria break down urea. It turns the indicator green. Fresh urine pH varies. Sugar solution models sugar dissolved in pure water.</p><p class="lab-colour-help">Colour guide for this simulation: red/pink suggests an acid, purple a neutral solution, and green a base.</p>
                 </section>
                 <section class="observation-log" aria-labelledby="observation-title">
-                    <div class="observation-heading"><h3 id="observation-title">Observation log</h3><span id="sample-count">0 of 6 samples classified</span></div>
+                    <div class="observation-heading"><h3 id="observation-title">Hibiscus notebook</h3><span id="sample-count">0 of 6 samples classified</span></div>
                     <div class="table-responsive">
                         <table>
-                            <thead><tr><th>Sample</th><th>Indicator colour</th><th>Classification</th><th>What the colour means</th></tr></thead>
-                            <tbody id="observation-rows"><tr class="empty-observation"><td colspan="4">Your observations will appear here.</td></tr></tbody>
+                            <thead><tr><th>Sample</th><th>Indicator colour</th><th>Classification</th><th>What the colour means</th><th>Mark &amp; correction</th></tr></thead>
+                            <tbody id="observation-rows"><tr class="empty-observation"><td colspan="5">Your observations will appear here.</td></tr></tbody>
                         </table>
                     </div>
+                    <p class="notebook-persist-note">Saved in this browser. Resetting apparatus keeps your entries.</p><button type="button" class="notebook-clear" id="hibiscus-clear-notebook">Clear this notebook</button>
                 </section>
             </section>
 
@@ -350,6 +356,7 @@
                     <button type="button" id="apparatus-next" class="orange-button">NEXT&nbsp; →</button>
                 </div>
                 <p id="apparatus-complete" class="apparatus-complete" hidden>Well done! You matched all six instruments to their uses. Review the equipment, then start again to practise.</p>
+                <section class="apparatus-notebook" aria-labelledby="apparatus-notebook-title"><h3 id="apparatus-notebook-title">Apparatus notebook</h3><p class="notebook-persist-note">Your choices are recorded and checked. Saved in this browser; resetting keeps your entries.</p><div class="table-responsive"><table><thead><tr><th>Task</th><th>My instrument</th><th>Use of the correct instrument</th><th>Mark &amp; correction</th></tr></thead><tbody id="apparatus-notebook-rows"></tbody></table></div><button type="button" class="notebook-clear" id="apparatus-clear-notebook">Clear this notebook</button></section>
             </main>
             <aside class="shared-apparatus-shelf"><div class="shared-objective"><small>EXPERIMENT OBJECTIVE</small><p>Match laboratory instruments to their uses.</p></div><h3>APPARATUS SHELF</h3>                <div class="apparatus-choice-grid" id="apparatus-choice-grid" aria-label="Apparatus shelf">
                     <button type="button" class="apparatus-choice" data-apparatus-choice="beaker"><span aria-hidden="true">🧪</span><strong>Beaker</strong><small>Hold or mix liquids</small></button>
@@ -432,13 +439,23 @@
         </div>
     </section>
 
+    {% include 'educations/magnetism.xhtml' %}
+    {% include 'educations/electrical_energy.xhtml' %}
+    {% include 'educations/energy_sources.xhtml' %}
+    {% include 'educations/lab_notebooks.xhtml' %}
     </section>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/virtual_labs.js' %}?v=23" defer></script>
-<script src="{% static 'educations/commercial_indicators.js' %}?v=4" defer></script>
-<script src="{% static 'educations/evaporation.js' %}?v=2" defer></script>
+<script src="{% static 'educations/lab_notebook_store.js' %}?v=2" defer></script>
+<script src="{% static 'educations/lab_notebooks.js' %}?v=1" defer></script>
+<script src="{% static 'educations/electrical_model.js' %}?v=1" defer></script>
+<script src="{% static 'educations/electrical_energy.js' %}?v=1" defer></script>
+<script src="{% static 'educations/energy_sources.js' %}?v=1" defer></script>
+<script src="{% static 'educations/magnetism.js' %}?v=2" defer></script>
+<script src="{% static 'educations/virtual_labs.js' %}?v=26" defer></script>
+<script src="{% static 'educations/commercial_indicators.js' %}?v=5" defer></script>
+<script src="{% static 'educations/evaporation.js' %}?v=3" defer></script>
 <script src="{% static 'educations/separation_lab.js' %}?v=9" defer></script>
 {% endblock %}

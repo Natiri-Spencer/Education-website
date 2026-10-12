@@ -11,7 +11,12 @@
     let hot = false;
     let timer = null;
     let coolTimer = null;
-    let entries = 0;
+    const notebookStore=window.Grade7Notebooks;
+    let notebook=notebookStore.load('grade7-evaporation-notebook-v1');
+    let entries = notebook.length;
+    function renderNotebook(){notebookStore.render(get('log'),notebook,3);}
+    get('clear-notebook').onclick=()=>{notebook=[];entries=0;notebookStore.save('grade7-evaporation-notebook-v1',notebook);renderNotebook();get('mark').textContent='Notebook cleared.';};
+    renderNotebook();
     let prediction = "";
     const tell = (message) => { get("feedback").textContent = message; };
     function stageName() {
@@ -130,6 +135,8 @@
         if (!entries) get("log").replaceChildren();
         [stageName(), observation, `${score}/2 · ${correction}`].forEach((text) => { const cell = document.createElement("td"); cell.textContent = text; row.append(cell); });
         get("log").append(row);
+        notebook.push([...row.children].map(cell=>cell.textContent));
+        notebookStore.save('grade7-evaporation-notebook-v1',notebook);
         entries += 1;
         get("mark").textContent = `${score}/2. ${correction}${level === 0 && prediction ? ` Your prediction ${prediction === "salt" ? "matched" : "differed from"} the result: salt remains.` : ""} Written notes are kept for teacher review.`;
         get("note").value = "";
@@ -139,7 +146,7 @@
     };
     get("reset").onclick = () => {
         pauseHeating(); window.clearTimeout(coolTimer); coolTimer = null;
-        placed = []; level = 100; poured = false; returned = false; hot = false; entries = 0; prediction = "";
+        placed = []; level = 100; poured = false; returned = false; hot = false; prediction = "";
         ["mat", "burner", "tripod", "gauze", "dish", "source", "pour", "return"].forEach((id) => { get(id).hidden = true; });
         root.querySelectorAll("[data-evap-item]").forEach((button) => { button.disabled = false; });
         root.querySelector('[data-evap-item="solution"] strong').textContent = "Salt solution";
@@ -147,7 +154,7 @@
         get("source").querySelector("span").textContent = "Salt solution";
         get("prediction").disabled = false;
         ["prediction", "note", "residue", "water-answer"].forEach((id) => { get(id).value = ""; });
-        get("log").innerHTML = '<tr><td colspan="3">Your checked observations will appear here.</td></tr>';
+        renderNotebook();
         get("mark").textContent = "";
         get("observation").textContent = "Observe the liquid level, appearance, and material remaining in the dish.";
         tell("Place the heatproof mat on the bench to begin."); render();

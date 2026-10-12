@@ -100,3 +100,19 @@ Mixtures includes hands-on sublimation, paper chromatography, fractional distill
 The chromatography bands are illustrative, and the distillation model produces an ethanol-rich fraction rather than claiming pure ethanol. Distillation uses electric heating, a packed column, a correctly positioned thermometer, a condenser with lower water inlet and upper outlet, and an open receiver. Sublimation separates ammonium chloride from common salt in a glass beaker, using a visible Bunsen flame and a supported cold-water round-bottom flask to collect a white deposit in a fume cupboard. Reference links are available under About this model on each shelf.
 
 Manual verification: assemble each setup in order; run all actions; pause/resume an action; record correct and incorrect answers; change methods and return; reset apparatus; reload the page and confirm method-specific entries remain.
+
+### Grade 7 electrical energy
+
+Electrical Energy under Force & Energy includes a simple circuit, two bulbs in series or parallel, and dry cells in series or parallel (plus a one-cell comparison). Learners bring apparatus from a shelf, connect pairs of terminals, operate the switch, and measure with an ammeter in series and a voltmeter across the selected source or bulb. Parallel bulb circuits support total-current and individual-branch measurements. A wiring guide is optional; it does not connect wires automatically. Changing topology or ammeter location opens the switch and clears wiring; changing voltage target removes only the voltmeter leads. Notebook entries remain saved separately for each investigation and are marked for current, voltage and brightness.
+
+This guided model validates connections against the selected arrangement, accepting equivalent junction wiring. It uses ideal 1.5 V cells, identical fixed 10-ohm bulbs, ideal meters and zero-resistance wires. Bulb glow follows relative electrical power. Incorrect wiring is blocked rather than simulating a damaging short circuit. Parallel cell discharge time and real filament temperature are not simulated. Source links are available under About this model.
+
+Run the circuit and learner workflow checks with `node --test educations/js_tests/electrical_model.test.cjs educations/js_tests/electrical_ui.test.cjs`.
+
+### Grade 7 lab notebooks
+
+My lab notebooks in the Grade 7 dashboard lists all 15 investigations, including apparatus identification, both indicator experiments, all five separation methods, the three magnetism tests and the four electrical investigations. It reads the existing experiment notebooks without replacing their records. Students can add a written observation or conclusion for teacher review, and print all notebooks with their saved work or blank tables for experiments not yet recorded.
+
+Apparatus choices and hibiscus classifications now have saved marks and corrections. Evaporation and commercial-indicator records also persist across page reloads and apparatus resets. Each notebook has its own storage; clearing one does not clear the others. Storage is local to the browser and is not synced to a learner account. Run notebook checks with `node --test educations/js_tests/lab_notebooks.test.cjs`.
+
+Sources of energy (Electrical Energy): assemble a solar panel and bulb circuit, connect two wires, and compare uncovered, partly covered and fully covered panel observations. The saved notebook checks brightness and conclusions. Shading is a qualitative teaching model.
