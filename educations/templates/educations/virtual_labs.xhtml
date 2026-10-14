@@ -11,6 +11,9 @@
 <link rel="stylesheet" href="{% static 'educations/electrical_energy.css' %}?v=1">
 <link rel="stylesheet" href="{% static 'educations/energy_sources.css' %}?v=1">
 <link rel="stylesheet" href="{% static 'educations/lab_notebooks.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/mathematics.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'educations/geometry_workspace.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'educations/capacity_workspace.css' %}?v=1">
 {% endblock %}
 
 {% block content %}
@@ -53,12 +56,13 @@
             <p class="sidebar-section-label">EXPLORE GRADE <span id="sidebar-grade-number">{{ selected_grade|default:"7" }}</span> LABS</p>
             <button type="button" class="sidebar-link science-sidebar-link" id="science-toggle" aria-expanded="true">⚗&nbsp; INTEGRATED SCIENCE <span>⌄</span></button>
             <button type="button" class="sidebar-link sidebar-sub-link" id="science-home">Scientific Investigation</button>
-            <button type="button" class="sidebar-link" id="math-toggle" aria-expanded="false">▦&nbsp; MATHEMATICS <span>⌄</span></button>
-            <p id="math-coming" class="sidebar-coming-note" hidden>Mathematics labs coming soon.</p>
+            <button type="button" class="sidebar-link" id="math-toggle" aria-controls="math-coming" aria-expanded="false">▦&nbsp; MATHEMATICS{% if grade_has_labs %} G7{% endif %} <span>⌄</span></button>
+            {% if grade_has_labs %}<div id="math-coming" hidden><p>Geometry</p><button type="button" data-math-topic="geometry">Geometrical Constructions</button><p>Measurements</p><button type="button" data-math-topic="measurement">Volume and Capacity</button></div>{% else %}<p id="math-coming" class="sidebar-coming-note" hidden>Mathematics labs coming soon.</p>{% endif %}
             <button type="button" class="sidebar-link" id="others-toggle" aria-expanded="false">♧&nbsp; OTHERS <span>⌄</span></button>
             <p id="others-coming" class="sidebar-coming-note" hidden>More labs coming soon.</p>
         </aside>
         <div class="grade-dashboard-main">
+            {% if grade_has_labs %}{% include 'educations/mathematics.xhtml' %}{% endif %}
             <div class="grade-welcome-banner">
                 <div><h1 id="dashboard-title">Welcome to Grade {{ selected_grade|default:"7" }} Labs!</h1><p>Explore interactive virtual experiments. Pick a lab below to get started!</p></div>
                 <span aria-hidden="true">🔬</span>
@@ -458,4 +462,9 @@
 <script src="{% static 'educations/commercial_indicators.js' %}?v=5" defer></script>
 <script src="{% static 'educations/evaporation.js' %}?v=3" defer></script>
 <script src="{% static 'educations/separation_lab.js' %}?v=9" defer></script>
+<script src="{% static 'educations/geometry_model.js' %}?v=2" defer></script>
+<script src="{% static 'educations/geometry_workspace.js' %}?v=2" defer></script>
+<script src="{% static 'educations/capacity_model.js' %}?v=1" defer></script>
+<script src="{% static 'educations/capacity_workspace.js' %}?v=1" defer></script>
+<script src="{% static 'educations/mathematics.js' %}?v=3" defer></script>
 {% endblock %}

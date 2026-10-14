@@ -42,10 +42,11 @@ def about_us(request):
 def virtual_labs(request, grade=None):
     requested_grade = str(grade) if grade is not None else request.GET.get("grade", "")
     selected_grade = requested_grade if requested_grade in {"7", "8", "9"} else ""
-    return render(request, "educations/virtual_labs.xhtml", {
+    template = "educations/grade8_labs.xhtml" if selected_grade == "8" else "educations/virtual_labs.xhtml"
+    return render(request, template, {
         "selected_grade": selected_grade,
         "grade_selected": bool(selected_grade),
-        "grade_has_labs": selected_grade == "7",
+        "grade_has_labs": selected_grade in {"7", "8"},
     })
 
 

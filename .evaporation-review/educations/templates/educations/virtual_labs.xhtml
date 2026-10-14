@@ -1,0 +1,437 @@
+{% extends "educations/base.xhtml" %}
+{% load static %}
+
+{% block title %}Virtual Labs | EduPortal{% endblock %}
+{% block body_class %}virtual-labs-body{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=26">
+{% endblock %}
+
+{% block content %}
+<div class="virtual-labs-page">
+    <header class="virtual-labs-brand">
+        <a id="brand-back" class="brand-back" href="{% if grade_selected %}{% url 'virtual_labs' %}{% else %}{% url 'home' %}{% endif %}" aria-label="Go back">←</a>
+    </header>
+
+    <section id="grade-picker" class="grade-picker" aria-labelledby="grade-picker-title" {% if grade_selected %}hidden{% endif %}>
+        <div class="picker-intro">
+            <span class="picker-icon" aria-hidden="true">🚀</span>
+            <div>
+                <p class="eyebrow">CBC VIRTUAL LABORATORIES</p>
+                <h1 id="grade-picker-title">Select Your Grade Level</h1>
+                <p>Access interactive STEM simulations aligned to the Competency-Based Curriculum. Choose a grade to explore experiments in Science, Technology, Engineering, and Mathematics.</p>
+            </div>
+        </div>
+        <div class="school-level-heading"><h2>Junior School</h2><span>Grades 7–9</span></div>
+        <div class="grade-card-grid">
+            {% for grade in "789" %}
+            <article class="grade-card">
+                <div class="grade-card-art grade-art-{{ grade }}" aria-hidden="true"><span class="lab-paper">GRADE {{ grade }} LABS</span><span class="lab-glass">⚗</span><span class="grade-ribbon">GRADE {{ grade }}</span></div>
+                <div class="grade-card-content">
+                    <p>{% if grade == "7" %}Foundational science concepts{% elif grade == "8" %}Hands-on STEM exploration{% else %}Bridging to senior school{% endif %}</p>
+                    <div class="grade-subject-tags" aria-label="Available subjects"><span>Science</span><span>Mathematics</span><span>Technology</span><span>Engineering</span></div>
+                    <a class="orange-button open-grade" href="{% url 'virtual_labs_grade' grade=grade %}">⚗&nbsp; Open Grade {{ grade }}</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section id="grade-dashboard" class="grade-dashboard" aria-labelledby="dashboard-title" {% if not grade_selected %}hidden{% endif %}>
+        <aside class="grade-sidebar">
+            <h2 id="sidebar-grade-title">Grade {{ selected_grade|default:"7" }}</h2>
+            <div class="sidebar-rule"></div>
+            <p class="sidebar-section-label">GENERAL</p>
+            <button type="button" class="sidebar-link active" id="dashboard-home">⌂&nbsp; Home</button>
+            <p class="sidebar-section-label">EXPLORE GRADE <span id="sidebar-grade-number">{{ selected_grade|default:"7" }}</span> LABS</p>
+            <button type="button" class="sidebar-link science-sidebar-link" id="science-toggle" aria-expanded="true">⚗&nbsp; INTEGRATED SCIENCE <span>⌄</span></button>
+            <button type="button" class="sidebar-link sidebar-sub-link" id="science-home">Scientific Investigation</button>
+            <button type="button" class="sidebar-link" id="math-toggle" aria-expanded="false">▦&nbsp; MATHEMATICS <span>⌄</span></button>
+            <p id="math-coming" class="sidebar-coming-note" hidden>Mathematics labs coming soon.</p>
+            <button type="button" class="sidebar-link" id="others-toggle" aria-expanded="false">♧&nbsp; OTHERS <span>⌄</span></button>
+            <p id="others-coming" class="sidebar-coming-note" hidden>More labs coming soon.</p>
+        </aside>
+        <div class="grade-dashboard-main">
+            <div class="grade-welcome-banner">
+                <div><h1 id="dashboard-title">Welcome to Grade {{ selected_grade|default:"7" }} Labs!</h1><p>Explore interactive virtual experiments. Pick a lab below to get started!</p></div>
+                <span aria-hidden="true">🔬</span>
+            </div>
+            <div class="subject-heading"><span class="subject-icon" aria-hidden="true">🧪</span><h2>Integrated Science</h2><span id="grade-pill" class="grade-pill">Grade {{ selected_grade|default:"7" }}</span></div>
+            <section class="lab-card-group" aria-labelledby="investigation-heading" {% if not grade_has_labs %}hidden{% endif %}>
+                <h3 id="investigation-heading">Scientific Investigation</h3>
+                <div class="lesson-card-grid">
+                    <button type="button" id="open-apparatus-lesson" class="lesson-card lesson-card-orange available-lesson" {% if not grade_has_labs %}hidden{% endif %}>
+                        <span class="lesson-card-icon" aria-hidden="true">🔬</span><span class="lesson-card-title">Laboratory Apparatus &amp; Instruments</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </section>
+            <section class="lab-card-group" aria-labelledby="mixtures-heading" {% if not grade_has_labs %}hidden{% endif %}>
+                <h3 id="mixtures-heading">Mixtures, Elements &amp; Compounds</h3>
+                <div class="lesson-card-grid">
+                    <button type="button" id="open-acids-lesson" class="lesson-card lesson-card-orange available-lesson" {% if not grade_has_labs %}hidden{% endif %}>
+                        <span class="lesson-card-icon" aria-hidden="true">🔬</span><span class="lesson-card-title">Acids, Bases, and Indicators</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
+                    </button>
+                    <button type="button" id="open-mixtures-lesson" class="lesson-card lesson-card-blue available-lesson" {% if not grade_has_labs %}hidden{% endif %}>
+                        <span class="lesson-card-icon" aria-hidden="true">🔬</span><span class="lesson-card-title">Mixtures</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </section>
+            <section class="lab-card-group" aria-labelledby="force-energy-heading" {% if not grade_has_labs %}hidden{% endif %}>
+                <h3 id="force-energy-heading">Force &amp; Energy</h3>
+                <div class="lesson-card-grid">
+                    <article class="lesson-card lesson-card-orange coming-soon-card"><span class="lesson-card-icon" aria-hidden="true">🔬</span><h4>Magnetism</h4><span class="availability-pill">Coming soon</span><span class="lesson-card-arrow" aria-hidden="true">→</span></article>
+                    <article class="lesson-card lesson-card-blue coming-soon-card"><span class="lesson-card-icon" aria-hidden="true">🔬</span><h4>Electrical Energy</h4><span class="availability-pill">Coming soon</span><span class="lesson-card-arrow" aria-hidden="true">→</span></article>
+                </div>
+            </section>
+            <p id="grade-coming-note" class="grade-coming-note" {% if grade_has_labs %}hidden{% endif %}>More labs for this grade are being prepared.</p>
+        </div>
+    </section>
+
+    <section id="lesson-view" class="lesson-view" aria-labelledby="lesson-page-title" hidden>
+        <aside class="grade-sidebar lesson-sidebar">
+            <h2 id="lesson-sidebar-grade">Grade 7</h2><div class="sidebar-rule"></div>
+            <p class="sidebar-section-label">GENERAL</p><button type="button" class="sidebar-link" id="lesson-home">⌂&nbsp; Home</button>
+            <p class="sidebar-section-label">EXPLORE GRADE 7 LABS</p>
+            <button type="button" class="sidebar-link active" id="lesson-science-toggle" aria-expanded="true">⚗&nbsp; INTEGRATED SCIENCE <span>⌄</span></button>
+            <button type="button" class="sidebar-link sidebar-sub-link" id="lesson-science-link">Acids, Bases, and Indicators</button>
+            <button type="button" class="sidebar-link" id="lesson-math-toggle" aria-expanded="false">▦&nbsp; MATHEMATICS <span>⌄</span></button>
+            <p id="lesson-math-coming" class="sidebar-coming-note" hidden>Mathematics labs coming soon.</p>
+            <button type="button" class="sidebar-link" id="lesson-others-toggle" aria-expanded="false">♧&nbsp; OTHERS <span>⌄</span></button>
+            <p id="lesson-others-coming" class="sidebar-coming-note" hidden>More labs coming soon.</p>
+        </aside>
+        <div class="lesson-main">
+            <header class="lesson-page-heading"><h1 id="lesson-page-title">Acids, Bases, and Indicators</h1><p>INTEGRATED SCIENCE</p></header>
+            <nav class="lesson-tabs" role="tablist" aria-label="Lesson sections">
+                <button type="button" class="lesson-tab active" role="tab" aria-selected="true" aria-controls="lesson-panel-introduction" data-lesson-tab="introduction">▣&nbsp; Introduction</button>
+                <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-outcomes" data-lesson-tab="outcomes">♢&nbsp; Learning Outcomes</button>
+                <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-resources" data-lesson-tab="resources">♧&nbsp; Resources</button>
+                <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-pre" data-lesson-tab="pre">▤&nbsp; Pre-Assessment</button>
+                <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-procedure" data-lesson-tab="procedure">⚒&nbsp; Procedure &amp; Experiment</button>
+                <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-post" data-lesson-tab="post">♧&nbsp; Post-Assessment</button>
+                <button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-panel-conclusion" data-lesson-tab="conclusion">✓&nbsp; Conclusion</button>
+            </nav>
+            <div class="lesson-content" id="lesson-content"></div>
+            <template id="acids-lesson-panels">
+                <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
+                    <h2>Introduction</h2><p>Welcome to the virtual lab on Acids, Bases, and Indicators. In this lesson, you will explore household solutions and use a hibiscus indicator to investigate how acids, bases, and neutral solutions can be identified by colour change. Begin with the pre-assessment, then follow the guided experiment and record your observations.</p>
+                </section>
+                <section id="lesson-panel-outcomes" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p><ul><li>Describe how an indicator helps identify acids, bases, and neutral solutions.</li><li>Prepare a natural indicator from hibiscus petals.</li><li>Compare commercial indicators and explain when another test is needed.</li><li>Use colour observations to classify sample solutions and record evidence.</li></ul>
+                </section>
+                <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Resources</h2><p>The simulation provides a mortar and pestle, hibiscus petals, distilled water, a filter funnel, a beaker, an indicator dropper, and six sample solutions. A separate experiment provides clean beakers, a dropper, red and blue litmus paper, methyl orange, phenolphthalein, and model acid, alkali, and neutral solutions.</p><p class="resource-safety-note"><strong>Safety:</strong> This is a simulation. Do not taste or handle real household chemicals. Ask your teacher before doing any practical activity.</p>
+                </section>
+                <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Pre-Assessment</h2><p>Think about these questions before starting. You can return to them after the experiment.</p><ol><li>What is an indicator used for?</li><li>What colour change might help you identify an acid or a base?</li></ol>
+                </section>
+                <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Procedure &amp; Experiment</h2><div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">⚗</span><div><h3>Experiment 1 · Hibiscus indicator</h3><p>Grade 7 · Acids, Bases and Indicators</p></div><p>Prepare a hibiscus indicator, add it to lemon juice, soapy water, plain water, virtual urine, vinegar, and sugar solution, then use the colour changes to classify each sample.</p><button type="button" id="view-experiment" class="orange-button">⛶&nbsp; View Experiment</button></div><div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">🧪</span><div><h3>Experiment 2 · Commercial indicators</h3><p>Choose, predict, test, compare</p></div><p>Investigate red and blue litmus paper, methyl orange, and phenolphthalein. Design your own tests, watch the colour changes, and use evidence to explain your conclusions.</p><button type="button" class="orange-button" data-open-commercial>Open Commercial Indicators</button></div>
+                </section>
+                <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Post-Assessment</h2><p>After completing the experiment, check your understanding:</p><ol><li>Which sample behaved as an acid, and what colour did the indicator show?</li><li>Which colour change helped you identify a base?</li><li>Why should you record the observed colour before classifying a sample?</li></ol>
+                </section>
+                <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Conclusion</h2><p>Indicators provide evidence about the properties of a solution through colour change. Compare all six observations and explain how each colour supported your classification.</p>
+                </section>
+            </template>
+            <template id="apparatus-lesson-panels">
+                <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
+                    <h2>Introduction</h2>
+                    <p>Scientists use different apparatus to observe, measure, heat, and transfer materials. Choosing the right tool helps make an investigation safer and its results more reliable. In this lesson, explore common laboratory apparatus and match each tool to the job it does.</p>
+                </section>
+                <section id="lesson-panel-outcomes" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p>
+                    <ul><li>Name common laboratory apparatus and instruments.</li><li>Describe what each instrument is used for.</li><li>Choose an appropriate instrument for a simple investigation.</li><li>Explain why careful use and safety matter in a laboratory.</li></ul>
+                </section>
+                <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Resources</h2><p>The activity includes a beaker, measuring cylinder, dropper, funnel, thermometer, and microscope.</p>
+                    <p class="resource-safety-note"><strong>Safety:</strong> This is a simulation. In a real laboratory, handle glassware carefully and use heating equipment only with your teacher's guidance.</p>
+                </section>
+                <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Pre-Assessment</h2><p>Think about these questions before starting:</p>
+                    <ol><li>Which tool would you use to measure the temperature of water?</li><li>Would a beaker or a measuring cylinder give a more accurate volume reading?</li><li>What should you do before using unfamiliar laboratory equipment?</li></ol>
+                </section>
+                <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Procedure &amp; Experiment</h2>
+                    <div class="experiment-intro-card"><span class="experiment-icon" aria-hidden="true">🔬</span><div><h3>INTEGRATED SCIENCE | LABORATORY APPARATUS &amp; INSTRUMENTS</h3><p>Grade 7 · Scientific Investigation</p></div>
+                        <p>Read each task and select the instrument that is best suited to it. Check the feedback to learn what the apparatus does.</p>
+                        <button type="button" id="view-experiment" class="orange-button">⛶&nbsp; View Experiment</button>
+                    </div>
+                </section>
+                <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Post-Assessment</h2><p>Check what you have learned:</p>
+                    <ol><li>Which instrument should you use to measure a liquid volume accurately?</li><li>What is the difference between a beaker and a measuring cylinder?</li><li>Which instrument helps you see very small objects?</li><li>Give one safety rule for using laboratory apparatus.</li></ol>
+                </section>
+                <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Conclusion</h2><p>Each instrument has a particular purpose. Selecting the right apparatus helps you collect useful observations and measurements. Always check that equipment is suitable and follow laboratory safety instructions.</p>
+                </section>
+            </template>
+            <template id="mixtures-lesson-panels">
+                <section id="lesson-panel-introduction" class="lesson-panel active" role="tabpanel">
+                    <h2>Introduction</h2>
+                    <p>A mixture contains two or more substances that are together but not chemically joined. We can often separate its parts by using differences in properties such as particle size, solubility, boiling point, or whether a substance changes directly from a solid to a gas.</p>
+                    <p>In this lesson, explore evaporation, sublimation, fractional distillation, paper chromatography, and filtration.</p>
+                </section>
+                <section id="lesson-panel-outcomes" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Learning Outcomes</h2><p>By the end of this lesson, you should be able to:</p>
+                    <ul><li>Describe five methods used to separate mixtures.</li><li>Choose a separation method based on the properties of the materials.</li><li>Identify the separated product and the material left behind.</li><li>Record observations and follow laboratory safety instructions.</li></ul>
+                </section>
+                <section id="lesson-panel-resources" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Resources</h2>
+                    <p>The simulations show salt solution, ammonium chloride and sand, water and ethanol, groundnut-skin extract, and sand mixed with water. Virtual apparatus includes an evaporating dish, heat source, fractionating column, condenser, chromatography paper, funnel, and filter paper.</p>
+                    <p class="resource-safety-note"><strong>Simulation only:</strong> Ammonium chloride dust or vapour can be harmful, ethanol is flammable, and groundnuts can cause severe allergic reactions. Do not try these activities at home. Real laboratory work needs teacher supervision, suitable ventilation, and the correct safety equipment.</p>
+                </section>
+                <section id="lesson-panel-pre" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Pre-Assessment</h2><p>Think about these questions before starting:</p>
+                    <ol><li>How could you recover salt from salt water?</li><li>What happens when a solid changes directly into a gas?</li><li>Which property helps separate liquids by fractional distillation?</li><li>What does filter paper allow to pass through?</li></ol>
+                </section>
+                <section id="lesson-panel-procedure" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Procedure &amp; Experiment</h2>
+                    <p>Choose a separation method. In evaporation, assemble the apparatus, control the heating, and record your observations in the notebook.</p>
+                    <div class="mixture-method-grid">
+                        <article class="mixture-method-card"><span aria-hidden="true">♨️</span><h3>Evaporation</h3><p>Recover salt with animated apparatus and a checked observation notebook.</p><button type="button" class="orange-button" data-mixture-method="evaporation">Open Experiment</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">❄️</span><h3>Sublimation</h3><p>Separate ammonium chloride from sand.</p><button type="button" class="orange-button" data-mixture-method="sublimation">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🌡️</span><h3>Fractional Distillation</h3><p>Separate a water and ethanol mixture.</p><button type="button" class="orange-button" data-mixture-method="distillation">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🧻</span><h3>Paper Chromatography</h3><p>Separate soluble pigments from groundnut skin extract.</p><button type="button" class="orange-button" data-mixture-method="chromatography">View Simulation</button></article>
+                        <article class="mixture-method-card"><span aria-hidden="true">🧪</span><h3>Filtration</h3><p>Separate sand from water.</p><button type="button" class="orange-button" data-mixture-method="filtration">View Simulation</button></article>
+                    </div>
+                </section>
+                <section id="lesson-panel-post" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Post-Assessment</h2><p>Check your understanding:</p>
+                    <ol><li>Which method can recover salt from salt solution?</li><li>In filtration, what are the residue and filtrate in a sand-and-water mixture?</li><li>Why does fractional distillation separate water and ethanol?</li><li>What does the solvent do in paper chromatography?</li><li>Which method uses a solid that changes directly into vapour?</li></ol>
+                </section>
+                <section id="lesson-panel-conclusion" class="lesson-panel" role="tabpanel" hidden>
+                    <h2>Conclusion</h2><p>Choose a separation method by comparing the properties of the substances in the mixture. Evaporation, sublimation, distillation, chromatography, and filtration each work in a different way. In your notes, record the method, what was collected, and what remained.</p>
+                </section>
+            </template>
+        </div>
+    </section>
+
+    <section id="simulation-view" class="simulation-view" hidden>
+    <section class="lab-app" aria-labelledby="lab-title" data-grade="7">
+        <header class="lab-app-header">
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="science-mark">⚗</span></div>
+            <div class="lab-app-title">
+                <h2 id="lab-title">INTEGRATED SCIENCE | ACID, BASES, AND INDICATORS | GRADE 7 ACID BASES AND INDICATORS</h2>
+            </div>
+            <div class="lab-header-actions">
+                <button type="button" id="toggle-lab-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
+                <button type="button" id="back-to-lesson" class="lab-icon-button lab-close-button" aria-label="Close experiment" title="Back to lesson">×</button>
+            </div>
+        </header>
+
+        <div class="lab-layout">
+            <aside class="lab-procedure" aria-labelledby="procedure-title">
+                <div class="lab-panel-heading">
+                    <div><h2 id="procedure-title">PROCEDURE</h2></div>
+                    <button type="button" class="procedure-collapse" aria-label="Procedure panel">‹</button>
+                </div>
+                <ol id="procedure-steps" class="procedure-steps">
+                    <li data-step="1"><span class="step-marker">1</span><span>Place the mortar on the workbench.</span></li>
+                    <li data-step="2"><span class="step-marker">2</span><span>Pour hibiscus petals into the mortar, then return the empty dish to the shelf.</span></li>
+                    <li data-step="3"><span class="step-marker">3</span><span>Crush the petals with the pestle, then return it to the shelf.</span></li>
+                    <li data-step="4"><span class="step-marker">4</span><span>Pour distilled water into the mortar. Observe the purple extract, then return the empty water beaker to the shelf.</span></li>
+                    <li data-step="5"><span class="step-marker">5</span><span>Place the empty beaker on the workbench.</span></li>
+                    <li data-step="6"><span class="step-marker">6</span><span>Filter the extract into the beaker, then return the funnel to the shelf.</span></li>
+                    <li data-step="7"><span class="step-marker">7</span><span>Select a sample solution to test.</span></li>
+                    <li data-step="8"><span class="step-marker">8</span><span>Add a few drops of indicator to the sample.</span></li>
+                    <li data-step="9"><span class="step-marker">9</span><span>Observe the colour and classify the solution.</span></li>
+                </ol>
+                <div class="lab-hint" id="lab-hint" role="status" aria-live="polite">Start by choosing the mortar from the apparatus shelf.</div>
+                <p class="lab-safety"><strong>Simulation only:</strong> do not taste or handle real substances. Follow your teacher’s safety instructions during any practical activity.</p>
+                <button type="button" id="procedure-next" class="procedure-next">NEXT&nbsp; ›</button>
+            </aside>
+
+            <section class="lab-work-area" aria-label="Virtual workbench">
+                <div class="lab-toolbar">
+                    <div class="lab-progress-label"><span id="step-label">Preparation · step 1 of 6</span><span id="progress-label">0% complete</span></div>
+                    <div class="lab-progress-track" role="progressbar" aria-label="Experiment progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="lab-progress-fill"></span></div>
+                    <button id="reset-lab" type="button" class="lab-reset" aria-label="Reset experiment" title="Reset experiment">↻</button>
+                </div>
+                <div id="lab-bench" class="lab-bench" tabindex="0" aria-label="Drop apparatus and samples on the workbench">
+                    <div class="bench-back-wall" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                    <div class="bench-surface">
+                        <div class="bench-sink" aria-hidden="true"><span class="tap"></span><span class="sink-basin"></span></div>
+                        <div class="bench-instruction" id="bench-status">Your workbench is ready. Add the mortar to begin.</div>
+                        <div class="bench-equipment" id="bench-equipment" aria-live="polite"></div>
+                        <div class="indicator-result" id="indicator-result" hidden>
+                            <span class="result-swatch" id="result-swatch"></span>
+                            <span id="result-text"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-area-heading"><span>WORKBENCH</span><span class="drop-hint">Click an item or drag it here</span></div>
+                <section class="classification-panel" id="classification-panel" aria-label="Classify the sample" hidden>
+                    <h3>What does the indicator show?</h3>
+                    <div class="classification-choices">
+                        <button type="button" data-classification="acid">Acid</button>
+                        <button type="button" data-classification="neutral">Neutral</button>
+                        <button type="button" data-classification="base">Base</button>
+                    </div>
+                    <p class="lab-colour-help">The virtual urine sample models standing urine made basic by ammonia released as bacteria break down urea. It turns the indicator green. Fresh urine pH varies. Sugar solution models sugar dissolved in pure water.</p><p class="lab-colour-help">Colour guide for this simulation: red/pink suggests an acid, purple a neutral solution, and green a base.</p>
+                </section>
+                <section class="observation-log" aria-labelledby="observation-title">
+                    <div class="observation-heading"><h3 id="observation-title">Observation log</h3><span id="sample-count">0 of 6 samples classified</span></div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Sample</th><th>Indicator colour</th><th>Classification</th><th>What the colour means</th></tr></thead>
+                            <tbody id="observation-rows"><tr class="empty-observation"><td colspan="4">Your observations will appear here.</td></tr></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <aside class="lab-shelf" aria-labelledby="shelf-title">
+                <div class="shelf-objective-wrap"><label for="lab-objective">Experiment objective</label><select id="lab-objective"><option>Classification of household solutions into bases or acids</option></select></div>
+                <div class="shelf-title-wrap"><p class="eyebrow">APPARATUS SHELF</p><h2 id="shelf-title">Select an item</h2></div>
+                <div class="shelf-items">
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="mortar"><span class="shelf-icon">🥣</span><span>Mortar</span></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="petals"><span class="shelf-icon">🌺</span><span>Hibiscus petals</span></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="pestle"><span class="shelf-icon">🪄</span><span>Pestle</span></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="water"><span class="shelf-icon">💧</span><span>Distilled water</span></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="filter"><span class="shelf-icon">🔻</span><span>Filter funnel</span></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="beaker"><span class="shelf-icon">🧪</span><span>Empty beaker</span></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="lemon"><span class="shelf-icon">🍋</span><span>Lemon juice</span><small>Sample A</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="soap"><span class="shelf-icon">🫧</span><span>Soapy water</span><small>Sample B</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="plain-water"><span class="shelf-icon">🚰</span><span>Plain water</span><small>Sample C</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="urine"><span class="shelf-icon">🧫</span><span>Standing urine (virtual)</span><small>Sample D · ammonia · basic</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="vinegar"><span class="shelf-icon">🍶</span><span>Vinegar</span><small>Sample E</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="sugar-solution"><span class="shelf-icon">🧊</span><span>Sugar solution</span><small>Sample F</small></button>
+                    <button type="button" class="shelf-item" draggable="true" data-lab-item="dropper"><span class="shelf-icon">🧴</span><span>Indicator dropper</span></button>
+                </div>
+                <div class="shelf-cupboard-footer"><span class="cupboard-handle" aria-hidden="true"></span><p>Choose apparatus or a sample to continue the experiment.</p></div>
+            </aside>
+        </div>
+    </section>
+
+    {% include 'educations/commercial_indicators.xhtml' %}
+    <section id="apparatus-lab-app" class="lab-app apparatus-lab-app" aria-labelledby="apparatus-lab-title" hidden>
+        <header class="lab-app-header">
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="science-mark">🔬</span></div>
+            <div class="lab-app-title"><h2 id="apparatus-lab-title">INTEGRATED SCIENCE | LABORATORY APPARATUS &amp; INSTRUMENTS | GRADE 7</h2></div>
+            <div class="lab-header-actions">
+                <button type="button" id="apparatus-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
+                <button type="button" id="apparatus-back-to-lesson" class="lab-icon-button lab-close-button" aria-label="Back to lesson" title="Back to lesson">×</button>
+            </div>
+        </header>
+        <div class="apparatus-activity-layout">
+            <aside class="apparatus-procedure" aria-labelledby="apparatus-procedure-title">
+                <div class="lab-panel-heading"><h2 id="apparatus-procedure-title">PROCEDURE</h2><span class="apparatus-counter" id="apparatus-counter">1 of 6</span></div>
+                <ol id="apparatus-procedure-steps" class="apparatus-procedure-steps">
+                    <li class="active" data-apparatus-step="1">Choose an instrument to hold and mix a liquid.</li>
+                    <li data-apparatus-step="2">Choose an instrument to measure liquid volume accurately.</li>
+                    <li data-apparatus-step="3">Choose an instrument to transfer a few drops.</li>
+                    <li data-apparatus-step="4">Choose an instrument to guide liquid into a narrow container.</li>
+                    <li data-apparatus-step="5">Choose an instrument to measure temperature.</li>
+                    <li data-apparatus-step="6">Choose an instrument to view a tiny specimen.</li>
+                </ol>
+                <p class="apparatus-safety-note"><strong>Safety:</strong> Treat the virtual tools as real equipment. Handle glassware carefully and ask your teacher before using unfamiliar instruments.</p>
+                <button type="button" id="apparatus-reset" class="procedure-next">START AGAIN&nbsp; ↻</button>
+            </aside>
+            <main class="apparatus-workspace">
+                <div class="apparatus-activity-topline"><span class="eyebrow">INSTRUMENT IDENTIFICATION</span><span id="apparatus-progress-label">0 of 6 matched</span></div>
+                <div class="apparatus-progress-track" role="progressbar" aria-label="Activity progress" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><span id="apparatus-progress-fill"></span></div>
+                <section class="apparatus-question-card" aria-live="polite">
+                    <span class="apparatus-question-icon" aria-hidden="true">🧪</span>
+                    <p class="eyebrow">YOUR TASK</p>
+                    <h3 id="apparatus-question">Which instrument would you use to hold and mix a liquid?</h3>
+                    <p id="apparatus-feedback" class="apparatus-feedback" role="status">Select an instrument from the shelf.</p>
+                </section>
+                <section class="apparatus-bench" id="apparatus-bench" aria-label="Working bench. Drop the correct instrument here or select it from the shelf.">
+                    <span class="eyebrow">WORKING BENCH</span>
+                    <div id="apparatus-bench-items" class="apparatus-bench-items"><span class="bench-placeholder">Drag an instrument here, or choose it from the shelf.</span></div>
+                </section>
+                <div class="apparatus-choice-grid" id="apparatus-choice-grid" aria-label="Apparatus shelf">
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="beaker"><span aria-hidden="true">🧪</span><strong>Beaker</strong><small>Hold or mix liquids</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="cylinder"><span aria-hidden="true">🥛</span><strong>Measuring cylinder</strong><small>Measure liquid volume</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="dropper"><span aria-hidden="true">💧</span><strong>Dropper</strong><small>Transfer small amounts</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="funnel"><span aria-hidden="true">⏳</span><strong>Funnel</strong><small>Guide liquid when pouring</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="thermometer"><span aria-hidden="true">🌡️</span><strong>Thermometer</strong><small>Measure temperature</small></button>
+                    <button type="button" class="apparatus-choice" data-apparatus-choice="microscope"><span aria-hidden="true">🔬</span><strong>Microscope</strong><small>Magnify tiny objects</small></button>
+                </div>
+                <div class="apparatus-result-card" id="apparatus-result-card" hidden>
+                    <span id="apparatus-result-icon" aria-hidden="true">✓</span>
+                    <div><strong id="apparatus-result-title">Correct</strong><p id="apparatus-result-description"></p></div>
+                    <button type="button" id="apparatus-next" class="orange-button">NEXT&nbsp; →</button>
+                </div>
+                <p id="apparatus-complete" class="apparatus-complete" hidden>Well done! You matched all six instruments to their uses. Review the equipment, then start again to practise.</p>
+            </main>
+        </div>
+    </section>
+
+    <section id="mixture-lab-app" class="lab-app mixture-lab-app" aria-labelledby="mixture-lab-title" hidden>
+        <header class="lab-app-header">
+            <div class="lab-logo-cluster" aria-hidden="true"><span class="science-mark">🧪</span></div>
+            <div class="lab-app-title"><h2 id="mixture-lab-title">INTEGRATED SCIENCE | MIXTURES | GRADE 7</h2></div>
+            <div class="lab-header-actions">
+                <button type="button" id="mixture-fullscreen" class="lab-icon-button" aria-label="Enter full screen" title="Full screen">⛶</button>
+                <button type="button" id="mixture-back-to-lesson" class="lab-icon-button lab-close-button" aria-label="Back to lesson" title="Back to lesson">×</button>
+            </div>
+        </header>
+        <div class="mixture-simulation-layout">
+            <aside class="mixture-method-sidebar" aria-labelledby="mixture-method-heading">
+                <div class="lab-panel-heading"><h2 id="mixture-method-heading">SEPARATION METHODS</h2></div>
+                <ol class="evap-procedure shared-procedure"><li>Place the heatproof mat on the workbench.</li><li>Place the Bunsen burner on the mat.</li><li>Position the tripod over the burner.</li><li>Lay wire gauze on the tripod.</li><li>Place the evaporating dish on the gauze.</li><li>Pour salt solution into the dish and return the empty beaker.</li><li>Predict what will remain, then start gentle heating.</li><li>Observe evaporation and salt crystals. Allow the dish to cool.</li><li>Record and check your observations.</li></ol>
+                <nav class="mixture-method-nav" aria-label="Choose a separation method">
+                    <button type="button" data-mixture-select="evaporation" aria-pressed="true">Evaporation <small>Salt solution</small></button>
+                    <button type="button" data-mixture-select="sublimation" aria-pressed="false">Sublimation <small>Ammonium chloride &amp; sand</small></button>
+                    <button type="button" data-mixture-select="distillation" aria-pressed="false">Fractional distillation <small>Water &amp; ethanol</small></button>
+                    <button type="button" data-mixture-select="chromatography" aria-pressed="false">Paper chromatography <small>Groundnut skin extract</small></button>
+                    <button type="button" data-mixture-select="filtration" aria-pressed="false">Filtration <small>Sand &amp; water</small></button>
+                </nav>
+                <p class="mixture-safety-note"><strong>Virtual lab safety:</strong> These activities are simulations. Do not heat ammonium chloride or ethanol, or handle groundnuts, as a home experiment.</p>
+            </aside>
+            <main class="mixture-simulation-main">
+                <div class="mixture-simulation-heading">
+                    <div><p class="eyebrow">GRADE 7 · INTEGRATED SCIENCE</p><h2 id="mixture-method-title">Evaporation</h2><p id="mixture-objective">Separate dissolved salt from salt solution.</p><p id="mixture-method-safety" class="mixture-method-safety"></p></div>
+                    <span class="mixture-step-count" id="mixture-step-count">Step 1</span>
+                </div>
+                {% include 'educations/evaporation.xhtml' %}
+                <div class="mixture-progress-track" role="progressbar" aria-label="Simulation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="mixture-progress-fill"></span></div>
+                <div class="mixture-simulation-columns">
+                    <section class="mixture-scene-card" aria-label="Simulation scene">
+                        <div class="mixture-scene" id="mixture-scene" data-method="evaporation" data-stage="0">
+                            <span id="mixture-scene-icon" aria-hidden="true">🧂</span>
+                            <span id="mixture-scene-label">Salt solution</span>
+                        </div>
+                        <p id="mixture-scene-caption">A solution of salt dissolved in water.</p>
+                        <div class="mixture-color-observation" id="mixture-color-observation" hidden>
+                            <strong>Colour observation</strong>
+                            <div class="mixture-color-swatches" id="mixture-color-swatches" aria-label="Observed colours"></div>
+                            <p id="mixture-color-text"></p>
+                        </div>
+                    </section>
+                    <section class="mixture-step-card" aria-live="polite">
+                        <p class="eyebrow">PROCEDURE</p>
+                        <ol id="mixture-step-list" class="mixture-step-list"></ol>
+                        <h3 id="mixture-step-title">Place the salt solution in an evaporating dish.</h3>
+                        <p id="mixture-step-description">The salt is dissolved in the water, so it cannot be removed with filter paper.</p>
+                        <div class="mixture-result-note" id="mixture-result-note" hidden></div>
+                        <div class="mixture-controls">
+                            <button type="button" id="mixture-previous" class="mixture-secondary-button">← Previous</button>
+                            <button type="button" id="mixture-next" class="orange-button">Next step →</button>
+                            <button type="button" id="mixture-reset" class="mixture-secondary-button">Start again ↻</button>
+                        </div>
+                    </section>
+                </div>
+                <p id="mixture-live-feedback" class="mixture-live-feedback" role="status" aria-live="polite"></p>
+            </main>
+            <aside class="mixture-apparatus-shelf" aria-labelledby="mixture-shelf-title">
+                <div class="mixture-shelf-heading"><h2 id="mixture-shelf-title">APPARATUS SHELF</h2><span id="mixture-shelf-count"></span></div>
+                <p id="mixture-shelf-state" class="mixture-shelf-state">Equipment and materials for this method</p>
+                <ul id="mixture-shelf-items" class="mixture-shelf-items"></ul>
+                <p class="mixture-shelf-footnote">Colour labels show the current material or expected product in the simulation.</p>
+            </aside>
+        </div>
+    </section>
+
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'educations/virtual_labs.js' %}?v=23" defer></script>
+<script src="{% static 'educations/commercial_indicators.js' %}?v=4" defer></script>
+<script src="{% static 'educations/evaporation.js' %}?v=2" defer></script>
+{% endblock %}

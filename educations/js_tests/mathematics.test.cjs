@@ -1,0 +1,15 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+test('Mathematics navigation opens both topics, saves ideas separately and returns to science',()=>{
+ const nodes={},saved=new Map(),opened=[];class Element{
+  constructor(){this.hidden=false;this.value='';this.dataset={};this.attrs={};this.events={};this.classes=new Set();this.classList={add:x=>this.classes.add(x),remove:x=>this.classes.delete(x),contains:x=>this.classes.has(x)};}
+  addEventListener(event,fn){this.events[event]=fn;}click(){this.events.click?.({stopImmediatePropagation(){}});}setAttribute(k,v){this.attrs[k]=v;}removeAttribute(k){delete this.attrs[k];}replaceChildren(...children){this.children=children;}focus(){}
+ }
+ const get=id=>nodes[id]??=new Element(),buttons=['geometry','measurement'].map(id=>{const b=new Element();b.dataset.mathTopic=id;return b;});
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../static/educations/mathematics.js'),'utf8'),{window:{Grade7MathWorkspace:{open:id=>opened.push(id)}},document:{getElementById:get,querySelectorAll:selector=>selector==='[data-math-topic]'?buttons:[],createElement:()=>new Element()},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)}});
+ get('math-toggle').click();assert(get('grade-dashboard').classList.contains('math-active'));assert.equal(get('math-coming').hidden,false);
+ buttons[0].click();assert.equal(get('math-detail-title').textContent,'Geometrical Constructions');get('math-reflection').value='Use equal compass radii.';get('math-save-reflection').click();assert.equal(saved.get('grade7-mathematics-geometry'),'Use equal compass radii.');buttons[1].click();assert.equal(get('math-detail-title').textContent,'Volume and Capacity');assert.equal(get('math-reflection').value,'');get('math-reflection').value='200 mL';get('math-topics-back').click();assert.equal(saved.get('grade7-mathematics-measurement'),'200 mL');buttons[0].click();assert.equal(get('math-reflection').value,'Use equal compass radii.');get('science-toggle').click();assert(!get('grade-dashboard').classList.contains('math-active'));assert.equal(get('mathematics-page').hidden,true);
+ get('lesson-math-toggle').click();assert.equal(get('lesson-view').hidden,true);assert.equal(get('grade-dashboard').hidden,false);assert.equal(get('mathematics-page').hidden,false);
+ buttons[0].click();get('math-tab-procedure').click();assert.equal(get('math-panel-procedure').hidden,false);assert.equal(get('math-panel-introduction').hidden,true);get('math-view-experiment').click();assert.deepEqual(opened,['geometry']);get('math-post-answer').value='90 degrees';get('math-check-answer').click();assert.equal(get('math-post-feedback').textContent,'1/1. Correct.');buttons[1].click();get('math-post-answer').value='200 mL';get('math-check-answer').click();assert.equal(get('math-post-feedback').textContent,'1/1. Correct.');get('math-post-answer').value='20';get('math-check-answer').click();assert.match(get('math-post-feedback').textContent,/0\/1/);
+});

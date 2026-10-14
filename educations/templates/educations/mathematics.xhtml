@@ -1,0 +1,28 @@
+<section id="mathematics-page" hidden aria-labelledby="math-page-title">
+ <header class="math-heading"><span class="math-subject-icon" aria-hidden="true">&#128208;</span><h1 id="math-page-title">MATHEMATICS G7</h1><span class="math-grade">Grade 7</span></header>
+ <div id="math-topics">
+  <section class="math-topic-group" aria-labelledby="math-geometry-title"><h2 id="math-geometry-title">GEOMETRY</h2><button type="button" class="math-topic-card" data-math-topic="geometry"><span class="math-card-icon" aria-hidden="true">&#128208;</span><strong>Geometrical<br>Constructions</strong><span class="math-card-footer"><span>Explore lesson</span><span aria-hidden="true">&#8594;</span></span></button></section>
+  <section class="math-topic-group" aria-labelledby="math-measurements-title"><h2 id="math-measurements-title">MEASUREMENTS</h2><button type="button" class="math-topic-card" data-math-topic="measurement"><span class="math-card-icon" aria-hidden="true">&#129518;</span><strong>Volume and Capacity</strong><span class="math-card-footer"><span>Explore lesson</span><span aria-hidden="true">&#8594;</span></span></button></section>
+ </div>
+ <section id="math-topic-detail" class="math-topic-detail" hidden aria-labelledby="math-detail-title">
+  <button id="math-topics-back" type="button">&#8592; Mathematics topics</button><h2 id="math-detail-title" tabindex="-1"></h2><p class="math-course-label">MATHEMATICS G7</p>
+  <nav class="math-lesson-tabs" role="tablist" aria-label="Mathematics lesson sections">
+   <button type="button" role="tab" id="math-tab-introduction" data-math-tab="introduction" aria-controls="math-panel-introduction" aria-selected="true">&#▤; Introduction</button>
+   <button type="button" role="tab" id="math-tab-outcomes" data-math-tab="outcomes" aria-controls="math-panel-outcomes" aria-selected="false">Learning Outcomes</button>
+   <button type="button" role="tab" id="math-tab-resources" data-math-tab="resources" aria-controls="math-panel-resources" aria-selected="false">Resources</button>
+   <button type="button" role="tab" id="math-tab-pre" data-math-tab="pre" aria-controls="math-panel-pre" aria-selected="false">Pre-Assessment</button>
+   <button type="button" role="tab" id="math-tab-procedure" data-math-tab="procedure" aria-controls="math-panel-procedure" aria-selected="false">Procedure &amp; Experiment</button>
+   <button type="button" role="tab" id="math-tab-post" data-math-tab="post" aria-controls="math-panel-post" aria-selected="false">Post-Assessment</button>
+   <button type="button" role="tab" id="math-tab-conclusion" data-math-tab="conclusion" aria-controls="math-panel-conclusion" aria-selected="false">&#10003; Conclusion</button>
+  </nav>
+  <section id="math-panel-introduction" class="math-lesson-panel math-paper" role="tabpanel" aria-labelledby="math-tab-introduction"><h3>Introduction</h3><p id="math-detail-intro"></p><p id="math-detail-context"></p></section>
+  <section id="math-panel-outcomes" class="math-lesson-panel" role="tabpanel" aria-labelledby="math-tab-outcomes" hidden><h3>Learning Outcomes</h3><ul id="math-detail-outcomes"></ul></section>
+  <section id="math-panel-resources" class="math-lesson-panel" role="tabpanel" aria-labelledby="math-tab-resources" hidden><h3>Resources</h3><p id="math-detail-resources"></p></section>
+  <section id="math-panel-pre" class="math-lesson-panel" role="tabpanel" aria-labelledby="math-tab-pre" hidden><h3>Pre-Assessment</h3><p id="math-detail-question"></p><label for="math-reflection">My ideas</label><textarea id="math-reflection" rows="4" placeholder="Write your ideas or questions here."></textarea><button id="math-save-reflection" type="button">Save my ideas</button><p id="math-save-status" role="status"></p></section>
+  <section id="math-panel-procedure" class="math-lesson-panel" role="tabpanel" aria-labelledby="math-tab-procedure" hidden><article class="math-experiment-card"><span class="math-experiment-symbol" aria-hidden="true">&#128208;</span><div><h3 id="math-experiment-title"></h3><p id="math-experiment-subtitle"></p></div><p id="math-experiment-description"></p><button type="button" id="math-view-experiment">&#9974; View Experiment</button></article></section>
+  <section id="math-panel-post" class="math-lesson-panel" role="tabpanel" aria-labelledby="math-tab-post" hidden><h3>Post-Assessment</h3><p id="math-post-question"></p><label for="math-post-answer">My answer</label><textarea id="math-post-answer" rows="3"></textarea><button type="button" id="math-check-answer">Check my answer</button><p id="math-post-feedback" role="status"></p></section>
+  <section id="math-panel-conclusion" class="math-lesson-panel" role="tabpanel" aria-labelledby="math-tab-conclusion" hidden><h3>Conclusion</h3><p id="math-conclusion"></p></section>
+ </section>
+ {% include 'educations/geometry_workspace.xhtml' %}
+ {% include 'educations/capacity_workspace.xhtml' %}
+</section>
