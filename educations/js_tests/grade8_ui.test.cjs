@@ -37,12 +37,10 @@ test('bench controls offer pouring only and retain apparatus on the bench',()=>{
  assert.match(a.get('g8-observation').textContent,/full of water/);
  assert(a.get('g8-shelf').children.some(b=>b.children[0].textContent.startsWith('Conical flask')&&b.disabled));
 });
-test('procedure buttons explain missing apparatus and run each step in order',()=>{
+test('procedure buttons arrange oxygen apparatus and run each step in order',()=>{
  const a=lab();a.open('oxygen');
  const step=i=>a.get('g8-procedure').children[i].children[0];
- step(0).click();assert.match(a.get('g8-feedback').textContent,/Bring from the shelf:/);
- assert.equal(a.get('g8-procedure').children[0].className,'g8-current');
- a.assemble();
+ assert.match(a.get('g8-feedback').textContent,/arrange the apparatus/);
  for(let i=0;i<6;i++){
   assert.equal(step(i).disabled,false);step(i).click();
   assert.equal(a.get('g8-procedure').children[i].className,'g8-current');
@@ -102,3 +100,12 @@ test('water can be poured as soon as the apparatus is arranged, without a separa
  assert.equal(a.get('g8-procedure').children[2].className,'g8-current');
  assert.match(a.get('g8-observation').textContent,/full of water/);
 });
+
+ test('oxygen completes from procedure controls without preloading shelf items',()=>{
+ const a=lab();a.open('oxygen');
+ for(let i=0;i<6;i++){const button=a.get('g8-procedure').children[i].children[0];assert.equal(button.disabled,false);button.click();a.tick();}
+ assert.equal(a.get('g8-action').textContent,'Experiment complete');
+ assert.match(a.get('g8-drawing').innerHTML,/Glowing splint relights/);
+ a.record('oxygen',6);assert.match(a.get('g8-mark').textContent,/2\/2/);
+ a.get('g8-reset').click();assert.equal(a.get('g8-procedure').children[0].children[0].disabled,false);
+ });

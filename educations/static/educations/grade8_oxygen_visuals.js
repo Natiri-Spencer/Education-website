@@ -21,11 +21,11 @@
    svg+=sprite('flask',140,237,176,227,.85);
    svg+=`<path d="${flaskPath}" opacity=".2" fill="none" stroke="#718e9c" stroke-width="3.5"/><path d="M215 252 V281 L160 420" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="3"/>${label(325,491,s>=3?'Black MnO₂ catalyst':'Reaction flask',12)}`;
   }
-  if(placed.has('funnel')){svg+=`<g transform="translate(${s===3?-75:0} ${s===3?-110:0})">`;svg+='<path d="M206 126 V139 C180 147 187 186 216 207 V330 H225 V207 C254 186 261 147 234 139 V126" fill="url(#g8-glass-shine)" stroke="#748f9c" stroke-width="2.5"/><ellipse cx="220" cy="126" rx="14" ry="5" fill="#f1f7f8" stroke="#748f9c" stroke-width="2.5"/>';
+  if(placed.has('funnel')){svg+=`<g transform="translate(${s<4?-75:0} ${s<4?-110:0})">`;svg+='<path d="M206 126 V139 C180 147 187 186 216 207 V330 H225 V207 C254 186 261 147 234 139 V126" fill="url(#g8-glass-shine)" stroke="#748f9c" stroke-width="2.5"/><ellipse cx="220" cy="126" rx="14" ry="5" fill="#f1f7f8" stroke="#748f9c" stroke-width="2.5"/>';
    svg+=`<g data-oxygen-part="stopcock"><rect x="212" y="208" width="18" height="12" rx="3" fill="#d5e6ee" stroke="#6b8c9d"/><path d="${s===4&&p<.7?'M221 202 V226':'M204 214 H239'}" stroke="#68cfe4" stroke-width="5" stroke-linecap="round"/></g>`;
    if(s===4){const reservoir=1-Math.min(1,p/.65),height=48*reservoir;svg+=`<path d="M201 ${179-height} H239 V178 Q239 189 225 199 H216 Q201 189 201 178Z" fill="url(#g8-clear-liquid)"/>`;if(p<.7){for(let i=0;i<5;i++)svg+=`<ellipse cx="221" cy="${332+(p*200+i*12)%55}" rx="2" ry="4" fill="#e1faff"/>`;}}
    svg+=sprite('funnel',188,119,65,105,.9)+sprite('stem',216,223,10,109,.9);
-   svg+=label(145,98,s===3?'Funnel lifted for catalyst':'Dropping funnel',11)+label(163,219,s===4&&p<.7?'Tap open':'Tap closed',10)+'</g>';}
+   svg+=label(145,98,s<4?'Funnel ready to fit':'Dropping funnel',11)+label(163,219,s===4&&p<.7?'Tap open':'Tap closed',10)+'</g>';}
   if(s>=4)svg+='<path d="M207 234 H251 L249 248 H210Z" fill="#323637" stroke="#626c71" stroke-width="2"/>';
   if(placed.has('trough')){svg+='<g data-oxygen-part="perspective-trough"><path d="M465 330 L520 285 H880 V415 L825 460 H465Z" fill="url(#g8-glass-shine)" stroke="#6c9bab" stroke-width="2"/><path d="M465 330 H825 L880 285 M825 330 V460 M520 285 V415 L465 460" fill="none" stroke="#91bac7" stroke-width="2"/>';
    if(s>=2)svg+=`<path d="M469 ${troughSurface} L524 ${troughSurface-45} H876 L821 ${troughSurface}Z" fill="#61c5e7" fill-opacity=".5" stroke="#e6fbff" stroke-width="2"/><path d="M469 ${troughSurface} H821 V456 H469Z M821 ${troughSurface} L876 ${troughSurface-45} V411 L821 456Z" fill="url(#g8-clear-liquid)"/>`;
@@ -37,7 +37,8 @@
    if(s>=2&&s<6)svg+=label(700,448,'Open mouth below water',11);
    if(s===5&&gas>.08)svg+=label(690,175+gas*55,'O₂',22);
   }
-  if(placed.has('delivery')){const outlet=s>=5?690:545,points=[[240,240],[272,230],[320,240],[420,310],[485,420],[outlet-20,420],[outlet,398]];svg+=`<path d="M${points.map(point=>point.join(' ')).join(' L')}" fill="none" stroke="#ceeaf5" stroke-width="7" stroke-linejoin="round"/><path d="M${points.map(point=>point.join(' ')).join(' L')}" fill="none" stroke="#577e93" stroke-width="2.5" stroke-linejoin="round"/>`;
+  if(placed.has('delivery')&&s<4)svg+='<g data-oxygen-part="loose-delivery"><path d="M320 450 V420 H395 V450" fill="none" stroke="#577e93" stroke-width="5"/><path d="M310 450 H330 L328 461 H312Z" fill="#323637"/></g>';
+  if(placed.has('delivery')&&s>=4){const outlet=s>=5?690:545,points=[[240,240],[272,230],[320,240],[420,310],[485,420],[outlet-20,420],[outlet,398]];svg+=`<path d="M${points.map(point=>point.join(' ')).join(' L')}" fill="none" stroke="#ceeaf5" stroke-width="7" stroke-linejoin="round"/><path d="M${points.map(point=>point.join(' ')).join(' L')}" fill="none" stroke="#577e93" stroke-width="2.5" stroke-linejoin="round"/>`;
    if(s===4||s===5){for(let i=0;i<7;i++){const [x,y]=bubbleOnRoute(points,(p*3+i/7)%1);svg+=`<circle cx="${x}" cy="${y}" r="2.5" fill="#f4fcff"/>`;}if(s===4||gas<.97)for(let i=0;i<5;i++){const upper=s===4?troughSurface:Math.max(151+259*gas,145),cy=398-((p*160+i*15)%Math.max(1,398-upper));svg+=`<circle cx="${outlet+Math.sin(i+p*5)*3}" cy="${cy}" r="${3+i%2}" fill="#eefbff" fill-opacity=".15" stroke="#f4fdff" stroke-width="1.5"/>`;}}
   }
   if(placed.has('trough'))svg+='<path d="M465 330 H825 L880 285 H520Z" fill="none" stroke="#82b4c6" stroke-width="4"/><path d="M465 330 V460 H825 V330 M825 460 L880 415 V285" fill="none" stroke="#73a6ba" stroke-width="3"/><path d="M475 338 V449 H813" fill="none" stroke="#ffffffaa" stroke-width="2"/>';

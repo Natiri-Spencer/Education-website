@@ -18,3 +18,9 @@ test('water-filled jar inverts, gas displaces its water and the splint relights'
  assert.doesNotMatch(scene(6,.1),/Glowing splint relights/);
  assert.match(scene(6,1),/Glowing splint relights/);
 });
+
+test('delivery tube remains loose until the bung is fitted',()=>{
+ assert.match(scene(1),/data-oxygen-part="loose-delivery"/);
+ assert.match(scene(3),/data-oxygen-part="loose-delivery"/);
+ assert.doesNotMatch(scene(4),/data-oxygen-part="loose-delivery"/);
+});
