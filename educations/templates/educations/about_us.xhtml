@@ -6,8 +6,8 @@
 <div class="about-page">
     <section class="about-hero mb-5">
         <p class="eyebrow"><span class="status-dot"></span> ABOUT EDUPORTAL</p>
-        <h1>Learning resources, easier to find.</h1>
-        <p>EduPortal brings learning materials together and organizes them by grade and subject, so learners can get to the resources they need with fewer steps. It also gives teachers a platform to teach online using whiteboard and virtual labs.</p>
+        <h1>Learn, teach, and experiment in one place.</h1>
+        <p>EduPortal organizes CBC learning materials by grade and subject, and gives learners and teachers practical tools for active lessons. Explain ideas on the digital whiteboard, practise mathematics, and investigate science through guided virtual labs.</p>
         <a class="btn btn-lime" href="{% url 'home' %}#grade-library">Explore learning resources <span aria-hidden="true">→</span></a>
     </section>
 
@@ -43,6 +43,33 @@
         </div>
     </section>
 
+    <section class="mb-5" aria-labelledby="about-tools-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">INTERACTIVE LEARNING</p>
+                <h2 id="about-tools-title">Teach and explore</h2>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <article class="about-card h-100 d-flex flex-column">
+                    <span class="resource-icon pdf-icon" aria-hidden="true">WB</span>
+                    <h3>Digital teaching whiteboard</h3>
+                    <p>Write or draw freely, add images, move around an unlimited canvas, and save boards in the browser. Handwriting autocorrection proposes editable text and mathematics while preserving the original ink for review, undo, or restoration.</p>
+                    <a class="btn btn-quiet mt-3 align-self-start" href="{% url 'educations:whiteboard' %}">Open the whiteboard</a>
+                </article>
+            </div>
+            <div class="col-md-6">
+                <article class="about-card h-100 d-flex flex-column">
+                    <span class="resource-icon video-icon" aria-hidden="true">LAB</span>
+                    <h3>Guided virtual labs</h3>
+                    <p>Explore interactive CBC science and mathematics activities with apparatus, ordered procedures, observations, calculations, and separate investigation notebooks. Grade 8 activities cover oxygen, osmosis, diffusion, elements and compounds, circles, and graph work.</p>
+                    <a class="btn btn-quiet mt-3 align-self-start" href="{% url 'virtual_labs' %}">Explore virtual labs</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <section class="about-guide" aria-labelledby="about-guide-title">
         <div>
             <p class="eyebrow">GETTING STARTED</p>
@@ -51,7 +78,8 @@
         <ol>
             <li>Choose a grade from the menu or the Home page.</li>
             <li>Select a subject to open its learning materials.</li>
-            <li>Use the resource lists to browse more PDFs, videos, and images.</li>
+            <li>Use the resource lists to browse PDFs, videos, and images.</li>
+            <li>Open the Whiteboard or Virtual labs from the main menu for an interactive lesson.</li>
         </ol>
         <a class="btn btn-quiet" href="{% url 'home' %}">Return to Home</a>
     </section>
