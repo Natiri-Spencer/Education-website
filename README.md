@@ -6,6 +6,8 @@ The whiteboard keeps every original pen stroke and proposes editable corrections
 
 Every suggestion requires review before it replaces ink. The review dialog shows the source handwriting, alternatives, recognition details, and a checkbox for each line. Unselected or unread regions remain as ink. **Undo** and **Restore original handwriting** recover the source strokes, and manual edits are protected from later recognition passes. Boards, source ink, recognition profile, and view positions remain saved in the browser.
 
+The whiteboard also accepts voice equations and interactive function graphs. **Voice equation** uses browser speech recognition after an explicit microphone click, converts supported spoken maths with a deterministic parser, and shows an editable rendered preview before insertion; unsupported browsers retain the typed-transcript fallback. **Graph** safely parses explicit functions such as `y = x^2` without JavaScript evaluation, plots whitelisted arithmetic and common functions as native SVG, and keeps the graph editable, movable, resizable, undoable, saved, and exportable with the board.
+
 The endpoint is CSRF-protected, size-limited, and caches results by exact strokes and model revision. Recognition timeouts and worker failures retain the original ink. On Windows, the native bridge compiles `educations/HandwritingRecognizer.cs` into the ignored `tmp/whiteboard_ink/` directory. The optional formula model runs locally in the ignored `tmp/formula_runtime/` directory, with weights stored under ignored `models/formula/`. A readiness request prewarms the persistent formula worker in the background.
 
 See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTATION_STATUS.md](HANDWRITING_IMPLEMENTATION_STATUS.md) for setup, measured limits, evaluation, and retraining instructions.
@@ -13,7 +15,7 @@ See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTA
 Run the whiteboard checks with:
 
 ```powershell
-node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs
+node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs educations/js_tests/whiteboard_voice_math.test.cjs educations/js_tests/whiteboard_graph.test.cjs
 .\Scripts\python.exe manage.py test educations.test_handwriting educations.test_ink_accuracy educations.test_whiteboard educations.test_calculus_ink educations.test_math_validation educations.test_neural_ink
 .\Scripts\python.exe tools/check_ink_endpoint.py
 ```

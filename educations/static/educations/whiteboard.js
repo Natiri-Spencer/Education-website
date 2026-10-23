@@ -2,7 +2,7 @@
     'use strict';
     const app = document.getElementById('whiteboard-app');
     if (!app || !window.WhiteboardModel) return;
-    const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, $ = id => document.getElementById(id);
+    const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, G = window.WhiteboardGraph, V = window.WhiteboardVoiceMath, $ = id => document.getElementById(id);
     const svg = $('wb-canvas'), world = $('wb-world'), stage = $('wb-stage');
     const paths = {
         cursor: 'M4 3l6 17 3-7 7-3L4 3z', hand: 'M8 12V6a2 2 0 014 0v5-7a2 2 0 014 0v8-6a2 2 0 014 0v9c0 5-3 7-7 7-3 0-5-2-7-4l-3-5a2 2 0 013-2l2 2z',
@@ -45,6 +45,7 @@
     let recognitionLabel = 'Recognition on', recognitionReady = false, recognitionBusy = false, recognitionTimer, recognitionController, recognitionRevision = 0, recognitionCheck = null, lastRecognitionCheck = 0;
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
+    let speechRecognition = null, voicePreviewRevision = 0, graphEditId = null, graphPreview = null;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
@@ -112,7 +113,7 @@
         return recognitionCheck;
     }
     async function runRecognition() {
-        if (!recognitionReady || recognitionBusy || drag || editing || touchGesture || $('wb-review-dialog').open) { if (recognitionPending.size) scheduleRecognition(); return; }
+        if (!recognitionReady || recognitionBusy || drag || editing || touchGesture || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open) { if (recognitionPending.size) scheduleRecognition(); return; }
         const request = M.recognitionRequest(board.items, recognitionPending);
         if (!request.strokes.length) { recognitionPending.clear(); return; }
         const snapshot = M.clone(request), revision = recognitionRevision, boardId = board.id;
@@ -208,6 +209,83 @@
     }
     $('wb-review').addEventListener('click',()=>{refreshReviews();if(reviews.length)openReview(reviews[0]);});
     $('wb-add-equation').addEventListener('click',()=>openReview({boardId:board.id,words:[{text:'',format:'math',fontSize:32}]}));
+    function stopVoice(message='Microphone is off.') {
+        if(speechRecognition){try{speechRecognition.stop();}catch(_){/* Already stopped. */}speechRecognition=null;}
+        $('wb-voice-dialog').classList.remove('is-listening');$('wb-voice-listen').textContent='Start listening';$('wb-voice-status').textContent=message;
+    }
+    async function updateVoicePreview(fromTranscript=false) {
+        const error=$('wb-voice-error'),preview=$('wb-voice-preview');error.hidden=true;
+        try{
+            if(fromTranscript){const parsed=V.parseSpokenMath($('wb-voice-transcript').value);$('wb-voice-expression').value=parsed.expression;}
+            const expression=$('wb-voice-expression').value.trim();if(!expression){preview.textContent='Your equation preview';return;}
+            const revision=++voicePreviewRevision;preview.textContent='Formatting…';
+            const entry=await window.WhiteboardMath.prepare(expression,32);
+            if(revision!==voicePreviewRevision)return;
+            if(entry.error)throw new Error(entry.error);preview.innerHTML=mathSvg(entry);
+        }catch(reason){preview.textContent='Preview unavailable';error.textContent=reason.message;error.hidden=false;}
+    }
+    function openVoice() {
+        finishEdit(true);cancelRecognition();stopVoice();
+        $('wb-voice-transcript').value='';$('wb-voice-expression').value='';$('wb-voice-preview').textContent='Your equation preview';$('wb-voice-error').hidden=true;
+        const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+        if(!Recognition){$('wb-voice-status').textContent='Voice recognition is unavailable in this browser. Type the spoken phrase below instead.';$('wb-voice-listen').disabled=true;}
+        else{$('wb-voice-listen').disabled=false;}
+        if(!$('wb-voice-dialog').open)$('wb-voice-dialog').showModal();$('wb-voice-transcript').focus();
+    }
+    $('wb-voice-math').addEventListener('click',openVoice);
+    $('wb-voice-listen').addEventListener('click',()=>{
+        if(speechRecognition){stopVoice();return;}
+        const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return;
+        const recognition=new Recognition();speechRecognition=recognition;recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
+        recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent='Listening… Speak one equation.';};
+        recognition.onresult=event=>{let text='';for(let i=event.resultIndex;i<event.results.length;i++)text+=event.results[i][0].transcript;$('wb-voice-transcript').value=text.trim();updateVoicePreview(true);};
+        recognition.onerror=event=>stopVoice(event.error==='not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. You can edit or type the transcript.');
+        recognition.onend=()=>{if(speechRecognition===recognition)stopVoice('Listening finished. Check the equation before adding it.');};
+        try{recognition.start();}catch(_){stopVoice('Could not start the microphone. Type the phrase instead.');}
+    });
+    $('wb-voice-transcript').addEventListener('input',()=>updateVoicePreview(true));
+    $('wb-voice-expression').addEventListener('input',()=>updateVoicePreview(false));
+    function closeVoice(){stopVoice();if($('wb-voice-dialog').open)$('wb-voice-dialog').close();}
+    $('wb-voice-close').addEventListener('click',closeVoice);$('wb-voice-cancel').addEventListener('click',closeVoice);
+    $('wb-voice-dialog').addEventListener('close',()=>stopVoice());
+    $('wb-voice-apply').addEventListener('click',async()=>{
+        const expression=$('wb-voice-expression').value.trim(),error=$('wb-voice-error');error.hidden=true;
+        try{
+            if(!expression)throw new Error('Speak or type an equation first.');
+            const entry=await window.WhiteboardMath.prepare(expression,32);if(entry.error)throw new Error(entry.error);
+            const before=M.clone(board.items),p=centre(),item=M.create('text',p.x-entry.w/2,p.y-entry.h/2,{text:expression,format:'math',manualText:true,fontSize:32,stroke:ink,w:entry.w,h:entry.h});
+            board.items.push(M.placeRecognized(item,board.items));selected=item.id;closeVoice();commit(before);toast('Voice equation added. Undo removes it; double-click to edit it.');
+        }catch(reason){error.textContent=reason.message;error.hidden=false;}
+    });
+    function graphOptions(){return{xMin:$('wb-graph-x-min').value,xMax:$('wb-graph-x-max').value,yMin:$('wb-graph-y-min').value,yMax:$('wb-graph-y-max').value};}
+    function updateGraphPreview(){
+        const error=$('wb-graph-error');error.hidden=true;
+        try{
+            graphPreview=G.plot($('wb-graph-expression').value,graphOptions());
+            const previewItem={id:'preview',type:'graph',x:0,y:0,w:560,h:320,fill:'#fff',stroke:$('wb-graph-colour').value,width:Number($('wb-graph-width').value),showGrid:$('wb-graph-grid').checked,showAxes:$('wb-graph-axes').checked,...graphPreview};
+            $('wb-graph-preview').innerHTML=graphMarkup(previewItem,{x:0,y:0,w:560,h:320});
+        }catch(reason){graphPreview=null;$('wb-graph-preview').innerHTML='';error.textContent=reason.message;error.hidden=false;}
+    }
+    function openGraph(item=null){
+        finishEdit(true);cancelRecognition();graphEditId=item?.id||null;
+        $('wb-graph-heading').textContent=item?'Edit graph':'Graph plotter';$('wb-graph-apply').textContent=item?'Apply changes':'Add to whiteboard';
+        $('wb-graph-expression').value=item?`y = ${item.expression}`:'y = x^2';
+        for(const [id,value] of [['wb-graph-x-min',item?.xMin??-10],['wb-graph-x-max',item?.xMax??10],['wb-graph-y-min',item?.yMin??-10],['wb-graph-y-max',item?.yMax??10]])$(id).value=value;
+        $('wb-graph-grid').checked=item?.showGrid!==false;$('wb-graph-axes').checked=item?.showAxes!==false;$('wb-graph-colour').value=item?.stroke||'#1689f8';$('wb-graph-width').value=item?.width||3;
+        updateGraphPreview();if(!$('wb-graph-dialog').open)$('wb-graph-dialog').showModal();$('wb-graph-expression').focus();$('wb-graph-expression').select();
+    }
+    $('wb-add-graph').addEventListener('click',()=>openGraph());
+    for(const id of ['wb-graph-expression','wb-graph-x-min','wb-graph-x-max','wb-graph-y-min','wb-graph-y-max','wb-graph-grid','wb-graph-axes','wb-graph-colour','wb-graph-width'])$(id).addEventListener('input',updateGraphPreview);
+    function closeGraph(){graphEditId=null;if($('wb-graph-dialog').open)$('wb-graph-dialog').close();}
+    $('wb-graph-close').addEventListener('click',closeGraph);$('wb-graph-cancel').addEventListener('click',closeGraph);
+    $('wb-graph-dialog').addEventListener('close',()=>{graphEditId=null;});
+    $('wb-graph-apply').addEventListener('click',()=>{
+        updateGraphPreview();if(!graphPreview)return;
+        const before=M.clone(board.items),old=board.items.find(item=>item.id===graphEditId),p=centre();
+        const item=M.create('graph',old?.x??p.x-280,old?.y??p.y-180,{...(old||{}),...graphPreview,stroke:$('wb-graph-colour').value,width:Number($('wb-graph-width').value),showGrid:$('wb-graph-grid').checked,showAxes:$('wb-graph-axes').checked});
+        if(old){item.id=old.id;board.items=board.items.map(current=>current.id===old.id?item:current);}else board.items.push(item);
+        selected=item.id;closeGraph();commit(before);toast(old?'Graph updated.':'Graph added. Double-click it to edit the function or ranges.');
+    });
     $('wb-review-close').addEventListener('click',()=>$('wb-review-dialog').close());
     $('wb-review-export').addEventListener('click',()=>{
         const review=activeReview;if(!review?.request)return;
@@ -368,6 +446,25 @@
         const lines = wrap(item.text, Math.max(2, Math.floor((box.w - inset * 2) / (item.fontSize * .56))));
         return `<text x="${box.x + inset}" y="${box.y + inset + item.fontSize}" fill="${colour}" font-family="Segoe UI,Arial,sans-serif" font-size="${item.fontSize}">${lines.map((line, i) => `<tspan x="${box.x + inset}" y="${box.y+inset+item.fontSize+i*item.fontSize*1.35}">${esc(line)}</tspan>`).join('')}</text>`;
     }
+    function graphMarkup(item, box) {
+        const left=46, right=16, top=35, bottom=32, width=Math.max(1,box.w-left-right), height=Math.max(1,box.h-top-bottom);
+        const px=x=>box.x+left+(x-item.xMin)/(item.xMax-item.xMin)*width;
+        const py=y=>box.y+top+height-(y-item.yMin)/(item.yMax-item.yMin)*height;
+        const clip=`wb-graph-${String(item.id).replace(/[^a-z0-9_-]/gi,'')}`;
+        let art=`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="10" fill="${item.fill||'#fff'}" stroke="#cbc4d4"/><text x="${box.x+14}" y="${box.y+23}" fill="#332b42" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="700">${esc('y = '+item.expression)}</text><defs><clipPath id="${clip}"><rect x="${box.x+left}" y="${box.y+top}" width="${width}" height="${height}"/></clipPath></defs>`;
+        if(item.showGrid!==false)for(let i=0;i<=10;i++){
+            const x=box.x+left+width*i/10,y=box.y+top+height*i/10;
+            art+=`<path d="M${x},${box.y+top}v${height}M${box.x+left},${y}h${width}" stroke="#ece8f0" stroke-width="1"/>`;
+        }
+        art+=`<rect x="${box.x+left}" y="${box.y+top}" width="${width}" height="${height}" fill="none" stroke="#bcb3c8"/>`;
+        if(item.showAxes!==false){
+            if(item.xMin<=0&&item.xMax>=0)art+=`<path d="M${px(0)},${box.y+top}v${height}" stroke="#6e657a" stroke-width="1.4"/>`;
+            if(item.yMin<=0&&item.yMax>=0)art+=`<path d="M${box.x+left},${py(0)}h${width}" stroke="#6e657a" stroke-width="1.4"/>`;
+            art+=`<text x="${box.x+left}" y="${box.y+box.h-10}" fill="#6e657a" font-size="11">${esc(item.xMin)}</text><text x="${box.x+box.w-right}" y="${box.y+box.h-10}" fill="#6e657a" font-size="11" text-anchor="end">${esc(item.xMax)}</text><text x="${box.x+left-7}" y="${box.y+top+10}" fill="#6e657a" font-size="11" text-anchor="end">${esc(item.yMax)}</text><text x="${box.x+left-7}" y="${box.y+top+height}" fill="#6e657a" font-size="11" text-anchor="end">${esc(item.yMin)}</text>`;
+        }
+        art+=`<g clip-path="url(#${clip})">${(item.samples||[]).map(segment=>`<path d="${segment.map(([x,y],i)=>`${i?'L':'M'}${px(x)},${py(y)}`).join(' ')}" fill="none" stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</g>`;
+        return art;
+    }
     function itemMarkup(item) {
         const b = M.bounds(item), style = `stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"`;
         let art = '';
@@ -389,6 +486,7 @@
         case 'sticky': art = `<rect x="${b.x + 2}" y="${b.y + 4}" width="${b.w}" height="${b.h}" rx="2" fill="#29203d" opacity=".08"/><path d="M${b.x},${b.y}h${b.w}v${b.h - 22}l-22,22H${b.x}Z" fill="${item.fill}"/><path d="M${b.x + b.w - 22},${b.y + b.h}v-22h22" fill="#000000" opacity=".07"/>${textMarkup(item, b, 20, item.stroke)}`; break;
         case 'text': art = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="transparent"/>${textMarkup(item, b, 4, item.stroke)}`; break;
         case 'image': art = `<image href="${esc(item.src)}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" preserveAspectRatio="xMidYMid meet"/>`; break;
+        case 'graph': art = graphMarkup(item,b); break;
         case 'table': {
             const rows = item.text.split('\n').slice(0, 20).map(row => row.split('\t').slice(0, 10));
             const columns = Math.max(1, ...rows.map(row => row.length)), rowHeight = b.h / rows.length, columnWidth = b.w / columns;
@@ -403,7 +501,8 @@
             break;
         }
         }
-        return `<g data-wb-item="${esc(item.id)}">${art}</g>`;
+        const accessibility=item.type==='graph'?` role="img" aria-label="${esc(`Graph of y = ${item.expression}, x from ${item.xMin} to ${item.xMax}, y from ${item.yMin} to ${item.yMax}`)}"`:'';
+        return `<g data-wb-item="${esc(item.id)}"${accessibility}>${art}</g>`;
     }
     function render() {
         const view = board.view;
@@ -421,7 +520,7 @@
         $('wb-object-count').textContent = `${board.items.length} element${board.items.length === 1 ? '' : 's'}`;
         $('wb-recognition-mode').value = board.recognitionMode || 'auto';
         $('wb-selection-tools').hidden = !item || tool !== 'select';
-        $('wb-selection-tools').querySelector('[data-wb-action=edit]').disabled = !item || !['text', 'sticky', 'table'].includes(item.type);
+        $('wb-selection-tools').querySelector('[data-wb-action=edit]').disabled = !item || !['text', 'sticky', 'table', 'graph'].includes(item.type);
         $('wb-undo').disabled = !history.canUndo; $('wb-redo').disabled = !history.canRedo;
         $('wb-tidy-existing').disabled = recognitionBusy || !board.items.some(M.canRetryRecognition);
         $('wb-selection-tools').querySelector('[data-wb-action="restore-ink"]').disabled = !item?.inkSource?.length;
@@ -432,11 +531,12 @@
         const p = centre(), item = M.create(type, p.x - 100, p.y - 70, { stroke: ink, fill, width: penWidth, fontSize, ...options });
         mutate(() => { board.items.push(item); selected = item.id; });
         setTool('select'); select(item.id);
-        if (['text', 'sticky', 'table'].includes(type)) edit(item);
+        if (['text', 'sticky', 'table', 'graph'].includes(type)) edit(item);
         return item;
     }
     function edit(item) {
-        if (!item || !['text', 'sticky', 'table'].includes(item.type)) return;
+        if (!item || !['text', 'sticky', 'table', 'graph'].includes(item.type)) return;
+        if(item.type==='graph'){openGraph(item);return;}
         if(item.format==='math'){openReview({boardId:board.id,editId:item.id,words:[{text:item.text,format:'math',fontSize:item.fontSize}]});return;}
         editing = item.id; $('wb-edit-text').value = item.text; $('wb-editor').hidden = false;
         $('wb-text-alternatives').innerHTML = (item.alternatives || []).filter(a => a !== item.text).map(a => `<button data-wb-alternative="${esc(a)}">${esc(a)}</button>`).join('');
@@ -792,7 +892,7 @@
         const typing = event.target.closest('input,textarea,select,[contenteditable=true]'), command = event.ctrlKey || event.metaKey;
         if (event.key === 'Escape') { if (editing) finishEdit(false); else if (drag) endDrag({ pointerId: drag.pointer }, true); else { selected = null; showDrawTray(false); $('wb-shape-tray').hidden = true; $('wb-shapes-toggle').setAttribute('aria-expanded', 'false'); render(); } return; }
         if (editing && command && event.key === 'Enter') { event.preventDefault(); finishEdit(true); svg.focus(); return; }
-        if (typing || !$('whiteboard-app').contains(document.activeElement) || $('wb-help-dialog').open || $('wb-review-dialog').open) return;
+        if (typing || !$('whiteboard-app').contains(document.activeElement) || $('wb-help-dialog').open || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open) return;
         const key = event.key.toLowerCase();
         if (command && ['z', 'y', 'd', 's'].includes(key)) {
             event.preventDefault(); if (key === 'z') (event.shiftKey ? redo : undo)(); if (key === 'y') redo(); if (key === 'd') actions.duplicate(); if (key === 's') { saveNow(); toast('Saved on this device.'); } return;
