@@ -45,7 +45,7 @@
     let recognitionLabel = 'Recognition on', recognitionReady = false, recognitionBusy = false, recognitionTimer, recognitionController, recognitionRevision = 0, recognitionCheck = null, lastRecognitionCheck = 0;
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
-    let speechRecognition = null, voiceSilenceTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, graphEditId = null, graphPreview = null;
+    let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, graphEditId = null, graphPreview = null;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
@@ -210,7 +210,7 @@
     $('wb-review').addEventListener('click',()=>{refreshReviews();if(reviews.length)openReview(reviews[0]);});
     $('wb-add-equation').addEventListener('click',()=>openReview({boardId:board.id,words:[{text:'',format:'math',fontSize:32}]}));
     function stopVoice(message='Microphone is off.') {
-        clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;
+        voiceListening=false;clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;
         if(speechRecognition){const recognition=speechRecognition;speechRecognition=null;try{recognition.stop();}catch(_){/* Already stopped. */}}
         $('wb-voice-dialog').classList.remove('is-listening');$('wb-voice-listen').textContent='Start listening';$('wb-voice-status').textContent=message;
     }
@@ -224,10 +224,12 @@
         try{
             if(fromTranscript){const parsed=V.parseSpokenMath($('wb-voice-transcript').value);$('wb-voice-expression').value=parsed.expression;}
             expression=$('wb-voice-expression').value.trim();if(!expression){preview.textContent='Your equation preview';return;}
-            preview.textContent=expression;
+            const tex=T.toLatex(expression);
+            preview.innerHTML=window.katex.renderToString(tex,{displayMode:true,throwOnError:true,trust:false,maxExpand:500,maxSize:20});apply.disabled=false;
+            if(voiceListening)return;
             const entry=await window.WhiteboardMath.prepare(expression,32);
             if(revision!==voicePreviewRevision)return;
-            if(entry.error)throw new Error(entry.error);preview.innerHTML=mathSvg(entry);apply.disabled=false;
+            if(entry.ready)preview.innerHTML=mathSvg(entry);
         }catch(reason){if(revision!==voicePreviewRevision)return;preview.textContent=expression||'Your equation preview';error.textContent=reason.message;error.hidden=false;}
     }
     function openVoice() {
@@ -239,15 +241,19 @@
         if(!$('wb-voice-dialog').open)$('wb-voice-dialog').showModal();$('wb-voice-transcript').focus();
     }
     $('wb-voice-math').addEventListener('click',openVoice);
-    $('wb-voice-listen').addEventListener('click',()=>{
-        if(speechRecognition){stopVoice('Listening stopped. Check the equation before adding it.');updateVoicePreview(true);return;}
+    function beginVoiceSession() {
+        if(!voiceListening)return;
         const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return;
-        const recognition=new Recognition();speechRecognition=recognition;voiceTranscriptBase=$('wb-voice-transcript').value.trim();voiceSessionText='';recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
+        const recognition=new Recognition();speechRecognition=recognition;voiceSessionText='';recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
         recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent='Listening… Keep speaking; short pauses will not end the equation.';if(!voiceSilenceTimer)armVoiceSilenceTimer();};
         recognition.onresult=event=>{let text='';for(let i=0;i<event.results.length;i++)text+=`${event.results[i][0].transcript} `;voiceSessionText=text.trim();$('wb-voice-transcript').value=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');armVoiceSilenceTimer();updateVoicePreview(true);};
-        recognition.onerror=event=>{if(event.error==='no-speech'){if(speechRecognition===recognition)$('wb-voice-status').textContent='Still listening…';return;}stopVoice(event.error==='not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. You can edit or type the transcript.');};
-        recognition.onend=()=>{if(speechRecognition!==recognition)return;if(voiceSessionText){voiceTranscriptBase=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');voiceSessionText='';}$('wb-voice-status').textContent='Listening…';setTimeout(()=>{if(speechRecognition!==recognition)return;try{recognition.start();}catch(_){stopVoice('Voice recognition stopped. Your full transcript is kept; press Start listening to continue.');updateVoicePreview(true);}},150);};
-        try{recognition.start();}catch(_){stopVoice('Could not start the microphone. Type the phrase instead.');}
+        recognition.onerror=event=>{if(speechRecognition!==recognition)return;if(['no-speech','aborted','network'].includes(event.error)){$('wb-voice-status').textContent='Listening…';return;}stopVoice(event.error==='not-allowed'||event.error==='service-not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. Your transcript is kept; press Start listening to continue.');};
+        recognition.onend=()=>{if(speechRecognition!==recognition||!voiceListening)return;speechRecognition=null;if(voiceSessionText){voiceTranscriptBase=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');voiceSessionText='';$('wb-voice-transcript').value=voiceTranscriptBase;updateVoicePreview(true);}$('wb-voice-status').textContent='Listening…';setTimeout(beginVoiceSession,180);};
+        try{recognition.start();}catch(_){speechRecognition=null;stopVoice('Could not start the microphone. Your transcript is kept; press Start listening to retry.');}
+    }
+    $('wb-voice-listen').addEventListener('click',()=>{
+        if(voiceListening){stopVoice('Listening stopped. Check the equation before adding it.');updateVoicePreview(true);return;}
+        voiceListening=true;voiceTranscriptBase=$('wb-voice-transcript').value.trim();voiceSessionText='';armVoiceSilenceTimer();beginVoiceSession();
     });
     $('wb-voice-transcript').addEventListener('input',()=>updateVoicePreview(true));
     $('wb-voice-expression').addEventListener('input',()=>updateVoicePreview(false));
@@ -258,8 +264,9 @@
         const expression=$('wb-voice-expression').value.trim(),error=$('wb-voice-error');error.hidden=true;
         try{
             if(!expression)throw new Error('Speak or type an equation first.');
-            const entry=await window.WhiteboardMath.prepare(expression,32);if(entry.error)throw new Error(entry.error);
-            const before=M.clone(board.items),p=centre(),item=M.create('text',p.x-entry.w/2,p.y-entry.h/2,{text:expression,format:'math',manualText:true,fontSize:32,stroke:ink,w:entry.w,h:entry.h});
+            const tex=T.toLatex(expression);window.katex.renderToString(tex,{displayMode:true,throwOnError:true,trust:false,maxExpand:500,maxSize:20});
+            const layout=T.mathLayout(expression,32);window.WhiteboardMath.prepare(expression,32);
+            const before=M.clone(board.items),p=centre(),item=M.create('text',p.x-layout.w/2,p.y-layout.h/2,{text:expression,format:'math',manualText:true,fontSize:32,stroke:ink,w:layout.w,h:layout.h});
             board.items.push(M.placeRecognized(item,board.items));selected=item.id;closeVoice();commit(before);toast('Voice equation added. Undo removes it; double-click to edit it.');
         }catch(reason){error.textContent=reason.message;error.hidden=false;}
     });
