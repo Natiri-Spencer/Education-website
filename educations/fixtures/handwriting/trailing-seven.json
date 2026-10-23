@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "datasetKind": "synthetic",
+  "labelSource": "hand-constructed glyph templates",
+  "writer": "synthetic-templates",
+  "session": "regression-v1",
+  "verified": true,
+  "mode": "math",
+  "strokes": [
+    {
+      "id": "line-0-stroke-0",
+      "points": [
+        [
+          0,
+          10
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          24,
+          0
+        ],
+        [
+          32,
+          10
+        ],
+        [
+          29,
+          20
+        ],
+        [
+          0,
+          50
+        ],
+        [
+          32,
+          50
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-1",
+      "points": [
+        [
+          48,
+          0
+        ],
+        [
+          78,
+          50
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-2",
+      "points": [
+        [
+          78,
+          0
+        ],
+        [
+          48,
+          50
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-3",
+      "points": [
+        [
+          96,
+          25
+        ],
+        [
+          126,
+          25
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-4",
+      "points": [
+        [
+          111,
+          10
+        ],
+        [
+          111,
+          40
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-5",
+      "points": [
+        [
+          176,
+          0
+        ],
+        [
+          144,
+          0
+        ],
+        [
+          144,
+          24
+        ],
+        [
+          164,
+          22
+        ],
+        [
+          176,
+          32
+        ],
+        [
+          174,
+          44
+        ],
+        [
+          164,
+          50
+        ],
+        [
+          144,
+          47
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-6",
+      "points": [
+        [
+          192,
+          18
+        ],
+        [
+          224,
+          18
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-7",
+      "points": [
+        [
+          192,
+          32
+        ],
+        [
+          224,
+          32
+        ]
+      ]
+    },
+    {
+      "id": "line-0-stroke-8",
+      "points": [
+        [
+          240,
+          0
+        ],
+        [
+          272,
+          0
+        ],
+        [
+          250,
+          50
+        ]
+      ]
+    }
+  ],
+  "expected": [
+    {
+      "text": "2x+5=7",
+      "format": "math",
+      "strokeIds": [
+        "line-0-stroke-0",
+        "line-0-stroke-1",
+        "line-0-stroke-2",
+        "line-0-stroke-3",
+        "line-0-stroke-4",
+        "line-0-stroke-5",
+        "line-0-stroke-6",
+        "line-0-stroke-7",
+        "line-0-stroke-8"
+      ]
+    }
+  ]
+}

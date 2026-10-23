@@ -1,0 +1,12 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+test('both activities load with real template IDs and with an older template missing optional ruler controls',()=>{
+ const directory=path.join(__dirname,'../templates/educations'),markup=['geometry_workspace.xhtml','grade8_circle_activity.xhtml'].map(file=>fs.readFileSync(path.join(directory,file),'utf8')).join('\n');
+ for(const older of [false,true]){
+  const nodes=new Map(),saved=new Map();class Element{constructor(){this.children=[];this.events={};this.dataset={};this.value='';this.hidden=true;this.attrs={};this.innerHTML='';const names=new Set();this.classList={add:name=>names.add(name),remove:name=>names.delete(name),contains:name=>names.has(name)};}append(...items){this.children.push(...items);}replaceChildren(...items){this.children=items;}addEventListener(name,fn){this.events[name]=fn;}setAttribute(name,value){this.attrs[name]=value;}querySelectorAll(){return [];}click(){this.events.click?.({});}focus(){}}
+  for(const match of markup.matchAll(/\bid="([^"]+)"/g))nodes.set(match[1],new Element());if(older){nodes.delete('geo-ruler-angle');nodes.delete('geo-ruler-vertical');}
+  const window={Grade7Geometry:require('../static/educations/geometry_model.js'),Grade8Drawing:require('../static/educations/grade8_drawing_model.js')},document={getElementById:id=>nodes.get(id)||null,querySelectorAll:()=>[],querySelector:()=>({value:'fraction'}),createElement:()=>new Element(),body:new Element()},context={window,document,localStorage:{getItem:key=>saved.get(key),setItem:(key,value)=>saved.set(key,value)}};
+  for(const file of ['geometry_workspace.js','grade8_circle_activities.js'])vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../static/educations',file),'utf8'),context);
+  window.Grade7MathWorkspace.open('circles8');
+  for(const activity of ['circle','sector','circle']){nodes.get('geo-circle-activities').open=true;nodes.get('geo-activity-'+activity).click();assert.equal(nodes.get('geo-circle-activities').open,false);assert.equal(nodes.get('geo-circles-tutorial').hidden,true);assert.equal(nodes.get('g8-circle-procedure').hidden,false);assert.equal(nodes.get('g8-circle-calculations').hidden,false);assert.equal(nodes.get('g8-calc-circumference').hidden,activity!=='circle');assert.equal(nodes.get('g8-calc-arc').hidden,activity!=='sector');assert.equal(nodes.get('g8-calc-perimeter').hidden,activity!=='sector');assert(nodes.get('g8-circle-stage-list').children.length>0);}
+ }
+});

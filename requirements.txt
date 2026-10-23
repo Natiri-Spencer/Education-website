@@ -1,6 +1,8 @@
 Django==6.0.9
 django-bootstrap5==26.2
 Pillow==12.2.0
+sympy>=1.14,<2
+torch>=2.6,<3
 python-dotenv>=1,<2
 gunicorn>=23,<26
 whitenoise>=6.9,<7

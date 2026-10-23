@@ -1,0 +1,333 @@
+{
+  "seed": 20261021,
+  "epochs": 16,
+  "source_sha256": "cc56f72f8477e763dd06a44746ba05a679e9232468aac93b3a7aad46a0300d61",
+  "train_writers": [
+    "trn_UJI_W01",
+    "trn_UJI_W02",
+    "trn_UJI_W03",
+    "trn_UJI_W04",
+    "trn_UJI_W05",
+    "trn_UJI_W06",
+    "trn_UJI_W07",
+    "trn_UJI_W08",
+    "trn_UJI_W09",
+    "trn_UJI_W10",
+    "trn_UJI_W11",
+    "trn_UPV_W17",
+    "trn_UPV_W19",
+    "trn_UPV_W20",
+    "trn_UPV_W22",
+    "trn_UPV_W23",
+    "trn_UPV_W25",
+    "trn_UPV_W26",
+    "trn_UPV_W28",
+    "trn_UPV_W29",
+    "trn_UPV_W31",
+    "trn_UPV_W32",
+    "trn_UPV_W34",
+    "trn_UPV_W35",
+    "trn_UPV_W37",
+    "trn_UPV_W38",
+    "trn_UPV_W40",
+    "trn_UPV_W41",
+    "trn_UPV_W43",
+    "trn_UPV_W44",
+    "trn_UPV_W46",
+    "trn_UPV_W47",
+    "trn_UPV_W49",
+    "trn_UPV_W50",
+    "trn_UPV_W52"
+  ],
+  "validation_writers": [
+    "trn_UPV_W53",
+    "trn_UPV_W55",
+    "trn_UPV_W56",
+    "trn_UPV_W58",
+    "trn_UPV_W59"
+  ],
+  "test_writers": [
+    "tst_UJI_W12",
+    "tst_UJI_W13",
+    "tst_UJI_W14",
+    "tst_UJI_W15",
+    "tst_UJI_W16",
+    "tst_UPV_W18",
+    "tst_UPV_W21",
+    "tst_UPV_W24",
+    "tst_UPV_W27",
+    "tst_UPV_W30",
+    "tst_UPV_W33",
+    "tst_UPV_W36",
+    "tst_UPV_W39",
+    "tst_UPV_W42",
+    "tst_UPV_W45",
+    "tst_UPV_W48",
+    "tst_UPV_W51",
+    "tst_UPV_W54",
+    "tst_UPV_W57",
+    "tst_UPV_W60"
+  ],
+  "training_samples": 5460,
+  "validation_samples": 780,
+  "test_samples": 3120,
+  "isolated_test": {
+    "samples": 3120,
+    "exact_accuracy": 0.7445512820512821,
+    "character_error_rate": 0.258974358974359,
+    "examples": [
+      {
+        "expected": "a",
+        "predicted": "a"
+      },
+      {
+        "expected": "a",
+        "predicted": "a"
+      },
+      {
+        "expected": "b",
+        "predicted": "b"
+      },
+      {
+        "expected": "b",
+        "predicted": "b"
+      },
+      {
+        "expected": "c",
+        "predicted": "c"
+      },
+      {
+        "expected": "c",
+        "predicted": "c"
+      },
+      {
+        "expected": "d",
+        "predicted": "d"
+      },
+      {
+        "expected": "d",
+        "predicted": "d"
+      },
+      {
+        "expected": "e",
+        "predicted": "e"
+      },
+      {
+        "expected": "e",
+        "predicted": "e"
+      },
+      {
+        "expected": "f",
+        "predicted": "f"
+      },
+      {
+        "expected": "f",
+        "predicted": "f"
+      },
+      {
+        "expected": "g",
+        "predicted": "g"
+      },
+      {
+        "expected": "g",
+        "predicted": "g"
+      },
+      {
+        "expected": "h",
+        "predicted": "h"
+      },
+      {
+        "expected": "h",
+        "predicted": "h"
+      },
+      {
+        "expected": "i",
+        "predicted": "i"
+      },
+      {
+        "expected": "i",
+        "predicted": "i"
+      },
+      {
+        "expected": "j",
+        "predicted": "j"
+      },
+      {
+        "expected": "j",
+        "predicted": "j"
+      },
+      {
+        "expected": "k",
+        "predicted": "k"
+      },
+      {
+        "expected": "k",
+        "predicted": "d"
+      },
+      {
+        "expected": "l",
+        "predicted": "l"
+      },
+      {
+        "expected": "l",
+        "predicted": "l"
+      },
+      {
+        "expected": "m",
+        "predicted": "n"
+      },
+      {
+        "expected": "m",
+        "predicted": "%"
+      },
+      {
+        "expected": "n",
+        "predicted": "n"
+      },
+      {
+        "expected": "n",
+        "predicted": "n"
+      },
+      {
+        "expected": "o",
+        "predicted": "o"
+      },
+      {
+        "expected": "o",
+        "predicted": "o"
+      }
+    ]
+  },
+  "composed_word_test": {
+    "samples": 1000,
+    "exact_accuracy": 0.638,
+    "character_error_rate": 0.16781898177247015,
+    "examples": [
+      {
+        "expected": "SCHOOL",
+        "predicted": "ScHOOd"
+      },
+      {
+        "expected": "m",
+        "predicted": "m"
+      },
+      {
+        "expected": "?",
+        "predicted": "?"
+      },
+      {
+        "expected": "class",
+        "predicted": "claeS"
+      },
+      {
+        "expected": "learn",
+        "predicted": "learn"
+      },
+      {
+        "expected": "FUN",
+        "predicted": "FUN"
+      },
+      {
+        "expected": "\"@",
+        "predicted": ".8"
+      },
+      {
+        "expected": "300025",
+        "predicted": "300825"
+      },
+      {
+        "expected": "V",
+        "predicted": "V"
+      },
+      {
+        "expected": "ONE",
+        "predicted": "ONE"
+      },
+      {
+        "expected": "6",
+        "predicted": "6"
+      },
+      {
+        "expected": "208830",
+        "predicted": "208830"
+      },
+      {
+        "expected": "subtra",
+        "predicted": "suxtrt"
+      },
+      {
+        "expected": "786",
+        "predicted": "786"
+      },
+      {
+        "expected": "$",
+        "predicted": "$"
+      },
+      {
+        "expected": "FOUR",
+        "predicted": "FOUR"
+      },
+      {
+        "expected": "38836",
+        "predicted": "38836"
+      },
+      {
+        "expected": "99",
+        "predicted": "g9"
+      },
+      {
+        "expected": "six",
+        "predicted": "six"
+      },
+      {
+        "expected": "five",
+        "predicted": "five"
+      },
+      {
+        "expected": "'",
+        "predicted": "'"
+      },
+      {
+        "expected": "V\",Bb9",
+        "predicted": "V'!By9"
+      },
+      {
+        "expected": "k",
+        "predicted": "l"
+      },
+      {
+        "expected": "Z",
+        "predicted": "z"
+      },
+      {
+        "expected": "q<\"U(L",
+        "predicted": "siU(i"
+      },
+      {
+        "expected": "(",
+        "predicted": "("
+      },
+      {
+        "expected": "SOLVE",
+        "predicted": "SOdVE"
+      },
+      {
+        "expected": "49",
+        "predicted": "49"
+      },
+      {
+        "expected": "Vd",
+        "predicted": "ud"
+      },
+      {
+        "expected": "J",
+        "predicted": "J"
+      }
+    ]
+  },
+  "limitations": [
+    "Isolated UJI characters and composed words; no natural cursive word training",
+    "ASCII letters, digits and dataset punctuation only; math layout is separate",
+    "Case and similar-looking characters can be ambiguous"
+  ]
+}

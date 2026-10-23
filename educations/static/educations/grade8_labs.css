@@ -15,3 +15,5 @@
 #g8-drawing .g8-option-three text{fill:#193646;stroke:#edf0ef;stroke-width:2px}#g8-drawing .g8-option-three>text:last-of-type{fill:#e7f3ff;stroke:#233c50}#g8-drawing .g8-option-three g[transform] rect[fill="#f1f6f3"]+text{fill:#152d3e;stroke:none}
 
 #g8-drawing .g8-visking-scene text{fill:#143b57;stroke:none;font-family:system-ui,sans-serif}#g8-visking-reference{padding:14px;background:#edf6fb;color:#18374f}
+
+#g8-drawing .g8-diffusion-scene text{fill:#213a58;stroke:none;font-family:system-ui,sans-serif}

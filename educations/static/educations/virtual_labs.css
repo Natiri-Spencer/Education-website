@@ -683,7 +683,7 @@
     }
 }
 
-/* CEMASTEA-style grade, lesson, and experiment flow */
+/* eduportal-style grade, lesson, and experiment flow */
 .virtual-labs-body > nav.navbar {
     display: none;
 }
@@ -1290,7 +1290,7 @@
 }
 
 .kenya-mark,
-.cemastea-mark,
+.eduportal-mark,
 .science-mark {
     display: grid;
     min-width: 2rem;
@@ -1303,7 +1303,7 @@
     font-weight: 850;
 }
 
-.cemastea-mark { color: #087a6c; font-size: .55rem; }
+.eduportal-mark { color: #087a6c; font-size: .55rem; }
 .science-mark { color: #ee6b14; font-size: 1.25rem; }
 
 .simulation-view .lab-app-title {
@@ -1979,7 +1979,7 @@ body.virtual-labs-body {
 }
 
 .kenya-mark,
-.cemastea-mark,
+.eduportal-mark,
 .science-mark {
     color: var(--teal);
     border-color: var(--line);

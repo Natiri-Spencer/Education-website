@@ -1,6 +1,7 @@
 """Define URL for educations app."""
 from django.urls import path
 from .import views
+from .whiteboard_recognition import recognize_handwriting
 
 app_name = 'educations'
 
@@ -11,6 +12,8 @@ urlpatterns = [
     path('videos/', views.video_list, name='video_list'),
     path('images/', views.image_list, name='image_list'),
     path('courses/', views.course_catalog, name='course_catalog'),
+    path('whiteboard/', views.whiteboard, name='whiteboard'),
+    path('whiteboard/recognize/', recognize_handwriting, name='whiteboard_recognize'),
     path('courses/<slug:slug>/', views.course_detail, name='course_detail'),
     path('courses/<slug:slug>/checkout/', views.course_checkout, name='course_checkout'),
     path('enrollment/<int:enrollment_id>/', views.enrollment_status, name='enrollment_status'),

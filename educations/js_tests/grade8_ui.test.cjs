@@ -1,19 +1,19 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const model=require('../static/educations/grade8_model.js'),visuals=require('../static/educations/grade8_visuals.js'),{createStore}=require('../static/educations/lab_notebook_store.js');
-function lab(storage=new Map()){
+function lab(storage=new Map(),media=false){
  const nodes={},queue=new Map();let now=0,sequence=0;
  class Element{constructor(){this.children=[];this.dataset={};this.events={};this.attrs={};this.value='';this.hidden=false;this.selectedOptions=[{textContent:'Selected setup'}];this.classList={add(){},remove(){}};}addEventListener(k,fn){this.events[k]=fn;}click(){this.events.click?.({});}append(...children){this.children.push(...children);}replaceChildren(...children){this.children=children;}setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k];}querySelectorAll(){return this.children;}focus(){}insertRow(){const row=new Element();row.insertCell=()=>{const c=new Element();row.append(c);return c;};this.append(row);return row;}createTHead(){const head=new Element();this.append(head);return head;}createTBody(){const body=new Element();this.append(body);return body;}}
- const get=id=>nodes[id]??=new Element(),buttons=Object.keys(model.labs).map(id=>Object.assign(new Element(),{dataset:{g8Open:id}})),store=createStore({getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)});get('g8-speed').value='1';
+ const get=id=>nodes[id]??=new Element(),buttons=Object.keys(model.labs).map(id=>Object.assign(new Element(),{dataset:{g8Open:id}})),store=createStore({getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)});get('g8-speed').value='1';if(media){const video=get('g8-diffusion-video');video.currentTime=0;video.paused=true;video.play=()=>{video.paused=false;video.events.play?.();return Promise.resolve();};video.pause=()=>{video.paused=true;video.events.pause?.();};}
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../static/educations/grade8_labs.js'),'utf8'),{window:{Grade8Science:model,Grade8Visuals:visuals,Grade7Notebooks:store},document:{getElementById:get,querySelectorAll:()=>buttons,createElement:()=>new Element(),body:new Element()},performance:{now:()=>now},requestAnimationFrame:fn=>{queue.set(++sequence,fn);return sequence;},cancelAnimationFrame:id=>queue.delete(id)});
  function tick(ms=20000){now+=ms;const pending=[...queue.values()];queue.clear();pending.forEach(fn=>fn(now));}
  function open(id){buttons.find(b=>b.dataset.g8Open===id).click();get('g8-tabs').children.find(b=>b.dataset.g8Tab==='procedure').click();get('g8-lesson-content').children.at(-1).click();}
  function assemble(){for(const id of model.required(buttons.find(b=>model.labs[b.dataset.g8Open].title===get('g8-experiment-title').textContent).dataset.g8Open,get('g8-osmosis-mode').value||'potato'))get('g8-bench').events.drop({preventDefault(){},dataTransfer:{getData:()=> 'g8:'+id}});}
  function mode(value){get('g8-osmosis-mode').value=value;get('g8-osmosis-mode').events.change();}
- function record(id,stage,variant='potato'){const target=model.stages(id,variant)[stage-1];get('g8-answer-observation').value=target.observation;get('g8-answer-explanation').value=target.explanation;get('g8-answer-process').value='Osmosis';get('g8-record').click();}
+ function record(id,stage,variant='potato'){const target=model.stages(id,variant)[stage-1];get('g8-answer-observation').value=target.observation;get('g8-answer-explanation').value=target.explanation;get('g8-answer-process').value=id==='diffusion'?'Diffusion':'Osmosis';if(id==='diffusion'){get('g8-factor-1').value='Temperature';get('g8-factor-2').value='Concentration gradient';}get('g8-record').click();}
  return {get,open,assemble,mode,tick,record,store,storage};
 }
 test('oxygen requires apparatus and collection, supports pause, and saves marked records through reset and reload',()=>{const a=lab();a.open('oxygen');assert(a.get('g8-action').disabled);a.assemble();assert(!a.get('g8-action').disabled);for(let i=0;i<3;i++){a.get('g8-action').click();a.tick();}a.get('g8-action').click();assert(a.get('g8-record').disabled);a.get('g8-pause').click();a.tick(10000);assert(a.get('g8-action').disabled);assert.equal(a.get('g8-pause').textContent,'Resume animation');a.get('g8-pause').click();a.tick();for(let i=0;i<2;i++){a.get('g8-action').click();a.tick();}assert.equal(a.get('g8-action').textContent,'Experiment complete');a.record('oxygen',6);assert.match(a.get('g8-mark').textContent,/2\/2/);a.get('g8-reset').click();assert.equal(a.store.load('grade8-science-oxygen').length,1);assert.equal(lab(a.storage).store.load('grade8-science-oxygen').length,1);});
-test('all experiments complete and osmosis setup notebooks remain separate',()=>{const a=lab();for(const id of ['osmosis','diffusion','elements']){a.open(id);for(const variant of id==='osmosis'?['potato','retained']:['potato']){if(id==='osmosis')a.mode(variant);a.assemble();for(let i=0;i<model.stages(id,variant).length;i++){a.get('g8-action').click();a.tick();}assert.equal(a.get('g8-action').textContent,'Experiment complete');a.record(id,model.stages(id,variant).length,variant);assert.match(a.get('g8-mark').textContent,id==='osmosis'&&['potato','retained'].includes(variant)?/3\/3/:/2\/2/);const key='grade8-science-'+id+(id==='osmosis'?'-'+variant:'');assert.equal(a.store.load(key).length,1);}a.get('g8-back').click();}a.get('g8-notebooks').click();assert.equal(a.get('g8-notebook-books').children.length,7);a.open('osmosis');a.mode('retained');a.get('g8-clear-notes').click();assert.equal(a.store.load('grade8-science-osmosis-retained').length,0);assert.equal(a.store.load('grade8-science-osmosis-potato').length,1);});
+test('all experiments complete and osmosis setup notebooks remain separate',()=>{const a=lab();for(const id of ['osmosis','diffusion','elements']){a.open(id);for(const variant of id==='osmosis'?['potato','retained']:['potato']){if(id==='osmosis')a.mode(variant);a.assemble();for(let i=0;i<model.stages(id,variant).length;i++){a.get('g8-action').click();a.tick(model.stages(id,variant)[i].duration+1);}assert.equal(a.get('g8-action').textContent,'Experiment complete');a.record(id,model.stages(id,variant).length,variant);assert.match(a.get('g8-mark').textContent,id==='diffusion'?/5\/5/:(id==='osmosis'&&['potato','retained'].includes(variant))?/3\/3/:/2\/2/);const key='grade8-science-'+id+(id==='osmosis'?'-'+variant:'');assert.equal(a.store.load(key).length,1);}a.get('g8-back').click();}a.get('g8-notebooks').click();assert.equal(a.get('g8-notebook-books').children.length,7);a.open('osmosis');a.mode('retained');a.get('g8-clear-notes').click();assert.equal(a.store.load('grade8-science-osmosis-retained').length,0);assert.equal(a.store.load('grade8-science-osmosis-potato').length,1);});
 test('leaving an unfinished animation requires replay before advancing or recording',()=>{const a=lab();a.open('oxygen');a.assemble();a.get('g8-action').click();a.get('g8-back').click();assert.equal(a.get('g8-dashboard').inert,false);a.open('oxygen');assert(a.get('g8-action').disabled);assert(a.get('g8-record').disabled);a.get('g8-replay').click();a.tick();assert(!a.get('g8-action').disabled);assert(!a.get('g8-record').disabled);});
 test('reagents pour into their matching apparatus and reject incorrect chemicals',()=>{
  const a=lab();a.open('oxygen');a.assemble();a.get('g8-action').click();a.tick();
@@ -87,6 +87,34 @@ test('osmosis pours water then salt solution without needing the ruler first',()
  assert.equal(a.get('g8-procedure').children[3].className,'g8-current');
  assert.match(a.get('g8-observation').textContent,/starting solution levels are marked/);
 });
+test('cold-water diffusion pours water, adds a crystal and marks the final notebook out of five',()=>{
+ const a=lab();a.open('diffusion');
+ assert(!a.get('g8-shelf').children.some(b=>b.children[0].textContent.includes('Warm')));
+ for(const name of ['Glass beaker','Spatula'])a.get('g8-shelf').children.find(b=>b.children[0].textContent.startsWith(name)).click();
+ const step=i=>a.get('g8-procedure').children[i].children[0];
+ step(0).click();a.tick();
+ const pour=name=>a.get('g8-bench-items').children.find(r=>r.children[0].textContent===name).children[1];
+ pour('Cold water').click();a.tick();pour('Potassium manganate(VII)').click();assert.equal(pour('Potassium manganate(VII)').textContent,'Add crystal');pour('Potassium manganate(VII)').click();a.tick();
+ assert.match(a.get('g8-drawing').innerHTML,/data-diffusion-particle/);
+ step(3).click();a.tick(30001);assert.match(a.get('g8-observation').textContent,/spreads upward/);
+ step(4).click();a.tick();assert.match(a.get('g8-observation').textContent,/uniformly purple/);
+ a.record('diffusion',5);assert.match(a.get('g8-mark').textContent,/5\/5/);
+ assert.match(a.store.load('grade8-science-diffusion')[0].answers,/Process: Diffusion/);
+});
+test('cold water starts from ready apparatus and diffusion runs at least thirty seconds on Fast',()=>{
+ const a=lab();a.open('diffusion');a.get('g8-speed').value='2';
+ for(const name of ['Glass beaker','Spatula'])a.get('g8-shelf').children.find(b=>b.children[0].textContent.startsWith(name)).click();
+ const control=name=>a.get('g8-bench-items').children.find(r=>r.children[0].textContent===name).children[1];
+ assert.equal(control('Cold water').disabled,false);control('Cold water').click();a.tick();
+ assert.equal(control('Potassium manganate(VII)').disabled,false);control('Potassium manganate(VII)').click();assert.match(a.get('g8-drawing').innerHTML,/Crystal on spatula/);control('Potassium manganate(VII)').click();a.tick();
+ assert.equal(a.get('g8-procedure').children[3].className,'g8-current');
+ const before=a.get('g8-drawing').innerHTML;a.tick(15000);
+ assert.notEqual(a.get('g8-drawing').innerHTML,before);
+ assert.match(a.get('g8-drawing').innerHTML,/15 \/ 30 seconds/);
+ a.tick(14999);assert(a.get('g8-record').disabled);assert(a.get('g8-action').disabled);
+ a.tick(2);assert.equal(a.get('g8-record').disabled,false);
+ assert.match(a.get('g8-drawing').innerHTML,/30 \/ 30 seconds/);
+});
 test('removed combined setup falls back to the potato experiment',()=>{
  const a=lab();a.open('osmosis');a.mode('combined');
  assert.equal(a.get('g8-osmosis-mode').value,'potato');
@@ -99,6 +127,16 @@ test('water can be poured as soon as the apparatus is arranged, without a separa
  assert.equal(water.children[1].disabled,false);water.children[1].click();a.tick();
  assert.equal(a.get('g8-procedure').children[2].className,'g8-current');
  assert.match(a.get('g8-observation').textContent,/full of water/);
+});
+
+test('diffusion uses native video playback and unlocks the notebook when the video ends',()=>{
+ const a=lab(new Map(),true);a.open('diffusion');a.assemble();
+ for(let i=0;i<3;i++){a.get('g8-action').click();a.tick();}
+ const video=a.get('g8-diffusion-video');assert.equal(video.hidden,false);assert.equal(a.get('g8-drawing').hidden,true);
+ assert.equal(video.paused,false);assert.equal(video.playbackRate,1);assert(a.get('g8-record').disabled);
+ video.currentTime=20;video.events.timeupdate();assert(a.get('g8-record').disabled);
+ a.get('g8-pause').click();assert.equal(video.paused,true);a.get('g8-pause').click();assert.equal(video.paused,false);
+ video.currentTime=30;video.events.ended();assert.equal(a.get('g8-record').disabled,false);
 });
 
  test('oxygen completes from procedure controls without preloading shelf items',()=>{

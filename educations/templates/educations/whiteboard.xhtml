@@ -1,0 +1,143 @@
+{% extends "educations/base.xhtml" %}
+{% load static %}
+{% block title %}Whiteboard | EduPortal{% endblock %}
+{% block body_class %}whiteboard-body{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'educations/vendor/katex/katex.min.css' %}"><link rel="stylesheet" href="{% static 'educations/whiteboard.css' %}?v=15">{% endblock %}
+{% block content %}
+<section id="whiteboard-app" aria-label="Interactive classroom whiteboard" data-recognition-url="{% url 'educations:whiteboard_recognize' %}">
+  {% csrf_token %}
+  <header class="wb-header">
+    <div class="wb-menu-wrap">
+      <button class="wb-header-button" id="wb-file" aria-expanded="false" aria-controls="wb-file-menu">File <span data-wb-icon="chevron"></span></button>
+      <div class="wb-popover wb-file-menu" id="wb-file-menu" hidden>
+        <strong>Your whiteboard</strong>
+        <button data-wb-action="new"><span data-wb-icon="plus"></span> New whiteboard</button>
+        <button data-wb-action="projects"><span data-wb-icon="folder"></span> Open saved boards</button>
+        <button data-wb-action="import"><span data-wb-icon="upload"></span> Import board file</button>
+        <hr>
+        <button data-wb-action="png"><span data-wb-icon="download"></span> Download as image</button>
+        <button data-wb-action="json"><span data-wb-icon="save"></span> Download editable board</button>
+      </div>
+    </div>
+    <span class="wb-header-divider"></span>
+    <span class="wb-editing"><span data-wb-icon="pencil"></span> Editing <span data-wb-icon="chevron"></span></span>
+    <button class="wb-header-icon" id="wb-undo" title="Undo (Ctrl+Z)" aria-label="Undo" disabled><span data-wb-icon="undo"></span></button>
+    <button class="wb-header-icon" id="wb-redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled><span data-wb-icon="redo"></span></button>
+    <div class="wb-title-wrap"><input id="wb-title" maxlength="80" value="Untitled whiteboard" aria-label="Whiteboard name"><span class="wb-save-state" id="wb-save-state" role="status">Saved on this device</span></div>
+    <button class="wb-header-icon" id="wb-help" title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><span data-wb-icon="help"></span></button>
+    <button class="wb-export" data-wb-action="png" aria-label="Download whiteboard image"><span data-wb-icon="download"></span> <span>Download</span></button>
+  </header>
+
+  <div class="wb-workspace">
+    <nav class="wb-rail" aria-label="Whiteboard resources">
+      <button data-wb-panel="templates" aria-expanded="false" title="Templates"><span data-wb-icon="layout"></span><span>Templates</span></button>
+      <button data-wb-panel="elements" aria-expanded="false" title="Elements"><span data-wb-icon="shapes"></span><span>Elements</span></button>
+      <button data-wb-panel="text" aria-expanded="false" title="Text"><span data-wb-icon="text"></span><span>Text</span></button>
+      <button data-wb-panel="uploads" aria-expanded="false" title="Uploads"><span data-wb-icon="upload"></span><span>Uploads</span></button>
+      <button data-wb-panel="tools" aria-expanded="false" title="Drawing tools"><span data-wb-icon="pencil"></span><span>Tools</span></button>
+      <button data-wb-panel="projects" aria-expanded="false" title="Saved boards"><span data-wb-icon="folder"></span><span>Projects</span></button>
+      <div class="wb-rail-bottom"><a href="{% url 'home' %}" title="Back to EduPortal" aria-label="Back to EduPortal"><span data-wb-icon="home"></span></a></div>
+    </nav>
+    <aside id="wb-panel" class="wb-panel" aria-label="Whiteboard options" hidden>
+      <div class="wb-panel-heading"><h2 id="wb-panel-title">Tools</h2><button id="wb-panel-close" class="wb-icon-button" aria-label="Close options"><span data-wb-icon="close"></span></button></div>
+      <div id="wb-panel-content"></div>
+    </aside>
+
+    <div class="wb-stage-wrap">
+      <div id="wb-stage" class="wb-stage" data-tool="select">
+        <div class="wb-writing-controls" role="group" aria-label="Handwriting options">
+          <span id="wb-neat-ink" class="wb-autocorrect-badge" title="Handwriting suggestions appear after you pause. Review them before replacing the ink."><span data-wb-icon="sparkles"></span><span id="wb-auto-status" role="status">Starting autocorrect…</span></span>
+          <select id="wb-recognition-mode" aria-label="Writing recognition mode" title="Auto handles text and common maths. Choose Maths for isolated variables, integers or symbols."><option value="auto">Auto · text &amp; maths</option><option value="text">Text &amp; paragraphs</option><option value="math">Maths &amp; numbers</option></select>
+          <button id="wb-tidy-existing" title="Recheck handwriting and earlier autocorrections. Manually edited text is kept."><span data-wb-icon="wand"></span><span>Correct existing writing</span></button>
+          <button id="wb-review" hidden aria-haspopup="dialog">Review corrections</button>
+          <button id="wb-add-equation" aria-haspopup="dialog" title="Type or review an exact equation">ƒx Equation</button>
+        </div>
+        <nav class="wb-space-controls" aria-label="Move around the whiteboard">
+          <button id="wb-move-up" aria-label="Move view up" title="View the writing above (Page Up)"><span data-wb-icon="up"></span></button>
+          <button id="wb-view-top" aria-label="Return to top of board" title="Return to the top of the board (Home)"><span data-wb-icon="home"></span></button>
+          <button id="wb-move-down" aria-label="Move view down" title="View the writing below (Page Down)"><span data-wb-icon="down"></span></button>
+        </nav>
+        <button id="wb-more-space" class="wb-more-space" title="Move down to fresh writing space"><span>More writing space</span><span data-wb-icon="down"></span></button>
+        <span class="wb-move-hint">Scroll to move · Space + drag · Two fingers to move &amp; zoom</span>
+        <svg id="wb-canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="application" aria-label="Whiteboard canvas. Choose a drawing tool or add an element. Use Tab to reach controls; arrow keys move a selected element."><g id="wb-world"></g></svg>
+        <div id="wb-floating-tools" class="wb-floating-tools" role="toolbar" aria-label="Canvas tools">
+          <button id="wb-toolbar-close" class="wb-toolbar-close" aria-label="Hide drawing toolbar" title="Hide toolbar"><span data-wb-icon="close"></span></button>
+          <button data-wb-tool="select" class="is-active" aria-pressed="true" aria-label="Select and move (V)" title="Select and move (V)"><span data-wb-icon="cursor"></span></button>
+          <button data-wb-tool="pan" aria-pressed="false" aria-label="Pan (H)" title="Pan (H), or hold Space"><span data-wb-icon="hand"></span></button>
+          <button id="wb-draw-toggle" class="wb-draw-toggle" aria-expanded="false" aria-controls="wb-pen-tray" aria-label="Drawing pens (P)" title="Drawing pens (P)"><span data-wb-icon="draw"></span></button>
+          <button id="wb-shapes-toggle" aria-expanded="false" aria-controls="wb-shape-tray" aria-label="Shapes" title="Shapes"><span data-wb-icon="shape-stack"></span></button>
+          <button data-wb-tool="line" aria-pressed="false" aria-label="Line (L)" title="Line (L)"><span data-wb-icon="line"></span></button>
+          <button data-wb-tool="sticky" aria-pressed="false" aria-label="Sticky note (N)" title="Sticky note (N)"><span data-wb-icon="sticky"></span></button>
+          <button data-wb-tool="text" aria-pressed="false" aria-label="Text (T)" title="Text (T)"><span data-wb-icon="text"></span></button>
+          <button data-wb-pen="pen" class="wb-handwriting" aria-label="Handwriting pen" title="Handwriting pen"><span data-wb-icon="signature"></span></button>
+          <button data-wb-action="table" aria-label="Add table" title="Add table"><span data-wb-icon="table"></span></button>
+          <div id="wb-pen-tray" class="wb-pen-tray" role="toolbar" aria-label="Drawing pens" hidden>
+            <button data-wb-pen="pen" aria-pressed="false" aria-label="Pen" title="Pen · fine blue ink"><span data-wb-pen-art="pen"></span></button>
+            <button data-wb-pen="marker" aria-pressed="false" aria-label="Marker" title="Marker · bold red ink"><span data-wb-pen-art="marker"></span></button>
+            <button data-wb-pen="highlighter" aria-pressed="false" aria-label="Highlighter" title="Highlighter · translucent yellow ink"><span data-wb-pen-art="highlighter"></span></button>
+            <button data-wb-pen="eraser" aria-pressed="false" aria-label="Eraser (E)" title="Eraser · drag over handwriting to erase part of a stroke"><span data-wb-pen-art="eraser"></span></button>
+            <button id="wb-ink-toggle" class="wb-ink-toggle" aria-expanded="false" aria-controls="wb-ink-menu" aria-label="Ink colour" title="Ink colour"><span id="wb-ink-swatch"></span></button>
+            <button id="wb-stroke-toggle" aria-expanded="false" aria-controls="wb-stroke-menu" aria-label="Stroke thickness" title="Stroke thickness"><span data-wb-icon="thickness"></span></button>
+            <div id="wb-ink-menu" class="wb-draw-popover wb-ink-menu" hidden>
+              <strong>Ink colour</strong>
+              <div class="wb-swatches">{% for colour in whiteboard_colours %}<button data-wb-colour="{{ colour.hex }}" style="--swatch:{{ colour.hex }}" aria-label="{{ colour.name }} ink"></button>{% endfor %}</div>
+              <label for="wb-pen-colour">Custom colour</label><input id="wb-pen-colour" type="color" value="#ff485c">
+            </div>
+            <div id="wb-stroke-menu" class="wb-draw-popover wb-stroke-menu" hidden>
+              <label for="wb-pen-size"><span id="wb-pen-size-label">Stroke thickness</span> <output id="wb-pen-size-value">5 px</output></label>
+              <input id="wb-pen-size" aria-label="Pen or eraser size" type="range" min="1" max="30" value="5">
+              <div class="wb-size-presets"><button data-wb-size="2" aria-label="Thin stroke"><i style="height:2px"></i></button><button data-wb-size="5" aria-label="Medium stroke"><i style="height:5px"></i></button><button data-wb-size="10" aria-label="Thick stroke"><i style="height:10px"></i></button></div>
+            </div>
+          </div>
+          <div id="wb-shape-tray" class="wb-shape-tray" role="toolbar" aria-label="Shape tools" hidden>
+            <button data-wb-tool="rectangle" aria-pressed="false" aria-label="Rectangle (R)" title="Rectangle (R)"><span data-wb-icon="rectangle"></span></button>
+            <button data-wb-tool="ellipse" aria-pressed="false" aria-label="Circle (O)" title="Circle (O)"><span data-wb-icon="circle"></span></button>
+            <button data-wb-tool="arrow" aria-pressed="false" aria-label="Arrow (A)" title="Arrow (A)"><span data-wb-icon="arrow"></span></button>
+            <button data-wb-action="style" aria-label="Shape and text style" title="Shape and text style"><span data-wb-icon="sliders"></span></button>
+          </div>
+        </div>
+        <div id="wb-eraser-cursor" class="wb-eraser-cursor" aria-hidden="true" hidden></div>
+        <div id="wb-selection-tools" class="wb-selection-tools" hidden role="toolbar" aria-label="Selected element actions">
+          <button data-wb-action="edit" title="Edit text" aria-label="Edit text"><span data-wb-icon="text"></span></button>
+          <button data-wb-action="restore-ink" title="Keep the original handwriting for this word" aria-label="Restore original handwriting"><span data-wb-icon="signature"></span></button>
+          <button data-wb-action="style" title="Element style" aria-label="Element style"><span data-wb-icon="sliders"></span></button>
+          <button data-wb-action="duplicate" title="Duplicate (Ctrl+D)" aria-label="Duplicate"><span data-wb-icon="copy"></span></button>
+          <button data-wb-action="front" title="Bring to front" aria-label="Bring to front"><span data-wb-icon="layers"></span></button>
+          <button data-wb-action="delete" title="Delete selected element" aria-label="Delete selected element"><span data-wb-icon="trash"></span></button>
+        </div>
+        <div id="wb-editor" class="wb-editor" hidden><label for="wb-edit-text">Edit text <small>Ctrl+Enter to finish</small></label><textarea id="wb-edit-text" rows="5" maxlength="5000"></textarea><div id="wb-text-alternatives" class="wb-text-alternatives" aria-label="Other recognition suggestions"></div><button id="wb-edit-done">Done</button><button id="wb-edit-cancel">Cancel</button></div>
+        <div class="wb-toast" id="wb-toast" role="status" aria-live="polite" hidden></div>
+      </div>
+      <div class="wb-notes" id="wb-notes-panel" hidden><label for="wb-notes">Board notes <small>Saved with this board</small></label><textarea id="wb-notes" rows="3" placeholder="Lesson notes, questions, or ideas to come back to…" maxlength="20000"></textarea></div>
+      <footer class="wb-footer">
+        <button id="wb-notes-toggle" aria-expanded="false" aria-controls="wb-notes-panel"><span data-wb-icon="notes"></span><span>Notes</span></button>
+        <div class="wb-menu-wrap">
+          <button id="wb-timer-toggle" aria-expanded="false" aria-controls="wb-timer-panel"><span data-wb-icon="timer"></span><span id="wb-timer-label">Timer</span></button>
+          <div id="wb-timer-panel" class="wb-popover wb-timer" hidden><strong>Focus timer</strong><label>Minutes <input id="wb-timer-minutes" type="number" min="1" max="120" value="5"></label><output id="wb-timer-display">05:00</output><div><button id="wb-timer-start">Start</button><button id="wb-timer-reset">Reset</button></div></div>
+        </div>
+        <span class="wb-footer-spacer"></span>
+        <button id="wb-zoom-out" aria-label="Zoom out" title="Zoom out"><span data-wb-icon="minus"></span></button>
+        <input id="wb-zoom" aria-label="Canvas zoom" type="range" min="25" max="200" step="5" value="100">
+        <button id="wb-zoom-label" title="Reset zoom to 100%">100%</button>
+        <button id="wb-zoom-in" aria-label="Zoom in" title="Zoom in"><span data-wb-icon="plus"></span></button>
+        <span class="wb-footer-divider"></span>
+        <button id="wb-fit" title="Fit all elements" aria-label="Fit all elements"><span data-wb-icon="fit"></span></button>
+        <span id="wb-object-count" class="wb-object-count">0 elements</span>
+        <button id="wb-fullscreen" aria-label="Full screen" title="Full screen"><span data-wb-icon="expand"></span></button>
+      </footer>
+    </div>
+  </div>
+  <input id="wb-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+  <input id="wb-import" type="file" accept="application/json,.json" hidden>
+  <dialog id="wb-review-dialog" class="wb-dialog wb-review-dialog" aria-labelledby="wb-review-heading">
+    <button id="wb-review-close" class="wb-icon-button wb-dialog-close" aria-label="Close correction review"><span data-wb-icon="close"></span></button>
+    <h2 id="wb-review-heading">Review handwriting</h2>
+    <p id="wb-review-help">The offline recognizer is unsure. Check the text and spacing before replacing your handwriting. Your original strokes are kept.</p>
+    <div id="wb-review-cards"></div>
+    <p id="wb-review-error" role="alert" hidden></p>
+    <div class="wb-review-actions"><button id="wb-review-export">Save recognition example</button><button id="wb-review-keep">Keep handwriting</button><button id="wb-review-apply" class="wb-primary">Apply selected lines</button></div>
+  </dialog>
+  <dialog id="wb-help-dialog" class="wb-dialog"><form method="dialog"><button class="wb-icon-button wb-dialog-close" aria-label="Close help"><span data-wb-icon="close"></span></button><h2>A little room for big ideas</h2><p>Write with a pen, then pause. The local handwriting recognizer suggests editable text and common maths notation. Review suggestions before applying them. Write separated printed letters; cursive writing may be unreliable. Auto handles both; choose Text &amp; paragraphs for sentences, or Maths &amp; numbers for isolated variables and integers. Leave a clear gap between words and a larger gap between paragraphs.</p><p>Use Select and double-click a block to fix a misreading. Enter adds a text line. The equation editor accepts (a)/(b), x^(2), a_(1), sqrt(x), integral(x^2,x), integral(x^2,x,0,1), diff(x^2,x), partial(f(x,y),x), and mathematical symbols. Choose Maths mode for handwritten integral and partial-derivative signs. Manual corrections stay as you edited them. Complex or unread notation can stay as ink. Undo restores your source strokes; Select also offers Restore original handwriting.</p><dl><dt>V / H</dt><dd>Select / pan</dd><dt>P / E</dt><dd>Pen / eraser</dd><dt>R / O / L / A</dt><dd>Rectangle / circle / line / arrow</dd><dt>T / N</dt><dd>Text / sticky note</dd><dt>Space + drag</dt><dd>Move around the board</dd><dt>Page Up / Page Down</dt><dd>Move up / down</dd><dt>Ctrl + Z / Ctrl + Shift + Z</dt><dd>Undo / redo</dd><dt>Ctrl + D / Delete</dt><dd>Duplicate / remove selection</dd><dt>Double-click</dt><dd>Edit a text element or table with Select</dd></dl><p>Boards save in this browser on this device. Handwriting is processed by this website's recognition server. Download an editable board from File to keep a backup or move your work to another device.</p><button class="wb-primary">Got it</button></form></dialog>
+</section>
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'educations/whiteboard_calculus.js' %}?v=15" defer></script><script src="{% static 'educations/vendor/katex/katex.min.js' %}" defer></script><script src="{% static 'educations/whiteboard_typesetting.js' %}?v=15" defer></script><script src="{% static 'educations/whiteboard_model.js' %}?v=15" defer></script><script src="{% static 'educations/whiteboard_math.js' %}?v=15" defer></script><script src="{% static 'educations/vendor/mathjax/tex-svg.js' %}?v=4.1.3" defer></script><script src="{% static 'educations/whiteboard.js' %}?v=15" defer></script>{% endblock %}

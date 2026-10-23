@@ -152,6 +152,14 @@ STORAGES = {
 }
 
 # Media files (uploads)
+WHITEBOARD_MODEL_PATH = os.environ.get("WHITEBOARD_MODEL_PATH") or str(BASE_DIR / "models/whiteboard/ink.pt")
+WHITEBOARD_VOCAB_PATH = os.environ.get("WHITEBOARD_VOCAB_PATH") or str(BASE_DIR / "models/whiteboard/vocabulary.json")
+WHITEBOARD_FORMULA_MODEL_DIR = os.environ.get("WHITEBOARD_FORMULA_MODEL_DIR") or str(BASE_DIR / "models/formula/PP-FormulaNet_plus-M")
+WHITEBOARD_FORMULA_PYTHON = os.environ.get("WHITEBOARD_FORMULA_PYTHON") or str(BASE_DIR / "tmp/formula_runtime/Scripts/python.exe")
+WHITEBOARD_FORMULA_TIMEOUT = int(os.environ.get("WHITEBOARD_FORMULA_TIMEOUT", "60"))
+WHITEBOARD_FORMULA_STARTUP_TIMEOUT = int(os.environ.get("WHITEBOARD_FORMULA_STARTUP_TIMEOUT", "120"))
+WHITEBOARD_FORMULA_PREWARM = os.environ.get("WHITEBOARD_FORMULA_PREWARM", "true").lower() in {"1", "true", "yes"}
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 

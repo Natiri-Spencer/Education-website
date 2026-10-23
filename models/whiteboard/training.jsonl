@@ -1,0 +1,16 @@
+{"epoch": 1, "seconds": 44.8, "validation_accuracy": 0.020512820512820513, "validation_word_accuracy": 0.002857142857142857, "validation_cer": 0.97850763468741}
+{"epoch": 2, "seconds": 36.7, "validation_accuracy": 0.191025641025641, "validation_word_accuracy": 0.07428571428571429, "validation_cer": 0.8846081820800922}
+{"epoch": 3, "seconds": 38.9, "validation_accuracy": 0.44358974358974357, "validation_word_accuracy": 0.18, "validation_cer": 0.7315326995102276}
+{"epoch": 4, "seconds": 91.1, "validation_accuracy": 0.491025641025641, "validation_word_accuracy": 0.22857142857142856, "validation_cer": 0.5390233362143475}
+{"epoch": 5, "seconds": 53.5, "validation_accuracy": 0.5474358974358975, "validation_word_accuracy": 0.3028571428571429, "validation_cer": 0.4425093632958802}
+{"epoch": 6, "seconds": 56.3, "validation_accuracy": 0.6628205128205128, "validation_word_accuracy": 0.4, "validation_cer": 0.33018582541054453}
+{"epoch": 7, "seconds": 38.3, "validation_accuracy": 0.6782051282051282, "validation_word_accuracy": 0.4257142857142857, "validation_cer": 0.3181431864016133}
+{"epoch": 8, "seconds": 51.3, "validation_accuracy": 0.7115384615384616, "validation_word_accuracy": 0.5257142857142857, "validation_cer": 0.25937770095073465}
+{"epoch": 9, "seconds": 43.7, "validation_accuracy": 0.7307692307692307, "validation_word_accuracy": 0.6285714285714286, "validation_cer": 0.21712762892538173}
+{"epoch": 10, "seconds": 39.2, "validation_accuracy": 0.7371794871794872, "validation_word_accuracy": 0.6285714285714286, "validation_cer": 0.2175885911840968}
+{"epoch": 11, "seconds": 49.3, "validation_accuracy": 0.7576923076923077, "validation_word_accuracy": 0.7114285714285714, "validation_cer": 0.18937626044367617}
+{"epoch": 12, "seconds": 46.9, "validation_accuracy": 0.7371794871794872, "validation_word_accuracy": 0.6314285714285715, "validation_cer": 0.2147291846730049}
+{"epoch": 13, "seconds": 44.4, "validation_accuracy": 0.7756410256410257, "validation_word_accuracy": 0.7542857142857143, "validation_cer": 0.16357677902621723}
+{"epoch": 14, "seconds": 46.2, "validation_accuracy": 0.7743589743589744, "validation_word_accuracy": 0.7971428571428572, "validation_cer": 0.1566623451454912}
+{"epoch": 15, "seconds": 89.5, "validation_accuracy": 0.7974358974358975, "validation_word_accuracy": 0.7942857142857143, "validation_cer": 0.14275424949582252}
+{"epoch": 16, "seconds": 68.1, "validation_accuracy": 0.8025641025641026, "validation_word_accuracy": 0.7714285714285715, "validation_cer": 0.14279746470757707}

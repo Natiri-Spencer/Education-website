@@ -1,0 +1,4 @@
+# Isolated worker dependencies; do not install into the Django environment.
+paddlepaddle==3.3.1
+paddleocr==3.7.0
+paddlex[ocr]==3.7.2

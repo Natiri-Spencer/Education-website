@@ -1,5 +1,23 @@
 # 🎓 CBC Education Portal
 
+## Whiteboard handwriting autocorrection
+
+The whiteboard keeps every original pen stroke and proposes editable corrections after a short pause. Ordinary, fully covered equations use a fast geometry and Windows Ink path. Fractions, powers, roots, and calculus notation can use the local PP-FormulaNet_plus-M model; prose uses Windows Ink with the bundled PyTorch recognizer as a fallback. Recognition transcribes the writing without solving or repairing the author's mathematics.
+
+Every suggestion requires review before it replaces ink. The review dialog shows the source handwriting, alternatives, recognition details, and a checkbox for each line. Unselected or unread regions remain as ink. **Undo** and **Restore original handwriting** recover the source strokes, and manual edits are protected from later recognition passes. Boards, source ink, recognition profile, and view positions remain saved in the browser.
+
+The endpoint is CSRF-protected, size-limited, and caches results by exact strokes and model revision. Recognition timeouts and worker failures retain the original ink. On Windows, the native bridge compiles `educations/HandwritingRecognizer.cs` into the ignored `tmp/whiteboard_ink/` directory. The optional formula model runs locally in the ignored `tmp/formula_runtime/` directory, with weights stored under ignored `models/formula/`. A readiness request prewarms the persistent formula worker in the background.
+
+See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTATION_STATUS.md](HANDWRITING_IMPLEMENTATION_STATUS.md) for setup, measured limits, evaluation, and retraining instructions.
+
+Run the whiteboard checks with:
+
+```powershell
+node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs
+.\Scripts\python.exe manage.py test educations.test_handwriting educations.test_ink_accuracy educations.test_whiteboard educations.test_calculus_ink educations.test_math_validation educations.test_neural_ink
+.\Scripts\python.exe tools/check_ink_endpoint.py
+```
+
 An online learning website for CBC learners. Students can find learning materials, take short courses, and explore virtual science labs.
 
 ## 🚀 Features

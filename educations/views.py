@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import (
     Grade, Subject, PDFResource, VideoResource, ImageResource,
     ShortCourse, CourseEnrollment,
@@ -37,6 +38,20 @@ def home(request):
 
 def about_us(request):
     return render(request, "educations/about_us.xhtml")
+
+
+@ensure_csrf_cookie
+def whiteboard(request):
+    return render(request, "educations/whiteboard.xhtml", {
+        "whiteboard_colours": [
+            {"name": "Black", "hex": "#252525"},
+            {"name": "Red", "hex": "#ff485c"},
+            {"name": "Blue", "hex": "#1689f8"},
+            {"name": "Green", "hex": "#24a87c"},
+            {"name": "Purple", "hex": "#8b3dff"},
+            {"name": "Yellow", "hex": "#ffe500"},
+        ],
+    })
 
 
 def virtual_labs(request, grade=None):

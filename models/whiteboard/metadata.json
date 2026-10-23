@@ -1,0 +1,8 @@
+{
+  "format": "raster_ctc_v1",
+  "height": 32,
+  "max_width": 512,
+  "vocabulary_sha256": "8e8dd013b1ddde112c30d540a32004102e7b14ee3794f8a7b64c38fd4f4af400",
+  "engine": "PyTorch UJI CNN-GRU CTC",
+  "review_required": true
+}
