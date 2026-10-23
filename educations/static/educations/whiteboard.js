@@ -45,7 +45,9 @@
     let recognitionLabel = 'Recognition on', recognitionReady = false, recognitionBusy = false, recognitionTimer, recognitionController, recognitionRevision = 0, recognitionCheck = null, lastRecognitionCheck = 0;
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
-    let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, graphEditId = null, graphPreview = null;
+    let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0;
+    let voiceMicrophoneStream = null, voiceAudioContext = null, voiceAudioTimer = null, voiceSoundHeard = false, voiceLastSound = 0, voiceProcessLocally = false, voiceStartRevision = 0, voiceNetworkErrors = 0;
+    let graphEditId = null, graphPreview = null;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
@@ -209,10 +211,15 @@
     }
     $('wb-review').addEventListener('click',()=>{refreshReviews();if(reviews.length)openReview(reviews[0]);});
     $('wb-add-equation').addEventListener('click',()=>openReview({boardId:board.id,words:[{text:'',format:'math',fontSize:32}]}));
+    function releaseVoiceMicrophone() {
+        clearInterval(voiceAudioTimer);voiceAudioTimer=null;
+        if(voiceMicrophoneStream){for(const track of voiceMicrophoneStream.getTracks())track.stop();voiceMicrophoneStream=null;}
+        if(voiceAudioContext){voiceAudioContext.close().catch(()=>{});voiceAudioContext=null;}
+    }
     function stopVoice(message='Microphone is off.') {
-        voiceListening=false;clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;
+        voiceStartRevision++;voiceListening=false;clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;releaseVoiceMicrophone();
         if(speechRecognition){const recognition=speechRecognition;speechRecognition=null;try{recognition.stop();}catch(_){/* Already stopped. */}}
-        $('wb-voice-dialog').classList.remove('is-listening');$('wb-voice-listen').textContent='Start listening';$('wb-voice-status').textContent=message;
+        $('wb-voice-dialog').classList.remove('is-listening');$('wb-voice-listen').textContent='Start listening';$('wb-voice-listen').disabled=false;$('wb-voice-status').textContent=message;
     }
     function armVoiceSilenceTimer() {
         clearTimeout(voiceSilenceTimer);
@@ -241,19 +248,66 @@
         if(!$('wb-voice-dialog').open)$('wb-voice-dialog').showModal();$('wb-voice-transcript').focus();
     }
     $('wb-voice-math').addEventListener('click',openVoice);
+    function voiceLanguage(){const language=document.documentElement.lang||navigator.language||'en-US';return language.toLowerCase()==='en'?'en-US':language;}
+    function voiceTimeout(promise,milliseconds,message) {
+        let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>{const error=new Error(message);error.name='TimeoutError';reject(error);},milliseconds);})]).finally(()=>clearTimeout(timer));
+    }
+    async function prepareVoiceRecognition(Recognition) {
+        voiceProcessLocally=false;
+        if(Recognition!==window.SpeechRecognition||typeof Recognition.available!=='function'||!('processLocally' in Recognition.prototype))return 'browser speech service';
+        const options={langs:[voiceLanguage()],processLocally:true};
+        try{
+            let availability=await voiceTimeout(Recognition.available(options),5000,'On-device speech check timed out.');
+            if(availability==='downloadable'||availability==='downloading'){
+                $('wb-voice-status').textContent='Preparing on-device speech recognition…';
+                if(typeof Recognition.install==='function'&&await voiceTimeout(Recognition.install(options),20000,'On-device speech setup timed out.'))availability='available';
+            }
+            if(availability==='available'){voiceProcessLocally=true;return 'on-device speech recognition';}
+        }catch(_){/* Fall back to the browser speech service. */}
+        return 'browser speech service';
+    }
+    async function startVoiceMicrophone() {
+        if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=='function')return;
+        let expired=false;
+        const request=navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false}).then(stream=>{if(expired||!voiceListening){for(const track of stream.getTracks())track.stop();const error=new Error('Microphone request ended after listening stopped.');error.name='AbortError';throw error;}return stream;});
+        try{voiceMicrophoneStream=await voiceTimeout(request,10000,'The browser did not answer the microphone request.');}catch(reason){expired=true;throw reason;}
+        const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;
+        voiceAudioContext=new AudioContext();if(voiceAudioContext.state==='suspended')await voiceAudioContext.resume();
+        const source=voiceAudioContext.createMediaStreamSource(voiceMicrophoneStream),analyser=voiceAudioContext.createAnalyser();analyser.fftSize=512;source.connect(analyser);
+        const levels=new Uint8Array(analyser.fftSize);voiceSoundHeard=false;voiceLastSound=Date.now();
+        voiceAudioTimer=setInterval(()=>{
+            if(!voiceListening)return;analyser.getByteTimeDomainData(levels);let energy=0;
+            for(const level of levels){const sample=(level-128)/128;energy+=sample*sample;}
+            if(Math.sqrt(energy/levels.length)>.018){if(!voiceSoundHeard)$('wb-voice-status').textContent='The microphone hears you; waiting for the words…';voiceSoundHeard=true;voiceLastSound=Date.now();armVoiceSilenceTimer();}
+            else if(!voiceSoundHeard&&Date.now()-voiceLastSound>4500)$('wb-voice-status').textContent='The microphone is connected, but no sound is reaching it. Check your selected input device and speak again.';
+        },250);
+    }
+    function bestVoiceTranscript(result,prefix) {
+        const alternatives=[];for(let i=0;i<result.length;i++)alternatives.push(result[i].transcript.trim());
+        return alternatives.find(text=>{try{V.parseSpokenMath([prefix,text].filter(Boolean).join(' '));return true;}catch(_){return false;}})||alternatives[0]||'';
+    }
     function beginVoiceSession() {
         if(!voiceListening)return;
         const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return;
-        const recognition=new Recognition();speechRecognition=recognition;voiceSessionText='';recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
-        recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent='Listening… Keep speaking; short pauses will not end the equation.';if(!voiceSilenceTimer)armVoiceSilenceTimer();};
-        recognition.onresult=event=>{let text='';for(let i=0;i<event.results.length;i++)text+=`${event.results[i][0].transcript} `;voiceSessionText=text.trim();$('wb-voice-transcript').value=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');armVoiceSilenceTimer();updateVoicePreview(true);};
-        recognition.onerror=event=>{if(speechRecognition!==recognition)return;if(['no-speech','aborted','network'].includes(event.error)){$('wb-voice-status').textContent='Listening…';return;}stopVoice(event.error==='not-allowed'||event.error==='service-not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. Your transcript is kept; press Start listening to continue.');};
-        recognition.onend=()=>{if(speechRecognition!==recognition||!voiceListening)return;speechRecognition=null;if(voiceSessionText){voiceTranscriptBase=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');voiceSessionText='';$('wb-voice-transcript').value=voiceTranscriptBase;updateVoicePreview(true);}$('wb-voice-status').textContent='Listening…';setTimeout(beginVoiceSession,180);};
+        const recognition=new Recognition();speechRecognition=recognition;voiceSessionText='';recognition.lang=voiceLanguage();recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=5;
+        if('processLocally' in recognition)recognition.processLocally=voiceProcessLocally;
+        try{if('phrases' in recognition&&typeof window.SpeechRecognitionPhrase==='function')recognition.phrases=['x squared','x cubed','plus','minus','equals','equal to','square root','sine','cosine','tangent','logarithm','pi'].map(phrase=>new window.SpeechRecognitionPhrase(phrase,5));}catch(_){/* Contextual biasing is optional. */}
+        recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent=`Listening with ${voiceProcessLocally?'on-device recognition':'the browser speech service'}… Keep speaking.`;if(!voiceSilenceTimer)armVoiceSilenceTimer();};
+        recognition.onresult=event=>{let text='';for(let i=0;i<event.results.length;i++)text+=`${bestVoiceTranscript(event.results[i],[voiceTranscriptBase,text].filter(Boolean).join(' '))} `;voiceSessionText=text.trim();$('wb-voice-transcript').value=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');voiceSoundHeard=true;voiceLastSound=Date.now();voiceNetworkErrors=0;armVoiceSilenceTimer();updateVoicePreview(true);};
+        recognition.onerror=event=>{if(speechRecognition!==recognition)return;if(event.error==='no-speech'){$('wb-voice-status').textContent='No words detected yet. Still listening…';return;}if(event.error==='aborted')return;if(event.error==='network'){$('wb-voice-status').textContent='The browser speech service did not respond. Retrying; you can also type the equation below.';voiceNetworkErrors++;return;}stopVoice(event.error==='not-allowed'||event.error==='service-not-allowed'?'Microphone permission was not granted. Allow microphone access in the browser, then try again.':event.error==='audio-capture'?'No working microphone was found. Check the browser input device, then try again.':'Voice recognition stopped. Your transcript is kept; press Start listening to continue.');};
+        recognition.onend=()=>{if(speechRecognition!==recognition||!voiceListening)return;speechRecognition=null;if(voiceSessionText){voiceTranscriptBase=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');voiceSessionText='';$('wb-voice-transcript').value=voiceTranscriptBase;updateVoicePreview(true);}if(voiceNetworkErrors>2&&!voiceProcessLocally){stopVoice('The browser speech service is unavailable. Check your connection, or type the equation below.');return;}$('wb-voice-status').textContent='Listening…';setTimeout(beginVoiceSession,250);};
         try{recognition.start();}catch(_){speechRecognition=null;stopVoice('Could not start the microphone. Your transcript is kept; press Start listening to retry.');}
     }
-    $('wb-voice-listen').addEventListener('click',()=>{
+    $('wb-voice-listen').addEventListener('click',async()=>{
         if(voiceListening){stopVoice('Listening stopped. Check the equation before adding it.');updateVoicePreview(true);return;}
-        voiceListening=true;voiceTranscriptBase=$('wb-voice-transcript').value.trim();voiceSessionText='';armVoiceSilenceTimer();beginVoiceSession();
+        const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return;
+        const revision=++voiceStartRevision;$('wb-voice-listen').disabled=true;$('wb-voice-status').textContent='Checking the microphone…';
+        try{
+            voiceListening=true;await startVoiceMicrophone();if(revision!==voiceStartRevision)return;
+            const mode=await prepareVoiceRecognition(Recognition);if(revision!==voiceStartRevision)return;
+            voiceTranscriptBase=$('wb-voice-transcript').value.trim();voiceSessionText='';voiceNetworkErrors=0;$('wb-voice-status').textContent=`Starting ${mode}…`;armVoiceSilenceTimer();beginVoiceSession();
+        }catch(reason){if(revision!==voiceStartRevision)return;const denied=reason&&['NotAllowedError','SecurityError','PermissionDeniedError'].includes(reason.name),timedOut=reason&&reason.name==='TimeoutError';stopVoice(denied?'Microphone permission was not granted. Allow microphone access in the browser, then try again.':timedOut?'The browser did not answer the microphone request. Check the microphone permission beside the address bar, then try again.':'The microphone could not start. Check your browser input device, then try again.');}
+        finally{if(revision===voiceStartRevision)$('wb-voice-listen').disabled=false;}
     });
     $('wb-voice-transcript').addEventListener('input',()=>updateVoicePreview(true));
     $('wb-voice-expression').addEventListener('input',()=>updateVoicePreview(false));
