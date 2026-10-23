@@ -214,19 +214,20 @@
         $('wb-voice-dialog').classList.remove('is-listening');$('wb-voice-listen').textContent='Start listening';$('wb-voice-status').textContent=message;
     }
     async function updateVoicePreview(fromTranscript=false) {
-        const error=$('wb-voice-error'),preview=$('wb-voice-preview');error.hidden=true;
+        const error=$('wb-voice-error'),preview=$('wb-voice-preview'),apply=$('wb-voice-apply'),revision=++voicePreviewRevision;
+        let expression=$('wb-voice-expression').value.trim();error.hidden=true;apply.disabled=true;
         try{
             if(fromTranscript){const parsed=V.parseSpokenMath($('wb-voice-transcript').value);$('wb-voice-expression').value=parsed.expression;}
-            const expression=$('wb-voice-expression').value.trim();if(!expression){preview.textContent='Your equation preview';return;}
-            const revision=++voicePreviewRevision;preview.textContent='Formatting…';
+            expression=$('wb-voice-expression').value.trim();if(!expression){preview.textContent='Your equation preview';return;}
+            preview.textContent=expression;
             const entry=await window.WhiteboardMath.prepare(expression,32);
             if(revision!==voicePreviewRevision)return;
-            if(entry.error)throw new Error(entry.error);preview.innerHTML=mathSvg(entry);
-        }catch(reason){preview.textContent='Preview unavailable';error.textContent=reason.message;error.hidden=false;}
+            if(entry.error)throw new Error(entry.error);preview.innerHTML=mathSvg(entry);apply.disabled=false;
+        }catch(reason){if(revision!==voicePreviewRevision)return;preview.textContent=expression||'Your equation preview';error.textContent=reason.message;error.hidden=false;}
     }
     function openVoice() {
         finishEdit(true);cancelRecognition();stopVoice();
-        $('wb-voice-transcript').value='';$('wb-voice-expression').value='';$('wb-voice-preview').textContent='Your equation preview';$('wb-voice-error').hidden=true;
+        voicePreviewRevision++;$('wb-voice-transcript').value='';$('wb-voice-expression').value='';$('wb-voice-preview').textContent='Your equation preview';$('wb-voice-error').hidden=true;$('wb-voice-apply').disabled=true;
         const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
         if(!Recognition){$('wb-voice-status').textContent='Voice recognition is unavailable in this browser. Type the spoken phrase below instead.';$('wb-voice-listen').disabled=true;}
         else{$('wb-voice-listen').disabled=false;}
@@ -238,9 +239,9 @@
         const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return;
         const recognition=new Recognition();speechRecognition=recognition;recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
         recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent='Listening… Speak one equation.';};
-        recognition.onresult=event=>{let text='';for(let i=event.resultIndex;i<event.results.length;i++)text+=event.results[i][0].transcript;$('wb-voice-transcript').value=text.trim();updateVoicePreview(true);};
+        recognition.onresult=event=>{let text='';for(let i=0;i<event.results.length;i++)text+=`${event.results[i][0].transcript} `;$('wb-voice-transcript').value=text.trim();updateVoicePreview(true);};
         recognition.onerror=event=>stopVoice(event.error==='not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. You can edit or type the transcript.');
-        recognition.onend=()=>{if(speechRecognition===recognition)stopVoice('Listening finished. Check the equation before adding it.');};
+        recognition.onend=()=>{if(speechRecognition===recognition){stopVoice('Listening finished. Check the equation before adding it.');updateVoicePreview(true);}};
         try{recognition.start();}catch(_){stopVoice('Could not start the microphone. Type the phrase instead.');}
     });
     $('wb-voice-transcript').addEventListener('input',()=>updateVoicePreview(true));
