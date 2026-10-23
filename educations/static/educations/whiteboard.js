@@ -45,7 +45,7 @@
     let recognitionLabel = 'Recognition on', recognitionReady = false, recognitionBusy = false, recognitionTimer, recognitionController, recognitionRevision = 0, recognitionCheck = null, lastRecognitionCheck = 0;
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
-    let speechRecognition = null, voicePreviewRevision = 0, graphEditId = null, graphPreview = null;
+    let speechRecognition = null, voiceSilenceTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, graphEditId = null, graphPreview = null;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
@@ -210,8 +210,13 @@
     $('wb-review').addEventListener('click',()=>{refreshReviews();if(reviews.length)openReview(reviews[0]);});
     $('wb-add-equation').addEventListener('click',()=>openReview({boardId:board.id,words:[{text:'',format:'math',fontSize:32}]}));
     function stopVoice(message='Microphone is off.') {
-        if(speechRecognition){try{speechRecognition.stop();}catch(_){/* Already stopped. */}speechRecognition=null;}
+        clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;
+        if(speechRecognition){const recognition=speechRecognition;speechRecognition=null;try{recognition.stop();}catch(_){/* Already stopped. */}}
         $('wb-voice-dialog').classList.remove('is-listening');$('wb-voice-listen').textContent='Start listening';$('wb-voice-status').textContent=message;
+    }
+    function armVoiceSilenceTimer() {
+        clearTimeout(voiceSilenceTimer);
+        voiceSilenceTimer=setTimeout(()=>{if(!speechRecognition)return;stopVoice('Listening stopped after 15 seconds of silence. Check the equation or start listening again.');updateVoicePreview(true);},15000);
     }
     async function updateVoicePreview(fromTranscript=false) {
         const error=$('wb-voice-error'),preview=$('wb-voice-preview'),apply=$('wb-voice-apply'),revision=++voicePreviewRevision;
@@ -227,7 +232,7 @@
     }
     function openVoice() {
         finishEdit(true);cancelRecognition();stopVoice();
-        voicePreviewRevision++;$('wb-voice-transcript').value='';$('wb-voice-expression').value='';$('wb-voice-preview').textContent='Your equation preview';$('wb-voice-error').hidden=true;$('wb-voice-apply').disabled=true;
+        voicePreviewRevision++;voiceTranscriptBase='';voiceSessionText='';$('wb-voice-transcript').value='';$('wb-voice-expression').value='';$('wb-voice-preview').textContent='Your equation preview';$('wb-voice-error').hidden=true;$('wb-voice-apply').disabled=true;
         const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
         if(!Recognition){$('wb-voice-status').textContent='Voice recognition is unavailable in this browser. Type the spoken phrase below instead.';$('wb-voice-listen').disabled=true;}
         else{$('wb-voice-listen').disabled=false;}
@@ -235,13 +240,13 @@
     }
     $('wb-voice-math').addEventListener('click',openVoice);
     $('wb-voice-listen').addEventListener('click',()=>{
-        if(speechRecognition){stopVoice();return;}
+        if(speechRecognition){stopVoice('Listening stopped. Check the equation before adding it.');updateVoicePreview(true);return;}
         const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return;
-        const recognition=new Recognition();speechRecognition=recognition;recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
-        recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent='Listening… Speak one equation.';};
-        recognition.onresult=event=>{let text='';for(let i=0;i<event.results.length;i++)text+=`${event.results[i][0].transcript} `;$('wb-voice-transcript').value=text.trim();updateVoicePreview(true);};
-        recognition.onerror=event=>stopVoice(event.error==='not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. You can edit or type the transcript.');
-        recognition.onend=()=>{if(speechRecognition===recognition){stopVoice('Listening finished. Check the equation before adding it.');updateVoicePreview(true);}};
+        const recognition=new Recognition();speechRecognition=recognition;voiceTranscriptBase=$('wb-voice-transcript').value.trim();voiceSessionText='';recognition.lang=document.documentElement.lang||navigator.language||'en-US';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
+        recognition.onstart=()=>{$('wb-voice-dialog').classList.add('is-listening');$('wb-voice-listen').textContent='Stop listening';$('wb-voice-status').textContent='Listening… Keep speaking; short pauses will not end the equation.';if(!voiceSilenceTimer)armVoiceSilenceTimer();};
+        recognition.onresult=event=>{let text='';for(let i=0;i<event.results.length;i++)text+=`${event.results[i][0].transcript} `;voiceSessionText=text.trim();$('wb-voice-transcript').value=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');armVoiceSilenceTimer();updateVoicePreview(true);};
+        recognition.onerror=event=>{if(event.error==='no-speech'){if(speechRecognition===recognition)$('wb-voice-status').textContent='Still listening…';return;}stopVoice(event.error==='not-allowed'?'Microphone permission was not granted. You can type the phrase instead.':'Voice recognition stopped. You can edit or type the transcript.');};
+        recognition.onend=()=>{if(speechRecognition!==recognition)return;if(voiceSessionText){voiceTranscriptBase=[voiceTranscriptBase,voiceSessionText].filter(Boolean).join(' ');voiceSessionText='';}$('wb-voice-status').textContent='Listening…';setTimeout(()=>{if(speechRecognition!==recognition)return;try{recognition.start();}catch(_){stopVoice('Voice recognition stopped. Your full transcript is kept; press Start listening to continue.');updateVoicePreview(true);}},150);};
         try{recognition.start();}catch(_){stopVoice('Could not start the microphone. Type the phrase instead.');}
     });
     $('wb-voice-transcript').addEventListener('input',()=>updateVoicePreview(true));
