@@ -2,6 +2,7 @@
 from django.urls import path
 from .import views
 from .whiteboard_recognition import recognize_handwriting
+from .whiteboard_ai import whiteboard_ai
 
 app_name = 'educations'
 
@@ -14,6 +15,7 @@ urlpatterns = [
     path('courses/', views.course_catalog, name='course_catalog'),
     path('whiteboard/', views.whiteboard, name='whiteboard'),
     path('whiteboard/recognize/', recognize_handwriting, name='whiteboard_recognize'),
+    path('whiteboard/ai/', whiteboard_ai, name='whiteboard_ai'),
     path('courses/<slug:slug>/', views.course_detail, name='course_detail'),
     path('courses/<slug:slug>/checkout/', views.course_checkout, name='course_checkout'),
     path('enrollment/<int:enrollment_id>/', views.enrollment_status, name='enrollment_status'),

@@ -2,7 +2,8 @@
     'use strict';
     const app = document.getElementById('whiteboard-app');
     if (!app || !window.WhiteboardModel) return;
-    const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, G = window.WhiteboardGraph, V = window.WhiteboardVoiceMath, $ = id => document.getElementById(id);
+    const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, G = window.WhiteboardGraph, V = window.WhiteboardVoiceMath;
+    const S = window.WhiteboardSelection, P = window.WhiteboardPersistence, Gesture = window.WhiteboardGestures, D = window.WhiteboardDialogs, AI = window.WhiteboardAI, $ = id => document.getElementById(id);
     const svg = $('wb-canvas'), world = $('wb-world'), stage = $('wb-stage');
     const paths = {
         cursor: 'M4 3l6 17 3-7 7-3L4 3z', hand: 'M8 12V6a2 2 0 014 0v5-7a2 2 0 014 0v8-6a2 2 0 014 0v9c0 5-3 7-7 7-3 0-5-2-7-4l-3-5a2 2 0 013-2l2 2z',
@@ -47,14 +48,9 @@
     let reviews = [], activeReview = null, previewRevision = 0;
     let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceResultTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, voiceNetworkErrors = 0;
     let graphEditId = null, graphPreview = null;
+    let aiResult = null, aiContext = null, aiAction = 'explain', aiController = null, aiRevision = 0;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
-    try {
-        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-        if (saved && Array.isArray(saved.boards)) {
-            for (const raw of saved.boards.slice(0, 100)) { try { library.push(M.restore(raw)); } catch (_) { /* Ignore only damaged boards. */ } }
-            board = library.find(b => b.id === saved.activeId) || library[0];
-        }
-    } catch (_) { /* The canvas also works when storage is unavailable. */ }
+    if (P) { const loaded = P.load(localStorage, storageKey, M.restore); library = loaded.library; board = loaded.board; }
     if (!board) { board = M.newBoard(); library.push(board); }
     board = M.clone(board);
     function toast(message) {
@@ -62,11 +58,10 @@
         clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { $('wb-toast').hidden = true; }, 3800);
     }
     function saveNow() {
-        clearTimeout(saveTimeout); board.updated = Date.now();
-        const index = library.findIndex(b => b.id === board.id);
-        if (index < 0) library.push(M.clone(board)); else library[index] = M.clone(board);
+        clearTimeout(saveTimeout);
         try {
-            localStorage.setItem(storageKey, JSON.stringify({ version: 1, activeId: board.id, boards: library }));
+            if (P) P.save(localStorage, storageKey, library, board, M.clone);
+            else localStorage.setItem(storageKey, JSON.stringify({ version: 1, activeId: board.id, boards: library }));
             $('wb-save-state').textContent = 'Saved on this device';
         } catch (_) { $('wb-save-state').textContent = 'Not saved · download a backup'; toast('Device storage is full or unavailable. Download an editable board from File to keep your work.'); }
     }
@@ -114,7 +109,7 @@
         return recognitionCheck;
     }
     async function runRecognition() {
-        if (!recognitionReady || recognitionBusy || drag || editing || touchGesture || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open) { if (recognitionPending.size) scheduleRecognition(); return; }
+        if (!recognitionReady || recognitionBusy || drag || editing || touchGesture || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open || $('wb-ai-dialog').open) { if (recognitionPending.size) scheduleRecognition(); return; }
         const request = M.recognitionRequest(board.items, recognitionPending);
         if (!request.strokes.length) { recognitionPending.clear(); return; }
         const snapshot = M.clone(request), revision = recognitionRevision, boardId = board.id;
@@ -305,6 +300,52 @@
         const item=M.create('graph',old?.x??p.x-280,old?.y??p.y-180,{...(old||{}),...graphPreview,stroke:$('wb-graph-colour').value,width:Number($('wb-graph-width').value),showGrid:$('wb-graph-grid').checked,showAxes:$('wb-graph-axes').checked});
         if(old){item.id=old.id;board.items=board.items.map(current=>current.id===old.id?item:current);}else board.items.push(item);
         selected=item.id;closeGraph();commit(before);toast(old?'Graph updated.':'Graph added. Double-click it to edit the function or ranges.');
+    });
+    function selectedAiAction(){return $('wb-ai-actions').querySelector('input:checked').value;}
+    function refreshAiContext(){
+        aiAction=selectedAiAction();aiResult=null;$('wb-ai-preview').hidden=true;$('wb-ai-insert').disabled=true;$('wb-ai-replace').disabled=true;$('wb-ai-error').hidden=true;
+        try{
+            aiContext=S.buildContext(board,selected,aiAction,M.bounds);
+            const selectedItem=chosen(),nearby=Math.max(0,aiContext.items.length-1);
+            $('wb-ai-context').textContent=aiContext.scope==='selection'?`Using the selected ${selectedItem.type}${nearby?` and ${nearby} nearby element${nearby===1?'':'s'}`:''}.`:`Using ${aiContext.items.length} board element${aiContext.items.length===1?'':'s'}.`;
+        }catch(reason){aiContext=null;$('wb-ai-context').textContent=reason.message;}
+    }
+    function openAi(preferred){
+        finishEdit(true);cancelRecognition();
+        const action=preferred||(chosen()?'explain':'summarize'),radio=$('wb-ai-actions').querySelector(`input[value="${action}"]`);
+        if(radio)radio.checked=true;$('wb-ai-prompt').value='';refreshAiContext();D.open($('wb-ai-dialog'),$('wb-ai-prompt'));
+    }
+    function closeAi(){aiRevision++;if(aiController)aiController.abort();aiController=null;D.close($('wb-ai-dialog'));}
+    async function selectionPng(){
+        if(!aiContext||!S.needsImage(aiContext))return null;
+        const visualTypes=new Set(['path','image','rectangle','ellipse','line','arrow']),source=new Set(aiContext.sourceIds),items=board.items.filter(item=>source.has(String(item.id))&&visualTypes.has(item.type));
+        if(!items.length)return null;const b=M.allBounds(items),pad=16,w=Math.max(1,b.w+pad*2),h=Math.max(1,b.h+pad*2),scale=Math.min(2,800/Math.max(w,h));
+        const markup=items.map(itemMarkup).join(''),sourceSvg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${b.x-pad} ${b.y-pad} ${w} ${h}"><rect x="${b.x-pad}" y="${b.y-pad}" width="${w}" height="${h}" fill="white"/>${markup}</svg>`;
+        const url=URL.createObjectURL(new Blob([sourceSvg],{type:'image/svg+xml'}));
+        try{const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('The selected drawing could not be prepared.'));image.src=url;});const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);return canvas.toDataURL('image/png');}finally{URL.revokeObjectURL(url);}
+    }
+    $('wb-ai-assist').addEventListener('click',()=>openAi());$('wb-selection-ai').addEventListener('click',()=>openAi('explain'));
+    $('wb-ai-actions').addEventListener('change',refreshAiContext);$('wb-ai-close').addEventListener('click',closeAi);$('wb-ai-cancel').addEventListener('click',closeAi);
+    $('wb-ai-dialog').addEventListener('close',()=>{aiRevision++;if(aiController)aiController.abort();aiController=null;aiResult=null;});
+    $('wb-ai-generate').addEventListener('click',async()=>{
+        refreshAiContext();const error=$('wb-ai-error'),button=$('wb-ai-generate');error.hidden=true;if(!aiContext){error.textContent=$('wb-ai-context').textContent;error.hidden=false;return;}
+        const revision=++aiRevision;aiController=new AbortController();button.disabled=true;button.textContent='Generating…';
+        try{
+            const image=await selectionPng(),payload={action:aiAction,prompt:$('wb-ai-prompt').value,context:aiContext,...(image?{image}:{})};
+            const result=await AI.request(app.dataset.aiUrl,app.querySelector('[name=csrfmiddlewaretoken]').value,payload,aiController.signal);
+            if(revision!==aiRevision)return;aiResult=result;$('wb-ai-result-title').textContent=result.title;$('wb-ai-result-body').textContent=result.explanation;$('wb-ai-warnings').replaceChildren(...result.warnings.map(value=>{const li=document.createElement('li');li.textContent=value;return li;}));$('wb-ai-preview').hidden=false;$('wb-ai-insert').disabled=false;$('wb-ai-replace').disabled=!chosen()||!['text','sticky','table'].includes(chosen().type);
+        }catch(reason){if(reason.name!=='AbortError'){error.textContent=reason.message;error.hidden=false;}}
+        finally{if(revision===aiRevision){button.disabled=false;button.textContent='Generate preview';aiController=null;}}
+    });
+    $('wb-ai-insert').addEventListener('click',()=>{
+        if(!aiResult||!aiContext)return;const p=centre(),raw=AI.insertion(aiResult,aiAction,aiContext.sourceIds,{x:p.x-180,y:p.y-110}),item=M.create('sticky',raw.x,raw.y,raw);
+        const before=M.clone(board.items);board.items.push(item);selected=item.id;closeAi();commit(before);toast('AI-generated note added. Undo removes it.');
+    });
+    $('wb-ai-replace').addEventListener('click',()=>{
+        const item=chosen();if(!aiResult||!item||!['text','sticky','table'].includes(item.type))return;const before=M.clone(board.items);
+        item.text=aiResult.insertText;item.aiGenerated=true;item.aiAction=aiAction;item.aiSourceIds=[...aiContext.sourceIds];
+        if(item.type==='text'){item.format=aiResult.insertFormat;const layout=item.format==='math'?T.mathLayout(item.text,item.fontSize):T.textLayout(item.text,item.fontSize,Math.max(10,item.w-8));item.w=Math.max(item.w,layout.w);item.h=Math.max(45,layout.h);}else if(item.type==='sticky')item.h=Math.max(180,wrap(item.text,Math.max(2,Math.floor((item.w-40)/(item.fontSize*.56)))).length*item.fontSize*1.35+40);
+        closeAi();commit(before);toast('Selection replaced with the approved AI preview. Undo restores it.');
     });
     $('wb-review-close').addEventListener('click',()=>$('wb-review-dialog').close());
     $('wb-review-export').addEventListener('click',()=>{
@@ -521,6 +562,7 @@
             break;
         }
         }
+        if(item.aiGenerated)art+=`<text class="wb-ai-note-label" x="${b.x+8}" y="${b.y+b.h-8}" font-family="Segoe UI,Arial,sans-serif">AI-generated</text>`;
         const accessibility=item.type==='graph'?` role="img" aria-label="${esc(`Graph of y = ${item.expression}, x from ${item.xMin} to ${item.xMax}, y from ${item.yMin} to ${item.yMax}`)}"`:'';
         return `<g data-wb-item="${esc(item.id)}"${accessibility}>${art}</g>`;
     }
@@ -592,13 +634,12 @@
         board.view = M.panView(board.view, dx, dy); render(); saveSoon();
     }
     function touchPosition() {
-        const [a, b] = [...touches.values()], rect = svg.getBoundingClientRect();
-        return { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top, distance: Math.hypot(b.x - a.x, b.y - a.y) };
+        return Gesture.midpoint(touches, svg.getBoundingClientRect());
     }
     function startTouch(event) {
         if (event.pointerType !== 'touch') return false;
         touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-        if (touches.size >= 4) {
+        if (Gesture.touchIntent(touches.size) === 'clear') {
             event.preventDefault();
             if (drag) endDrag({ pointerId: drag.pointer }, true);
             if (!multiTouchCleared) {
@@ -611,7 +652,7 @@
             for (const id of touches.keys()) svg.setPointerCapture(id);
             waitForTouchRelease = true; stage.classList.add('is-panning'); $('wb-eraser-cursor').hidden = true; return true;
         }
-        if (touches.size >= 2) {
+        if (Gesture.touchIntent(touches.size) === 'pan-zoom') {
             event.preventDefault();
             if (drag) endDrag({ pointerId: drag.pointer }, true);
             if (!touchGesture) touchGesture = { view: { ...board.view }, start: touchPosition() };

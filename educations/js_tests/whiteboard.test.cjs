@@ -420,6 +420,15 @@ test('server LaTeX survives save and restore but is ignored after manual text ed
     assert.equal(M.restore(board).items[0].latex,undefined);
 });
 
+test('AI provenance survives editable-board save and rejects unknown actions', () => {
+    const board=M.newBoard();
+    board.items=[M.create('sticky',10,20,{text:'Try factoring.',aiGenerated:true,aiAction:'hint',aiSourceIds:['equation-1']})];
+    const restored=M.restore(JSON.parse(JSON.stringify(board))).items[0];
+    assert.equal(restored.aiGenerated,true);assert.equal(restored.aiAction,'hint');assert.deepEqual(restored.aiSourceIds,['equation-1']);
+    board.items[0].aiAction='run-untrusted-command';
+    assert.equal(M.restore(board).items[0].aiAction,undefined);
+});
+
 test('calculus notation renders valid KaTeX and keeps derivatives unevaluated', () => {
     const katex=require('../static/educations/vendor/katex/katex.min.js');
     const T=require('../static/educations/whiteboard_typesetting.js');

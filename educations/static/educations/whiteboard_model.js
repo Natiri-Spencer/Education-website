@@ -352,6 +352,11 @@
         }
         if (item.type === 'text' && raw.manualText === true) item.manualText = true;
         if (item.type === 'text' && raw.layoutMoved === true) item.layoutMoved = true;
+        if (raw.aiGenerated === true) {
+            item.aiGenerated = true;
+            if (['explain','hint','check','summarize','practice'].includes(raw.aiAction)) item.aiAction = raw.aiAction;
+            item.aiSourceIds = Array.isArray(raw.aiSourceIds) ? raw.aiSourceIds.filter(id => typeof id === 'string').slice(0, 60).map(id => id.slice(0, 100)) : [];
+        }
         if (item.type === 'image') {
             if (typeof raw.src !== 'string' || raw.src.length > 4e6 || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(raw.src)) throw new Error('Images must be embedded PNG, JPEG, or WebP files.');
             item.src = raw.src;

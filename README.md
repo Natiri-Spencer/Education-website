@@ -10,6 +10,24 @@ The whiteboard also accepts voice equations and interactive function graphs. **V
 
 The eraser removes both handwriting and equation elements, including equations created by voice input. Touching the canvas with four or more fingers clears every board element in one undoable action; **Undo** restores the complete board.
 
+### Whiteboard AI Assist
+
+Signed-in learners can open **AI Assist** to explain a selected element, receive a hint, check work, summarize the board, or create practice. Selection actions send the selected element plus a small amount of nearby context; board actions send a compact structured description capped at 60 elements. Raw image data and full pen-point arrays are excluded. A PNG preview is generated only when a selected drawing needs visual interpretation.
+
+Every response appears in a preview first. The learner can cancel, insert an AI-labelled sticky note, or replace a compatible text selection. Insertions and replacements participate in undo/redo, browser persistence, editable-board import/export, and PNG export. For maths, the server runs the existing restricted SymPy parser first and passes its validation result to the assistant. The assistant explains the verified result and states when an equation cannot be proven from the available work.
+
+AI requests use CSRF protection, sign-in checks, per-minute rate limiting, request-size limits, provider timeouts, and a strict structured-output schema. Board content is treated as untrusted input. The provider key stays on the server. Configure the optional provider in `.env`:
+
+```text
+OPENAI_API_KEY=your-server-side-key
+WHITEBOARD_AI_ENABLED=true
+WHITEBOARD_AI_MODEL=gpt-4o-mini
+WHITEBOARD_AI_TIMEOUT=30
+WHITEBOARD_AI_RATE_LIMIT=20
+```
+
+If no key is configured, the rest of the whiteboard continues to work and AI Assist displays a clear unavailable message. Recognition retraining remains a separate measured workflow based on reviewed classroom examples.
+
 The endpoint is CSRF-protected, size-limited, and caches results by exact strokes and model revision. Recognition timeouts and worker failures retain the original ink. On Windows, the native bridge compiles `educations/HandwritingRecognizer.cs` into the ignored `tmp/whiteboard_ink/` directory. The optional formula model runs locally in the ignored `tmp/formula_runtime/` directory, with weights stored under ignored `models/formula/`. A readiness request prewarms the persistent formula worker in the background.
 
 See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTATION_STATUS.md](HANDWRITING_IMPLEMENTATION_STATUS.md) for setup, measured limits, evaluation, and retraining instructions.
@@ -17,8 +35,8 @@ See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTA
 Run the whiteboard checks with:
 
 ```powershell
-node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs educations/js_tests/whiteboard_voice_math.test.cjs educations/js_tests/whiteboard_graph.test.cjs
-.\Scripts\python.exe manage.py test educations.test_handwriting educations.test_ink_accuracy educations.test_whiteboard educations.test_calculus_ink educations.test_math_validation educations.test_neural_ink
+node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs educations/js_tests/whiteboard_voice_math.test.cjs educations/js_tests/whiteboard_graph.test.cjs educations/js_tests/whiteboard_ai.test.cjs
+.\Scripts\python.exe manage.py test educations.test_handwriting educations.test_ink_accuracy educations.test_whiteboard educations.test_calculus_ink educations.test_math_validation educations.test_neural_ink educations.test_whiteboard_ai
 .\Scripts\python.exe tools/check_ink_endpoint.py
 ```
 

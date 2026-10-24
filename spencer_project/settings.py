@@ -160,6 +160,13 @@ WHITEBOARD_FORMULA_TIMEOUT = int(os.environ.get("WHITEBOARD_FORMULA_TIMEOUT", "6
 WHITEBOARD_FORMULA_STARTUP_TIMEOUT = int(os.environ.get("WHITEBOARD_FORMULA_STARTUP_TIMEOUT", "120"))
 WHITEBOARD_FORMULA_PREWARM = os.environ.get("WHITEBOARD_FORMULA_PREWARM", "true").lower() in {"1", "true", "yes"}
 
+# Optional server-side provider for the whiteboard AI Assist dialog.
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+WHITEBOARD_AI_ENABLED = os.environ.get("WHITEBOARD_AI_ENABLED", "true").lower() in {"1", "true", "yes"}
+WHITEBOARD_AI_MODEL = os.environ.get("WHITEBOARD_AI_MODEL", "gpt-4o-mini")
+WHITEBOARD_AI_TIMEOUT = int(os.environ.get("WHITEBOARD_AI_TIMEOUT", "30"))
+WHITEBOARD_AI_RATE_LIMIT = int(os.environ.get("WHITEBOARD_AI_RATE_LIMIT", "20"))
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 

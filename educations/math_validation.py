@@ -75,6 +75,29 @@ def validate_math(word):
             raise ValueError("Check the equation sides")
         expressions = [convert(ast.parse(side.strip(), mode="eval").body) for side in sides]
         result.update(validation="valid", corrected=False)
+        powers = [power.exp for expression in expressions for power in expression.atoms(s.Pow)]
+        safe_to_compute = (
+            sum(int(s.count_ops(expression)) for expression in expressions) <= 80
+            and not any(expression.has(s.Integral, s.Derivative) for expression in expressions)
+            and all(not exponent.is_number or abs(float(exponent)) <= 20 for exponent in powers)
+        )
+        if len(expressions) == 2 and safe_to_compute:
+            if not (expressions[0].free_symbols | expressions[1].free_symbols):
+                difference = s.simplify(expressions[0] - expressions[1])
+                result['mathCheck'] = {'kind': 'equality', 'verified': True, 'isTrue': bool(difference == 0)}
+            elif expressions[0] == expressions[1]:
+                result['mathCheck'] = {'kind': 'identity', 'verified': True, 'isTrue': True}
+            elif all(expression.is_polynomial() for expression in expressions):
+                difference = s.Poly(expressions[0] - expressions[1])
+                result['mathCheck'] = {'kind': 'identity', 'verified': True, 'isTrue': bool(difference.is_zero)} if difference.is_zero else {'kind': 'equation', 'verified': False}
+            else:
+                result['mathCheck'] = {'kind': 'equation', 'verified': False}
+        elif len(expressions) == 1 and safe_to_compute and not expressions[0].free_symbols:
+            result['mathCheck'] = {'kind': 'calculation', 'verified': True, 'value': str(s.simplify(expressions[0]))[:200]}
+        elif len(expressions) == 2:
+            result['mathCheck'] = {'kind': 'equation', 'verified': False}
+        else:
+            result['mathCheck'] = {'kind': 'expression', 'verified': False}
         # Preserve the author's order and notation for ordinary arithmetic.
         # Calculus aliases need a renderer representation, kept separately.
         if re.search(r'\b(?:integral|diff|partial)\s*\(', text) or normalize_calculus(word['text']) != word['text']:
