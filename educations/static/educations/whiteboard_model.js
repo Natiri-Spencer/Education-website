@@ -145,7 +145,7 @@
         return fragments.map((points, index) => ({ ...item, id: index ? uid() : item.id, x: points[0][0], y: points[0][1], points }));
     }
     function eraseInk(items, from, to, radius = 12) {
-        return items.flatMap(item => item.type === 'text' && item.inkSource?.length && hitAlong(item, from, to, radius) ? [] : erasePath(item, from, to, radius));
+        return items.flatMap(item => item.type === 'text' && (item.inkSource?.length || item.format === 'math') && hitAlong(item, from, to, radius) ? [] : erasePath(item, from, to, radius));
     }
     const canRecognize = item => item.type === 'path' && item.pen !== 'highlighter' && !item.keepInk && item.points?.length;
     function recognitionRequest(items, pending) {

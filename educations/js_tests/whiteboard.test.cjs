@@ -169,6 +169,21 @@ test('eraser handles dots and full removal and does nothing to distant handwriti
     assert.equal(M.erasePath(path, { x: 10, y: 50 }, { x: 50, y: 50 }, 5)[0], path);
 });
 
+test('eraser removes voice equations while preserving ordinary typed text', () => {
+    const voiceEquation = M.create('text', 40, 30, { text: 'x^(2) + 3x - 7 = 0', format: 'math', manualText: true, w: 280, h: 70 });
+    const ordinaryText = M.create('text', 40, 140, { text: 'Keep these lesson notes', manualText: true, w: 280, h: 70 });
+    const result = M.eraseInk([voiceEquation, ordinaryText], { x: 20, y: 65 }, { x: 340, y: 65 }, 10);
+    assert.deepEqual(result, [ordinaryText]);
+});
+
+test('clearing every element is one undoable action including voice equations', () => {
+    const history = M.history(), equation = M.create('text', 40, 30, { text: 'x^(3) = 1', format: 'math', manualText: true });
+    const before = [equation, M.create('path', 0, 0, { points: [[0, 0], [100, 100]] }), M.create('graph', 300, 50)];
+    history.commit(before, []);
+    assert.deepEqual(history.undo([]), before);
+    assert.deepEqual(history.redo(before), []);
+});
+
 test('erasing one gesture is undoable and highlighter transparency survives saving', () => {
     const history = M.history(), board = M.newBoard();
     board.items = [M.create('path', 0, 0, { width: 18, pen: 'highlighter', opacity: .38, stroke: '#ffe500', points: [[0, 0], [200, 0]] })];

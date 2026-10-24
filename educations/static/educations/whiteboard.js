@@ -41,7 +41,7 @@
     const pens = { pen: { colour: '#1689f8', width: 3, opacity: 1 }, marker: { colour: '#ff485c', width: 5, opacity: 1 }, highlighter: { colour: '#ffe500', width: 18, opacity: .38 } };
     let activePen = 'marker', eraserSize = 28;
     const touches = new Map();
-    let touchGesture = null, waitForTouchRelease = false;
+    let touchGesture = null, waitForTouchRelease = false, multiTouchCleared = false;
     let recognitionLabel = 'Recognition on', recognitionReady = false, recognitionBusy = false, recognitionTimer, recognitionController, recognitionRevision = 0, recognitionCheck = null, lastRecognitionCheck = 0;
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
@@ -598,6 +598,19 @@
     function startTouch(event) {
         if (event.pointerType !== 'touch') return false;
         touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (touches.size >= 4) {
+            event.preventDefault();
+            if (drag) endDrag({ pointerId: drag.pointer }, true);
+            if (!multiTouchCleared) {
+                multiTouchCleared = true;
+                if (touchGesture) board.view = touchGesture.view;
+                const before = M.clone(board.items);
+                board.items = []; selected = null; touchGesture = null; cancelRecognition(true); commit(before);
+                toast(before.length ? 'Whiteboard cleared. Undo restores everything.' : 'The whiteboard is already empty.');
+            }
+            for (const id of touches.keys()) svg.setPointerCapture(id);
+            waitForTouchRelease = true; stage.classList.add('is-panning'); $('wb-eraser-cursor').hidden = true; return true;
+        }
         if (touches.size >= 2) {
             event.preventDefault();
             if (drag) endDrag({ pointerId: drag.pointer }, true);
@@ -615,7 +628,7 @@
         if (wasGesture) {
             if (cancelled && touchGesture) board.view = touchGesture.view;
             touchGesture = null;
-            if (!touches.size) waitForTouchRelease = false;
+            if (!touches.size) { waitForTouchRelease = false; multiTouchCleared = false; }
             stage.classList.remove('is-panning');
             if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
             render(); saveSoon();
@@ -666,6 +679,7 @@
     svg.addEventListener('pointermove', event => {
         if (touches.has(event.pointerId)) {
             touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (multiTouchCleared) { event.preventDefault(); return; }
             if (touchGesture && touches.size >= 2) {
                 event.preventDefault(); board.view = M.gestureView(touchGesture.view, touchGesture.start, touchPosition()); render(); return;
             }
@@ -930,7 +944,7 @@
         }
     });
     document.addEventListener('keyup', event => { if (event.key === ' ') { space = false; if (drag?.type !== 'pan') stage.classList.remove('is-panning'); } });
-    window.addEventListener('blur', () => { space = false; if (drag) endDrag({ pointerId: drag.pointer }, true); touches.clear(); touchGesture = null; waitForTouchRelease = false; stage.classList.remove('is-panning'); $('wb-eraser-cursor').hidden = true; });
+    window.addEventListener('blur', () => { space = false; if (drag) endDrag({ pointerId: drag.pointer }, true); touches.clear(); touchGesture = null; waitForTouchRelease = false; multiTouchCleared = false; stage.classList.remove('is-panning'); $('wb-eraser-cursor').hidden = true; });
     window.addEventListener('pagehide', saveNow);
     async function uploadImage(file) {
         if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) { toast('Choose a PNG, JPEG, or WebP image smaller than 10 MB.'); return; }
