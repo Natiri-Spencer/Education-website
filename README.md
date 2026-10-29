@@ -46,7 +46,7 @@ An online learning website for CBC learners. Students can find learning material
 
 - Browse learning materials by grade and subject.
 - View PDF, video, and image resources.
-- Explore short courses for Grades 7–9. The sample Mathematics course costs KES 500.
+- Explore STEM classes for Grades 7-9. 
 - Use Safaricom Daraja M-Pesa to pay for a course.
 - Let staff manage courses and learning materials through the admin site.
 - Explore virtual labs for Grades 7–9.
