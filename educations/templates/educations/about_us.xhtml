@@ -1,14 +1,34 @@
 {% extends "educations/base.xhtml" %}
 
-{% block title %}About EduPortal{% endblock %}
+{% block title %}About CBE STEM ACADEMY{% endblock %}
 
 {% block content %}
 <div class="about-page">
     <section class="about-hero mb-5">
-        <p class="eyebrow"><span class="status-dot"></span> ABOUT EDUPORTAL</p>
-        <h1>Learn, teach, and experiment in one place.</h1>
-        <p>EduPortal organizes CBC learning materials by grade and subject, and gives learners and teachers practical tools for active lessons. Explain ideas on the digital whiteboard, practise mathematics, and investigate science through guided virtual labs.</p>
+        <p class="eyebrow"><span class="status-dot"></span> ABOUT CBE STEM ACADEMY</p>
+        <h1>Empowering Future Innovators Through STEM</h1>
+        <p>CBE STEM ACADEMY combines STEM education, digital tools, and practical skills to help learners, parents, and educators succeed in a technology-driven world.</p>
+        <p class="about-tagline">Learn. Create. Innovate.</p>
         <a class="btn btn-lime" href="{% url 'home' %}#grade-library">Explore learning resources <span aria-hidden="true">→</span></a>
+    </section>
+
+    <section class="mb-5" aria-label="Our mission and vision">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <article class="about-card about-purpose h-100" aria-labelledby="about-mission-title">
+                    <p class="eyebrow">OUR PURPOSE</p>
+                    <h2 id="about-mission-title">Our Mission</h2>
+                    <p>To make STEM education accessible, engaging, and practical through innovative learning tools, virtual experiences, and digital skills training.</p>
+                </article>
+            </div>
+            <div class="col-md-6">
+                <article class="about-card about-purpose h-100" aria-labelledby="about-vision-title">
+                    <p class="eyebrow">OUR FUTURE</p>
+                    <h2 id="about-vision-title">Our Vision</h2>
+                    <p>Building Africa's future through STEM, coding, and digital innovation.</p>
+                </article>
+            </div>
+        </div>
     </section>
 
     <section class="mb-5" aria-labelledby="about-resources-title">

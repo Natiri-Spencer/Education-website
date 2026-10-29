@@ -4,7 +4,8 @@
     else root.WhiteboardModel = model;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
-    const types = new Set(['path', 'rectangle', 'ellipse', 'line', 'arrow', 'text', 'sticky', 'image', 'table', 'graph']);
+    const types = new Set(['path', 'rectangle', 'ellipse', 'line', 'arrow', 'text', 'sticky', 'image', 'table', 'graph', 'file']);
+    const U = typeof module === 'object' && module.exports ? require('./whiteboard_uploads.js') : globalThis.WhiteboardUploads;
     const T = typeof module === 'object' && module.exports ? require('./whiteboard_typesetting.js') : globalThis.WhiteboardTypesetting;
     const G = typeof module === 'object' && module.exports ? require('./whiteboard_graph.js') : globalThis.WhiteboardGraph;
     const clone = value => JSON.parse(JSON.stringify(value));
@@ -16,6 +17,7 @@
         if (type === 'sticky') Object.assign(item, { w: 210, h: 180, fill: '#ffdf80', text: 'Your idea here', ...options });
         if (type === 'text') Object.assign(item, { w: 280, h: 70, fill: '#3b3548', text: 'Add your text', ...options });
         if (type === 'table') Object.assign(item, { w: 420, h: 180, text: 'Topic\tIdea\tNext step\n\t\t\n\t\t', ...options });
+        if (type === 'file') Object.assign(item, { w: 340, h: 130, fill: '#ffffff', ...options });
         if (type === 'graph') Object.assign(item, { w: 560, h: 360, fill: '#ffffff', stroke: '#1689f8', expression: 'x^2', xMin: -10, xMax: 10, yMin: -10, yMax: 10, showGrid: true, showAxes: true, samples: [], ...options });
         if (type === 'path') item.points = options.points || [[x, y]];
         return item;
@@ -354,18 +356,25 @@
         if (item.type === 'text' && raw.layoutMoved === true) item.layoutMoved = true;
         if (raw.aiGenerated === true) {
             item.aiGenerated = true;
-            if (['explain','hint','check','summarize','practice'].includes(raw.aiAction)) item.aiAction = raw.aiAction;
+            if (['answer','explain','hint','check','summarize','practice'].includes(raw.aiAction)) item.aiAction = raw.aiAction;
             item.aiSourceIds = Array.isArray(raw.aiSourceIds) ? raw.aiSourceIds.filter(id => typeof id === 'string').slice(0, 60).map(id => id.slice(0, 100)) : [];
         }
         if (item.type === 'image') {
             if (typeof raw.src !== 'string' || raw.src.length > 4e6 || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(raw.src)) throw new Error('Images must be embedded PNG, JPEG, or WebP files.');
             item.src = raw.src;
         }
+        if (item.type === 'file') {
+            Object.assign(item,U.metadata(raw));
+            item.w=Math.max(220,Math.min(1200,Math.abs(item.w)));item.h=Math.max(100,Math.min(600,Math.abs(item.h)));
+        }
         if (item.type === 'graph') {
             if (!G) throw new Error('Graph support is unavailable.');
-            const plotted = G.plot(typeof raw.expression === 'string' ? raw.expression : '', {
+            const options = {
                 xMin: raw.xMin, xMax: raw.xMax, yMin: raw.yMin, yMax: raw.yMax,
-            });
+            };
+            const plotted = raw.graphSource === 'table'
+                ? (raw.tableFunction ? G.plotFunctionTable(raw.tableFunction, raw.tablePoints, options) : G.plotTable(raw.tablePoints, { ...options, degree: raw.tableDegree }))
+                : G.plot(typeof raw.expression === 'string' ? raw.expression : '', options);
             Object.assign(item, plotted, { showGrid: raw.showGrid !== false, showAxes: raw.showAxes !== false });
             item.w = Math.max(260, Math.min(2000, Math.abs(item.w)));
             item.h = Math.max(200, Math.min(1400, Math.abs(item.h)));

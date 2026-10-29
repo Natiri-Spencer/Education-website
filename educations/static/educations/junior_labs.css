@@ -1,0 +1,75 @@
+/* Grades 8 and 9 share the Grade 7 navy, teal and lime palette. */
+.junior-labs-body [hidden] { display: none !important; }
+.grade8-body .grade-sidebar,
+#grade8-page .virtual-labs-brand {
+    background: #0a1324;
+    border-color: #23334d;
+    color: var(--text);
+}
+#grade8-page .virtual-labs-brand .brand-back {
+    background: var(--lime);
+    color: #102033;
+}
+.grade8-body .grade-sidebar h2,
+.grade8-body .subject-heading { color: var(--text); }
+.grade8-body .sidebar-link,
+.grade8-body .sidebar-section-label { color: #c1cde0; }
+.grade8-body .sidebar-link:hover,
+.grade8-body .sidebar-link.active { color: var(--lime); background: #1c304b; }
+.grade8-body .grade-dashboard-main { background: var(--page); }
+.grade8-body .grade-welcome-banner {
+    color: var(--text);
+    border: 1px solid #2b496b;
+    background: linear-gradient(120deg, #142440, #1a3553 55%, #124e5b);
+    border-radius: 1.3rem;
+}
+.grade8-body .grade-welcome-banner > span { color: var(--lime); }
+.grade8-body .lab-card-group h3 { color: var(--muted); }
+.grade8-body .grade-pill { color: var(--lime); border-color: #3d665d; }
+.grade8-body .subject-icon,
+.grade8-body .lesson-card-icon,
+.grade8-body .lesson-card-blue .lesson-card-icon {
+    color: var(--teal);
+    background: #1d304c;
+    border: 1px solid #2b496b;
+}
+.grade8-body .lesson-card,
+.grade8-body .lesson-card-blue {
+    color: var(--text);
+    background: var(--panel);
+    border-color: var(--line);
+}
+.grade8-body .availability-pill { color: var(--teal); background: #102d3a; }
+.g8-card-description,
+.junior-card-description { color: var(--muted); opacity: 1; font-size: .8rem; line-height: 1.7; }
+.grade8-body .lesson-card:hover { border-color: var(--teal); }
+.grade8-body #g8-lesson,
+.grade8-body .g8-book { color: var(--text); background: var(--panel); border-color: var(--line); }
+.grade8-body #g8-lesson > p { color: var(--muted); }
+.grade8-body #g8-tabs { border-color: var(--line); }
+.grade8-body #g8-tabs button { color: var(--muted); }
+.grade8-body #g8-tabs button[aria-selected=true] { color: var(--lime); border-color: var(--lime); }
+.grade8-body #g8-lesson-content button,
+.grade8-body #g8-lesson-back { color: #102033; background: var(--lime); }
+#grade8-page #g8-mathematics h2,
+#grade8-page #g8-mathematics h3 { color: var(--text) !important; }
+.grade8-body .g8-math-card-footer,
+.grade8-body .lesson-card-blue .g8-math-card-footer { border-color: var(--line); }
+.grade8-body #g8-math-tabs { border-color: var(--line); }
+.grade8-body #g8-math-tabs button[aria-selected=true] { color: var(--lime); border-color: var(--lime); }
+.grade8-body .g8-math-paper,
+.grade8-body #g8-math-experiment { color: var(--text); background-color: var(--panel); }
+.grade8-body .g8-math-paper { background-image: radial-gradient(#2b405f .8px, transparent .8px); }
+.grade8-body #g8-math-workspace button { color: var(--teal); background: #102d3a; border-color: var(--line); }
+.grade8-body .g8-math-paper .g8-math-next { background: var(--lime) !important; color: #102033 !important; }
+.grade8-body button:focus-visible,
+.junior-labs-body button:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+.junior-labs-body .lesson-card { min-height: 255px; }
+.junior-labs-body .lesson-card-title { margin-bottom: 1rem; }
+.junior-labs-body .lesson-card[aria-disabled=true] { cursor: default; }
+.junior-notebooks { padding: 1.5rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--panel); }
+.junior-notebooks p { color: var(--muted); }
+@media (max-width: 480px) {
+    .grade8-body .lesson-card-grid,
+    .junior-labs-body .lesson-card-grid { grid-template-columns: minmax(0, 1fr); }
+}

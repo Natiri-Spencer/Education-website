@@ -1,4 +1,29 @@
-# 🎓 CBC Education Portal
+# CBE STEM ACADEMY
+
+
+## Current learning features
+
+- CBE STEM ACADEMY branding and an About Us page with the academy mission and vision.
+- Classes with lesson modules, diagrams, activities, assessment questions and teacher notes.
+- A whiteboard graph plotter for linear, quadratic and cubic functions, including implicit multiplication such as `y = 2x + 5`. Students can enter a function to fill an x–y table or plot from entered table values.
+- Image and document uploads, editable graphs, handwriting recognition and concise question-based AI assistance.
+- Grade 7–9 science investigations and narrated lesson videos.
+
+## Lesson videos and Canva assets
+
+The [Female Reproductive System lesson](exports/female-reproductive-system/README.md) is a five-minute Grade 7 Integrated Science animation with labelled anatomy, ovulation and egg transport, narration, visible captions and review questions. The exported video is 1920 × 1080 at 24 fps.
+
+- [Play or download the complete video](exports/female-reproductive-system/female-reproductive-system-grade7-5min.mp4).
+- [Canva asset pack](exports/female-reproductive-system/female-reproductive-system-canva-assets.zip): complete video, 13 individual scene clips, narration, artwork, captions, transcript and timing notes.
+- [Transcript](exports/female-reproductive-system/transcript.txt) and [scientific references](exports/female-reproductive-system/sources.md).
+
+These files were produced locally and can be imported into Canva. They are not a hosted Canva design. Narration uses the installed Windows voice; the illustration was generated with the built-in ImageGen tool, with the prompt preserved in the asset folder.
+
+Additional exports are in `exports/digestion/`, `exports/photosynthesis/` and `exports/branding/`. Editable storyboards and rendering scripts are in `tools/`. Rendering requires Node.js with `sharp`, FFmpeg at the path configured in each script, and Windows SAPI for the narration scripts. These authoring dependencies are separate from the Django website requirements.
+
+Uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add the exported MP4 to the intended grade/subject through the admin resources interface. The female reproductive system lesson has already been added to Grade 7 Integrated Science in the development database. Use persistent media storage on a deployed website.
+
+Temporary narration fragments, render previews and QA screenshots under `tmp/` are excluded from Git. Final shareable exports remain versioned.
 
 ## Whiteboard handwriting autocorrection
 
@@ -10,11 +35,15 @@ The whiteboard also accepts voice equations and interactive function graphs. **V
 
 The eraser removes both handwriting and equation elements, including equations created by voice input. Touching the canvas with four or more fingers clears every board element in one undoable action; **Undo** restores the complete board.
 
+### Whiteboard uploads
+
+Uploads accepts multiple PNG/JPEG/WebP images and PDF, Word, Excel, PowerPoint, TXT and CSV documents, up to 10 MB each. Images appear on the canvas. Documents appear as movable file cards; double-click a card or use its download button in Uploads to retrieve the original file. Documents are stored in IndexedDB on the device, keeping large file contents out of the board's localStorage history. Editable board downloads embed attachments for transfer to another browser; importing restores the original bytes under new local attachment IDs. Portable backups support up to 40 MB of document attachments, with a 64 MB board import limit. Download a board backup before clearing browser storage. Documents are attachments, not rendered Office/PDF previews.
+
 ### Whiteboard AI Assist
 
-Signed-in learners can open **AI Assist** to explain a selected element, receive a hint, check work, summarize the board, or create practice. Selection actions send the selected element plus a small amount of nearby context; board actions send a compact structured description capped at 60 elements. Raw image data and full pen-point arrays are excluded. A PNG preview is generated only when a selected drawing needs visual interpretation.
+Signed-in learners can open **Ask AI**, type a question, and press **Get answer**. The whiteboard can be empty. Only the typed question is sent; the board and drawings are not automatically included. The assistant is instructed to answer directly in 1–3 short sentences, normally within 80 words, and to ask for essential missing information rather than inventing details. Responses are not guaranteed to be correct.
 
-Every response appears in a preview first. The learner can cancel, insert an AI-labelled sticky note, or replace a compatible text selection. Insertions and replacements participate in undo/redo, browser persistence, editable-board import/export, and PNG export. For maths, the server runs the existing restricted SymPy parser first and passes its validation result to the assistant. The assistant explains the verified result and states when an equation cannot be proven from the available work.
+Answers appear in the dialog first. **Add answer to whiteboard** optionally inserts an AI-labelled note with undo/redo and board persistence. Editing a question invalidates the previous answer and cancels any pending request, preventing stale answers from being inserted. Empty questions, incomplete provider responses, oversized answers, service failures and service limits produce explicit errors. Legacy board-action endpoints remain compatible, but the student interface uses the question-only flow.
 
 AI requests use CSRF protection, sign-in checks, per-minute rate limiting, request-size limits, provider timeouts, and a strict structured-output schema. Board content is treated as untrusted input. The provider key stays on the server. Configure the optional provider in `.env`:
 
@@ -26,7 +55,10 @@ WHITEBOARD_AI_TIMEOUT=30
 WHITEBOARD_AI_RATE_LIMIT=20
 ```
 
-If no key is configured, the rest of the whiteboard continues to work and AI Assist displays a clear unavailable message. Recognition retraining remains a separate measured workflow based on reviewed classroom examples.
+If no key is configured or the API account has no credits, the rest of the whiteboard continues to work and Ask AI displays an unavailable message. API credits must be available for live answers. Recognition retraining remains a separate measured workflow based on reviewed classroom examples.
+
+To use the project-local alternative instead of the paid API, set `WHITEBOARD_AI_PROVIDER=ollama`, `WHITEBOARD_AI_LOCAL_MODEL=qwen2.5:1.5b`, `WHITEBOARD_AI_LOCAL_URL=http://127.0.0.1:11434`, and `WHITEBOARD_AI_LOCAL_TIMEOUT=120` in `.env`. The model stays in `models/ollama/` and the Windows CPU runtime in `tools/ollama/`; neither belongs in source control. `python manage.py runserver` automatically starts the project-local service when this provider is selected. You can also start it with `tools/start_local_ai.ps1`. On a deployed server, run and supervise the local service alongside Django; the developer's computer does not supply inference to a separately hosted website. The service listens on loopback and cloud inference is disabled. Keep sufficient memory available, and review answers: a small local model may make factual mistakes.
+
 
 The endpoint is CSRF-protected, size-limited, and caches results by exact strokes and model revision. Recognition timeouts and worker failures retain the original ink. On Windows, the native bridge compiles `educations/HandwritingRecognizer.cs` into the ignored `tmp/whiteboard_ink/` directory. The optional formula model runs locally in the ignored `tmp/formula_runtime/` directory, with weights stored under ignored `models/formula/`. A readiness request prewarms the persistent formula worker in the background.
 
@@ -40,14 +72,13 @@ node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboa
 .\Scripts\python.exe tools/check_ink_endpoint.py
 ```
 
-An online learning website for CBC learners. Students can find learning materials, take short courses, and explore virtual science labs.
+An online learning website for CBC learners. Students can find learning materials, join Classes, and explore virtual science labs.
 
 ## 🚀 Features
 
 - Browse learning materials by grade and subject.
 - View PDF, video, and image resources.
-- Explore STEM classes for Grades 7-9. 
-- Use Safaricom Daraja M-Pesa to pay for a course.
+- Explore STEM Classes for Grades 7–9 without a payment step.
 - Let staff manage courses and learning materials through the admin site.
 - Explore virtual labs for Grades 7–9.
 
@@ -69,7 +100,7 @@ An online learning website for CBC learners. Students can find learning material
 - **PostgreSQL** for deployment and **SQLite** for local development.
 - **Gunicorn** — runs the website online.
 - **WhiteNoise** — serves CSS, JavaScript, and other static files.
-- **Safaricom Daraja** — M-Pesa course payments.
+- Legacy Daraja integration remains in the codebase; the current Classes interface has no payment option.
 
 ## ⚙️ Setup
 
@@ -103,7 +134,7 @@ An online learning website for CBC learners. Students can find learning material
 
 5. Open <http://127.0.0.1:8000/> in your browser.
 
-The example `.env` settings are for local development. M-Pesa payments need Daraja credentials; keep those credentials in `.env` and never commit them to GitHub.
+The example `.env` settings are for local development. Keep keys and credentials in `.env`; never commit them to GitHub.
 
 ## 🌍 Deployment
 
@@ -123,15 +154,6 @@ python manage.py collectstatic --noinput
 ```
 
 The included `Procfile` starts the app with Gunicorn. Set up persistent storage for uploaded files if your hosting service does not keep local files between deployments.
-
-To accept M-Pesa payments, add these Daraja settings to your local `.env` file or hosting service:
-
-- `MPESA_ENVIRONMENT` — use `sandbox` while testing.
-- `MPESA_CONSUMER_KEY` and `MPESA_CONSUMER_SECRET` — from your Daraja app.
-- `MPESA_SHORTCODE` and `MPESA_PASSKEY` — your payment details from Safaricom.
-- `MPESA_CALLBACK_URL` — your public HTTPS address ending in `/payments/mpesa/callback/`.
-
-Test payments in the Daraja sandbox before switching to production. Never commit these credentials to GitHub.
 
 ### Grade 7 animated separation experiments
 

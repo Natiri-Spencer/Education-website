@@ -1,0 +1,72 @@
+[
+  {
+    "title": "The journey of a meal",
+    "start": 0,
+    "end": 13.759286522892385
+  },
+  {
+    "title": "1. Ingestion and the mouth",
+    "start": 13.759286522892385,
+    "end": 35.977170456007386
+  },
+  {
+    "title": "2. Swallowing and peristalsis",
+    "start": 35.977170456007386,
+    "end": 51.287951019909386
+  },
+  {
+    "title": "3. The stomach: mixing and protein digestion",
+    "start": 51.287951019909386,
+    "end": 74.48142753843594
+  },
+  {
+    "title": "4. Support organs supply the duodenum",
+    "start": 74.48142753843594,
+    "end": 96.35805021450028
+  },
+  {
+    "title": "5. Pancreatic digestion: carbohydrates",
+    "start": 96.35805021450028,
+    "end": 111.14860651798006
+  },
+  {
+    "title": "6. Pancreatic digestion: proteins",
+    "start": 111.14860651798006,
+    "end": 132.24722406921165
+  },
+  {
+    "title": "7. Pancreatic digestion: fats and nucleic acids",
+    "start": 132.24722406921165,
+    "end": 156.51213568818096
+  },
+  {
+    "title": "8. Brush-border enzymes finish digestion",
+    "start": 156.51213568818096,
+    "end": 186.76043888607123
+  },
+  {
+    "title": "9. Zoom into the villi",
+    "start": 186.76043888607123,
+    "end": 207.25232976873502
+  },
+  {
+    "title": "10. Two routes out of a villus",
+    "start": 207.25232976873502,
+    "end": 236.19076126757884
+  },
+  {
+    "title": "11. The ileum has special absorption roles",
+    "start": 236.19076126757884,
+    "end": 250.95751049193456
+  },
+  {
+    "title": "12. The colon and its helpful bacteria",
+    "start": 250.95751049193456,
+    "end": 279.25362078696236
+  },
+  {
+    "title": "13. Rectum, anus and egestion",
+    "start": 279.25362078696236,
+    "end": 300
+  }
+]

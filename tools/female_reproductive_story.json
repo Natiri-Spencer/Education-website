@@ -1,0 +1,154 @@
+[
+  {
+    "id": "intro",
+    "start": 0,
+    "end": 20,
+    "title": "The female reproductive system",
+    "focus": "Name the organs and explain their jobs",
+    "narration": [
+      "Welcome to CBE STEM Academy, Grade Seven Integrated Science. Today we explore the female reproductive system.",
+      "You will identify its main organs, explain their functions, and follow an egg after ovulation."
+    ]
+  },
+  {
+    "id": "location",
+    "start": 20,
+    "end": 40,
+    "title": "Where are these organs?",
+    "focus": "Mainly inside the pelvis",
+    "narration": [
+      "Most female reproductive organs are inside the pelvis, in the lower part of the abdomen.",
+      "This front-view cutaway lets us see inside. The organs are shown more clearly than they would appear in a living body."
+    ]
+  },
+  {
+    "id": "map",
+    "start": 40,
+    "end": 65,
+    "title": "Meet the main organs",
+    "focus": "Ovaries → tubes → uterus → cervix → vagina",
+    "narration": [
+      "There are two ovaries, one on each side of the uterus. Two fallopian tubes curve above them.",
+      "The uterus lies near the centre. Its narrow lower part is the cervix, which opens into the vagina.",
+      "Follow the labels. The vagina is a canal inside the body; the external genital structures are collectively called the vulva."
+    ]
+  },
+  {
+    "id": "ovaries",
+    "start": 65,
+    "end": 90,
+    "title": "Ovaries: eggs and hormones",
+    "focus": "Egg cells develop inside follicles",
+    "narration": [
+      "The ovaries are small, oval organs. They contain immature egg cells, each surrounded by supporting cells in a follicle.",
+      "From puberty, hormones help follicles develop during reproductive cycles. Usually one egg is released during a cycle in which ovulation occurs.",
+      "The ovaries also produce hormones, including oestrogen and progesterone."
+    ]
+  },
+  {
+    "id": "tubes",
+    "start": 90,
+    "end": 110,
+    "title": "Fallopian tubes: transport",
+    "focus": "Fimbriae lie near the ovary",
+    "narration": [
+      "The fallopian tubes provide a route towards the uterus. Finger-like ends called fimbriae lie close to each ovary.",
+      "Notice the small gap: the tube is not sealed directly onto the ovary. The fimbriae help guide a released egg into the tube."
+    ]
+  },
+  {
+    "id": "uterus",
+    "start": 110,
+    "end": 135,
+    "title": "Uterus: a muscular organ",
+    "focus": "Endometrium = the inner lining",
+    "narration": [
+      "The uterus is a hollow, muscular organ. Its inner lining is called the endometrium.",
+      "During a reproductive cycle, this lining can thicken in preparation for a possible pregnancy.",
+      "If pregnancy becomes established, a developing embryo is supported inside the uterus. Identify the wall and the lining separately."
+    ]
+  },
+  {
+    "id": "cervix",
+    "start": 135,
+    "end": 150,
+    "title": "Cervix: the lower neck",
+    "focus": "A small canal connects uterus and vagina",
+    "narration": [
+      "The cervix is the narrow lower part of the uterus. A small cervical canal connects the uterine cavity with the vagina.",
+      "It produces mucus."
+    ]
+  },
+  {
+    "id": "vagina",
+    "start": 150,
+    "end": 170,
+    "title": "Vagina: a muscular canal",
+    "focus": "Menstrual flow leaves through this canal",
+    "narration": [
+      "The vagina is a muscular canal extending from the cervix to the outside of the body.",
+      "Menstrual blood and tissue pass through it. It also forms part of the birth canal.",
+      "Urine leaves through a different opening, the urethra. The vagina is not the urinary passage."
+    ]
+  },
+  {
+    "id": "ovulation",
+    "start": 170,
+    "end": 205,
+    "title": "Ovulation: releasing an egg",
+    "focus": "Watch one follicle release an egg",
+    "narration": [
+      "Now watch a simplified close-up of ovulation. A follicle grows as the egg inside it develops.",
+      "When ovulation occurs, the follicle opens and releases the egg from the surface of the ovary.",
+      "The nearby fimbriae help guide it towards the opening of the fallopian tube. An egg does not jump straight into the uterus.",
+      "The egg is enlarged here so you can see it. The movement and timing are slowed or compressed for learning."
+    ]
+  },
+  {
+    "id": "transport",
+    "start": 205,
+    "end": 240,
+    "title": "How does the egg move?",
+    "focus": "Cilia and gentle muscle contractions",
+    "narration": [
+      "An egg cannot swim along the tube by itself. Tiny hair-like structures called cilia beat along the tube lining.",
+      "Their coordinated movement, together with gentle muscle contractions, helps carry the egg towards the uterus.",
+      "Fertilization, when a sperm joins with an egg, usually happens in a fallopian tube. We will explore that process in a separate lesson.",
+      "If the egg is not fertilized, it eventually breaks down. Movement is enlarged and time is compressed for learning."
+    ]
+  },
+  {
+    "id": "cycle",
+    "start": 240,
+    "end": 270,
+    "title": "The lining changes during the cycle",
+    "focus": "Build up → prepare → shed if no pregnancy",
+    "narration": [
+      "The ovaries and uterus change together during the menstrual cycle. Hormones help the uterine lining build up.",
+      "If pregnancy does not occur, hormone changes lead to shedding of the lining. Blood and tissue pass through the cervix and vagina. This is menstruation.",
+      "Cycle lengths vary, especially during adolescence. Ovulation does not always happen on the same numbered day."
+    ]
+  },
+  {
+    "id": "quiz1",
+    "start": 270,
+    "end": 285,
+    "title": "Check your understanding",
+    "focus": "Which organs contain developing eggs?",
+    "narration": [
+      "Pause and think: which organs contain developing egg cells? The ovaries.",
+      "Which organ has the lining that thickens and may be shed? The uterus. That lining is the endometrium."
+    ]
+  },
+  {
+    "id": "quiz2",
+    "start": 285,
+    "end": 300,
+    "title": "Remember the route",
+    "focus": "Ovary → fallopian tube → towards uterus",
+    "narration": [
+      "How does an egg move along a fallopian tube? Cilia and gentle muscle contractions help move it.",
+      "Remember: ovaries contain eggs, tubes transport, and the uterus supports pregnancy. Thank you for learning."
+    ]
+  }
+]

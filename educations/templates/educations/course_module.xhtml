@@ -1,0 +1,63 @@
+{% extends "educations/base.xhtml" %}
+{% load static %}
+{% block title %}{{ module.title }} | CBE STEM ACADEMY{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'educations/course_learning.css' %}?v=1">{% endblock %}
+{% block content %}
+<div class="course-page">
+    <p class="eyebrow"><a href="{% url 'educations:course_detail' course.slug %}">{{ course.title }}</a> / Module {{ module.position }}</p>
+    {% if can_edit %}
+    <div class="course-modules mb-4 course-editor-tools">
+        <p>Editor preview. Use the editor to align this module with your curriculum.</p>
+        <a class="btn btn-lime" href="{% url 'admin:educations_coursemodule_change' module.pk %}">Edit module</a>
+    </div>
+    {% endif %}
+    <div class="course-learning-tools"><button type="button" data-print-lesson hidden>Print or save lesson</button></div>
+    <article class="course-detail-hero course-lesson">
+        <h1>{{ module.title }}</h1>
+        {{ module.description|linebreaks }}
+        {% if module.curriculum_reference %}<p><strong>Curriculum reference:</strong> {{ module.curriculum_reference }}</p>{% endif %}
+        <h2>Learning outcomes</h2>
+        {{ module.learning_outcomes|linebreaks|default:"<p>Learning outcomes are being prepared.</p>" }}
+        {% if visual.path %}
+        <figure class="course-figure">
+            <h2>{{ visual.title }}</h2>
+            <img src="{% static visual.path %}" width="760" height="360" loading="lazy" decoding="async" alt="{{ visual.description }}">
+            <figcaption>Connect the labelled parts of the diagram to the mathematical method below.</figcaption>
+            <details><summary>Read the diagram in words</summary><p>{{ visual.description }}</p></details>
+            <div class="course-learning-tools"><a href="{% static visual.path %}" download>Download diagram</a></div>
+        </figure>
+        {% endif %}
+        <h2>Lesson</h2>
+        {{ module.lesson_content|linebreaks|default:"<p>Lesson content is being prepared.</p>" }}
+        {% if visual.simulation %}
+        <section class="course-simulation" data-course-simulation data-kind="{{ visual.simulation }}" data-shape="{{ visual.shape }}" data-compound="{{ visual.compound|yesno:'true,false' }}" data-model-src="{% static 'educations/course_simulation_model.js' %}" data-ui-src="{% static 'educations/course_simulations.js' %}" aria-labelledby="interactive-title">
+            <h2 id="interactive-title">Explore and check your understanding</h2>
+            <p>Predict a result, change the measurements or values, and explain what happens. The activity loads when you open it; the diagram and written lesson are always available.</p>
+            <button type="button" data-open-simulation hidden>Open interactive activity</button>
+            <p data-load-status role="status"></p>
+            <noscript><p>The interactive activity needs JavaScript. Use the diagram, written example and practice questions to study this topic.</p></noscript>
+            <div data-simulation-stage hidden></div>
+        </section>
+        {% endif %}
+        <h2>Learning activities</h2>
+        {{ module.activities|linebreaks|default:"<p>Activities are being prepared.</p>" }}
+        <h2>Assessment</h2>
+        {{ module.assessment|linebreaks|default:"<p>Assessment is being prepared.</p>" }}
+        {% if can_edit and module.teacher_notes %}
+        <aside class="course-modules mt-4 course-teacher-notes">
+            <h2>Teacher notes (editor only)</h2>
+            {{ module.teacher_notes|linebreaks }}
+        </aside>
+        {% endif %}
+    </article>
+    <nav class="course-modules mt-4 course-module-navigation" aria-label="Class modules">
+        <h2>Continue learning</h2>
+        <ol>
+        {% for item in course.modules.all %}
+            <li>{% if item.pk == module.pk %}<strong aria-current="page">{{ item.title }}</strong>{% else %}<a href="{{ item.get_absolute_url }}">{{ item.title }}</a>{% endif %}</li>
+        {% endfor %}
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'educations/course_learning.js' %}?v=1" defer></script>{% endblock %}

@@ -26,13 +26,54 @@ body {
 .navbar-brand {
     color: var(--text) !important;
     font-weight: 800;
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 2vw, 1.25rem);
     letter-spacing: -.04em;
+    white-space: normal;
+    max-width: calc(100% - 5rem);
+    line-height: 1.2;
 }
 
 .navbar .nav-link {
     color: #c1cde0;
     font-size: .94rem;
+}
+
+.site-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    flex-shrink: 0;
+    padding: .25rem 0;
+}
+
+.site-brand-logo {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.site-brand-name {
+    font-size: 1.05rem;
+    letter-spacing: .035em;
+}
+
+.site-brand-name > span {
+    display: block;
+    margin-top: .2rem;
+    color: #f1bd4f;
+    font-size: .72rem;
+    letter-spacing: .24em;
+}
+
+@media (max-width: 575.98px) {
+    .site-brand-logo {
+        width: 52px;
+        height: 52px;
+    }
+    .site-brand-name {
+        font-size: .95rem;
+    }
 }
 
 .navbar .nav-link:hover,
@@ -207,6 +248,20 @@ h1, h2, h3, h4, h5, h6 {
 .about-card h3 {
     margin: 1rem 0 .4rem;
     font-size: 1.05rem;
+}
+
+.about-hero > .about-tagline {
+    color: var(--lime);
+    font-weight: 700;
+}
+
+.about-purpose {
+    border-top: 3px solid var(--teal);
+}
+
+.about-purpose h2 {
+    margin: .75rem 0;
+    font-size: 1.5rem;
 }
 
 .about-card p,

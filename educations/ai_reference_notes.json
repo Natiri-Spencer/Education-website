@@ -1,0 +1,9 @@
+[
+  {
+    "topic": "Passive transport",
+    "keywords": ["diffusion", "osmosis", "passive transport", "semipermeable", "semi-permeable"],
+    "notes": "Diffusion is net particle movement down a concentration gradient. A membrane is not required, although diffusion can also occur across membranes. Osmosis specifically concerns net water movement across a selectively permeable membrane, from higher water potential (more dilute solution) to lower water potential (more concentrated solution). Both are passive processes; neither requires the cell to supply metabolic energy.",
+    "source": "https://openstax.org/books/biology-2e/pages/5-2-passive-transport",
+    "attribution": "Paraphrased from OpenStax Biology 2e, section 5.2, CC BY 4.0."
+  }
+]

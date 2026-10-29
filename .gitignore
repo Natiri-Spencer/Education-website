@@ -22,6 +22,10 @@ tmp/handwriting-evaluation/
 tmp/*_infer.tar
 tmp/*_infer.partial
 models/formula/
+models/ollama/
+tools/ollama/
+tmp/ollama-download/
+tmp/local-ai/
 models/whiteboard/training.pt
 models/whiteboard/best_weights.pt
 training_data/uji/uji.zip
@@ -29,3 +33,6 @@ training_data/uji/uji2.names
 training_data/uji/ujipenchars2.txt
 tmp/katex-*.tgz
 tmp/package/
+
+# Temporary render workspaces, audio fragments and QA screenshots
+/tmp/

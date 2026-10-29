@@ -15,9 +15,12 @@ class WhiteboardTests(TestCase):
             self.assertContains(response, marker)
         for marker in ("wb-canvas", "whiteboard_model.js", "whiteboard.js", "whiteboard.css", "wb-upload", "wb-undo", "wb-pen-tray", 'data-wb-pen="pen"', 'data-wb-pen="marker"', 'data-wb-pen="highlighter"', 'data-wb-pen="eraser"', 'aria-label="Blue ink"'):
             self.assertContains(response, marker)
+        self.assertContains(response, 'id="wb-upload-files"')
+        self.assertContains(response, 'whiteboard_uploads.js')
+        self.assertContains(response, '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv')
 
     def test_navigation_places_whiteboard_between_courses_and_labs(self):
         response = self.client.get(reverse("home"))
         html = response.content.decode()
-        self.assertLess(html.index('>Short courses</a>'), html.index('>Whiteboard</a>'))
+        self.assertLess(html.index('>Classes</a>'), html.index('>Whiteboard</a>'))
         self.assertLess(html.index('>Whiteboard</a>'), html.index('>Virtual labs</a>'))

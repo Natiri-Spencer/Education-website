@@ -1,10 +1,11 @@
 {% extends "educations/base.xhtml" %}
 
-{% block title %}{{ course.title }} | EduPortal{% endblock %}
+{% block title %}{{ course.title }} | CBE STEM ACADEMY{% endblock %}
 
 {% block content %}
 <div class="course-page">
-    <p class="eyebrow"><a class="course-back-link" href="{% url 'educations:course_catalog' %}">SHORT COURSES</a> / {{ course.subject.grade.name }} / {{ course.subject.name }}</p>
+    {% if not course.is_published %}<p class="course-modules">Draft class preview. Review and edit the modules before publishing.</p>{% endif %}
+    <p class="eyebrow"><a class="course-back-link" href="{% url 'educations:course_catalog' %}">CLASSES</a> / {{ course.subject.grade.name }} / {{ course.subject.name }}</p>
     <div class="course-detail-grid mt-3">
         <main>
             <section class="course-detail-hero">
@@ -14,55 +15,38 @@
                 <p>{{ course.description|linebreaks }}</p>
                 <div class="course-card-meta">
                     <span>{{ course.duration_weeks }} weeks</span>
-                    {% if course.price %}<strong>{{ course.currency }} {{ course.price|floatformat:0 }}</strong>{% endif %}
+                    <strong>Free access</strong>
                 </div>
             </section>
 
             <section class="course-modules mt-4" aria-labelledby="course-outline-title">
-                <p class="eyebrow">COURSE OUTLINE</p>
+                <p class="eyebrow">CLASS OUTLINE</p>
                 <h2 id="course-outline-title">What you’ll learn</h2>
                 <ol class="course-module-list">
                     {% for module in course.modules.all %}
                         <li>
                             <span class="module-number">{{ forloop.counter|stringformat:"02d" }}</span>
-                            <div><h3>{{ module.title }}</h3><p>{{ module.description }}</p></div>
+                            <div><h3>{{ module.title }}</h3><p>{{ module.description }}</p>
+                                <a href="{{ module.get_absolute_url }}">{% if perms.educations.change_coursemodule %}Preview module{% else %}Open module{% endif %}</a>
+                            {% if perms.educations.change_coursemodule %}
+                                · <a href="{% url 'admin:educations_coursemodule_change' module.pk %}">Edit module</a>
+                            {% endif %}
+                            </div>
                         </li>
                     {% empty %}
-                        <li class="course-empty">Course modules are being prepared.</li>
+                        <li class="course-empty">Class modules are being prepared.</li>
                     {% endfor %}
                 </ol>
             </section>
         </main>
 
-        <aside class="course-checkout" aria-labelledby="checkout-title">
-            <p class="eyebrow">ENROLLMENT</p>
-            <h2 id="checkout-title">Join this course</h2>
-            {% if course.price %}
-                <p class="course-price">{{ course.currency }} {{ course.price|floatformat:0 }}</p>
-            {% else %}
-                <p class="course-price">Price coming soon</p>
-            {% endif %}
-            {% if already_enrolled %}
-                <p class="course-success">You’re enrolled in this course.</p>
-            {% elif course.price %}
-                {% if user.is_authenticated %}
-                    <p>Pay securely with an M-Pesa prompt sent to your phone.</p>
-                    <form method="post" action="{% url 'educations:course_checkout' course.slug %}" class="course-checkout-form">
-                        {% csrf_token %}
-                        {{ checkout_form.non_field_errors }}
-                        <label for="{{ checkout_form.phone_number.id_for_label }}">{{ checkout_form.phone_number.label }}</label>
-                        {{ checkout_form.phone_number }}
-                        {% for error in checkout_form.phone_number.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-                        <button class="btn btn-lime w-100 mt-3" type="submit">Pay with M-Pesa</button>
-                    </form>
-                {% else %}
-                    <p>Sign in before enrolling. Contact a site administrator if you need an account.</p>
-                    <a class="btn btn-lime w-100" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in to enroll</a>
-                {% endif %}
-            {% else %}
-                <p>Enrollment will open when the course price is set.</p>
-            {% endif %}
-            <p class="checkout-note">Your enrollment is confirmed only after M-Pesa verifies the payment.</p>
+        <aside class="course-checkout" aria-labelledby="class-access-title">
+            <p class="eyebrow">START LEARNING</p>
+            <h2 id="class-access-title">Explore this class</h2>
+            <p>All published lessons and activities are free to access. Choose a module to begin.</p>
+            {% with first_module=course.modules.first %}
+                {% if first_module %}<a class="btn btn-lime w-100" href="{{ first_module.get_absolute_url }}">Start class</a>{% endif %}
+            {% endwith %}
         </aside>
     </div>
 </div>

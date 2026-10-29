@@ -1,10 +1,10 @@
 {% extends "educations/base.xhtml" %}
 {% load static %}
-{% block title %}Whiteboard | EduPortal{% endblock %}
+{% block title %}Whiteboard | CBE STEM ACADEMY{% endblock %}
 {% block body_class %}whiteboard-body{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'educations/vendor/katex/katex.min.css' %}"><link rel="stylesheet" href="{% static 'educations/whiteboard.css' %}?v=17">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'educations/vendor/katex/katex.min.css' %}"><link rel="stylesheet" href="{% static 'educations/whiteboard.css' %}?v=18">{% endblock %}
 {% block content %}
-<section id="whiteboard-app" aria-label="Interactive classroom whiteboard" data-recognition-url="{% url 'educations:whiteboard_recognize' %}" data-ai-url="{% url 'educations:whiteboard_ai' %}">
+<section id="whiteboard-app" aria-label="Interactive classroom whiteboard" data-recognition-url="{% url 'educations:whiteboard_recognize' %}" data-ai-url="{% url 'educations:whiteboard_ai' %}" data-ai-timeout-ms="{{ ai_timeout_ms }}">
   {% csrf_token %}
   <header class="wb-header">
     <div class="wb-menu-wrap">
@@ -36,7 +36,7 @@
       <button data-wb-panel="uploads" aria-expanded="false" title="Uploads"><span data-wb-icon="upload"></span><span>Uploads</span></button>
       <button data-wb-panel="tools" aria-expanded="false" title="Drawing tools"><span data-wb-icon="pencil"></span><span>Tools</span></button>
       <button data-wb-panel="projects" aria-expanded="false" title="Saved boards"><span data-wb-icon="folder"></span><span>Projects</span></button>
-      <div class="wb-rail-bottom"><a href="{% url 'home' %}" title="Back to EduPortal" aria-label="Back to EduPortal"><span data-wb-icon="home"></span></a></div>
+      <div class="wb-rail-bottom"><a href="{% url 'home' %}" title="Back to CBE STEM ACADEMY" aria-label="Back to CBE STEM ACADEMY"><span data-wb-icon="home"></span></a></div>
     </nav>
     <aside id="wb-panel" class="wb-panel" aria-label="Whiteboard options" hidden>
       <div class="wb-panel-heading"><h2 id="wb-panel-title">Tools</h2><button id="wb-panel-close" class="wb-icon-button" aria-label="Close options"><span data-wb-icon="close"></span></button></div>
@@ -53,7 +53,7 @@
           <button id="wb-add-equation" aria-haspopup="dialog" title="Type or review an exact equation">ƒx Equation</button>
           <button id="wb-voice-math" aria-haspopup="dialog" title="Speak or type an equation">🎙 Voice equation</button>
           <button id="wb-add-graph" aria-haspopup="dialog" title="Plot a function on the board">⌁ Graph</button>
-          <button id="wb-ai-assist" aria-haspopup="dialog" title="Explain, check, or build practice from board work">✨ AI Assist</button>
+          <button id="wb-ai-assist" aria-haspopup="dialog" title="Ask a question and get a short answer">✨ Ask AI</button>
         </div>
         <nav class="wb-space-controls" aria-label="Move around the whiteboard">
           <button id="wb-move-up" aria-label="Move view up" title="View the writing above (Page Up)"><span data-wb-icon="up"></span></button>
@@ -131,7 +131,8 @@
       </footer>
     </div>
   </div>
-  <input id="wb-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+  <input id="wb-upload-files" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" multiple hidden>
+  <input id="wb-upload" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
   <input id="wb-import" type="file" accept="application/json,.json" hidden>
   <dialog id="wb-review-dialog" class="wb-dialog wb-review-dialog" aria-labelledby="wb-review-heading">
     <button id="wb-review-close" class="wb-icon-button wb-dialog-close" aria-label="Close correction review"><span data-wb-icon="close"></span></button>
@@ -158,9 +159,24 @@
   <dialog id="wb-graph-dialog" class="wb-dialog wb-feature-dialog" aria-labelledby="wb-graph-heading">
     <button id="wb-graph-close" class="wb-icon-button wb-dialog-close" aria-label="Close graph plotter"><span data-wb-icon="close"></span></button>
     <h2 id="wb-graph-heading">Graph plotter</h2>
-    <p>Plot an explicit function of x. Expressions are evaluated locally with a restricted maths parser.</p>
+    <p>Enter a function or fill an x–y table to draw a linear, quadratic, or cubic graph.</p>
+    <label for="wb-graph-source">Graph from</label>
+    <select id="wb-graph-source"><option value="function">Function</option><option value="table">Table of values</option></select>
+    <div id="wb-graph-function-panel">
     <label for="wb-graph-expression">Function</label>
     <input id="wb-graph-expression" maxlength="200" value="y = x^2" placeholder="y = x^2">
+    <p>Linear: y = 2x + 5. Quadratic: y = x² − 3x + 2. Cubic: y = x³ − 2x. You can also use ^ for powers and * for multiplication. Choose Table of values to enter x-values, or fill the default table from -2 to 2.</p>
+    <button id="wb-graph-fill-table" type="button">Fill table from function</button>
+    </div>
+    <div id="wb-graph-table-panel" hidden>
+      <label for="wb-graph-degree">Graph type</label>
+      <select id="wb-graph-degree"><option value="auto">Detect automatically</option><option value="1">Linear (at least 2 points)</option><option value="2">Quadratic (at least 3 points)</option><option value="3">Cubic (at least 4 points)</option></select>
+      <p>Enter x-values and click Fill table from function to calculate y, or fill both columns yourself. Leave unused rows empty.</p>
+      <p id="wb-graph-table-status" role="status" aria-live="polite"></p>
+      <div class="wb-graph-table-scroll"><table class="wb-graph-table"><caption>Table of values</caption><thead><tr><th scope="col">x</th><th scope="col">y</th><th scope="col">Row</th></tr></thead><tbody id="wb-graph-table-body"></tbody></table></div>
+      <button id="wb-graph-add-row" type="button">Add row</button>
+      <label class="wb-graph-fit"><input id="wb-graph-auto-range" type="checkbox" checked> Fit axes to table</label>
+    </div>
     <div class="wb-graph-ranges">
       <label>Minimum x <input id="wb-graph-x-min" type="number" value="-10" step="any"></label>
       <label>Maximum x <input id="wb-graph-x-max" type="number" value="10" step="any"></label>
@@ -179,20 +195,19 @@
   </dialog>
   <dialog id="wb-ai-dialog" class="wb-dialog wb-ai-dialog" aria-labelledby="wb-ai-heading">
     <button id="wb-ai-close" class="wb-icon-button wb-dialog-close" aria-label="Close AI Assist"><span data-wb-icon="close"></span></button>
-    <h2 id="wb-ai-heading">AI Assist</h2>
-    <p>Choose what you need. Selection actions send only the selected element and nearby context; board actions send a compact description. Nothing is added until you approve it.</p>
-    <fieldset id="wb-ai-actions" class="wb-ai-actions"><legend>Action</legend>
-      <label><input type="radio" name="wb-ai-action" value="explain" checked> Explain</label><label><input type="radio" name="wb-ai-action" value="hint"> Hint</label><label><input type="radio" name="wb-ai-action" value="check"> Check work</label><label><input type="radio" name="wb-ai-action" value="summarize"> Summarize</label><label><input type="radio" name="wb-ai-action" value="practice"> Practice</label>
-    </fieldset>
-    <label for="wb-ai-prompt">Optional instruction</label><textarea id="wb-ai-prompt" rows="2" maxlength="1000" placeholder="For example: explain this for a Grade 8 learner"></textarea>
-    <p id="wb-ai-context" class="wb-ai-context" role="status"></p>
-    <p class="wb-ai-privacy">A drawing preview is sent only when selected work needs visual interpretation. AI output can be wrong; checked calculations use the restricted maths parser.</p>
-    <button id="wb-ai-generate" class="wb-primary" type="button">Generate preview</button>
-    <div id="wb-ai-preview" class="wb-ai-preview" aria-live="polite" hidden><span>AI-generated preview</span><h3 id="wb-ai-result-title"></h3><p id="wb-ai-result-body"></p><ul id="wb-ai-warnings"></ul></div>
+    <h2 id="wb-ai-heading">Ask AI</h2>
+    <p>Type your question to get a short, clear answer.</p>
+    <label for="wb-ai-prompt">Your question</label>
+    <textarea id="wb-ai-prompt" rows="3" maxlength="1000" placeholder="For example: What is the difference between diffusion and osmosis?"></textarea>
+    <p class="wb-ai-privacy">Only your typed question is sent. If more information is needed, the assistant will ask.</p>
+    <button id="wb-ai-generate" class="wb-primary" type="button" disabled>Get answer</button>
+    <p id="wb-ai-status" role="status" aria-live="polite"></p>
+    <div id="wb-ai-preview" class="wb-ai-preview" aria-live="polite" hidden><h3 id="wb-ai-result-title">Answer</h3><p id="wb-ai-result-body"></p></div>
     <p id="wb-ai-error" class="wb-feature-error" role="alert" hidden></p>
-    <div class="wb-feature-actions"><button id="wb-ai-cancel" type="button">Cancel</button><button id="wb-ai-replace" type="button" disabled>Replace selection</button><button id="wb-ai-insert" class="wb-primary" type="button" disabled>Insert on board</button></div>
+    {% if not user.is_authenticated %}<p><a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in to ask a question</a></p>{% endif %}
+    <div class="wb-feature-actions"><button id="wb-ai-cancel" type="button">Close</button><button id="wb-ai-insert" class="wb-primary" type="button" disabled>Add answer to whiteboard</button></div>
   </dialog>
-  <dialog id="wb-help-dialog" class="wb-dialog"><form method="dialog"><button class="wb-icon-button wb-dialog-close" aria-label="Close help"><span data-wb-icon="close"></span></button><h2>A little room for big ideas</h2><p>Write with a pen, then pause. The local handwriting recognizer suggests editable text and common maths notation. Review suggestions before applying them. Write separated printed letters; cursive writing may be unreliable. Auto handles both; choose Text &amp; paragraphs for sentences, or Maths &amp; numbers for isolated variables and integers. Leave a clear gap between words and a larger gap between paragraphs.</p><p>Use Select and double-click a block to fix a misreading. Enter adds a text line. The equation editor accepts (a)/(b), x^(2), a_(1), sqrt(x), integral(x^2,x), integral(x^2,x,0,1), diff(x^2,x), partial(f(x,y),x), and mathematical symbols. Voice equation understands general linear, quadratic, and cubic equations, powers, roots, fractions, decimals, inequalities, and common functions, then waits for your approval. The eraser removes handwriting and equations. Touch the board with four or more fingers to clear every element; Undo restores the cleared board. Graph plots explicit functions such as y = x^2 with a local restricted parser. AI Assist explains or checks a selection, summarizes a board, and creates practice only after you request it. Review every AI preview before inserting or replacing work. Manual corrections stay as you edited them. Complex or unread notation can stay as ink. Undo restores your source strokes; Select also offers Restore original handwriting.</p><dl><dt>V / H</dt><dd>Select / pan</dd><dt>P / E</dt><dd>Pen / eraser</dd><dt>Four fingers</dt><dd>Clear every board element</dd><dt>R / O / L / A</dt><dd>Rectangle / circle / line / arrow</dd><dt>T / N</dt><dd>Text / sticky note</dd><dt>Space + drag</dt><dd>Move around the board</dd><dt>Page Up / Page Down</dt><dd>Move up / down</dd><dt>Ctrl + Z / Ctrl + Shift + Z</dt><dd>Undo / redo</dd><dt>Ctrl + D / Delete</dt><dd>Duplicate / remove selection</dd><dt>Double-click</dt><dd>Edit a text, equation, table, or graph element</dd></dl><p>Boards save in this browser on this device. Handwriting is processed by this website's recognition server. Browser voice recognition may use the browser provider's speech service; the microphone starts only after you press Start listening. Download an editable board from File to keep a backup or move your work to another device.</p><button class="wb-primary">Got it</button></form></dialog>
+  <dialog id="wb-help-dialog" class="wb-dialog"><form method="dialog"><button class="wb-icon-button wb-dialog-close" aria-label="Close help"><span data-wb-icon="close"></span></button><h2>A little room for big ideas</h2><p>Write with a pen, then pause. The local handwriting recognizer suggests editable text and common maths notation. Review suggestions before applying them. Write separated printed letters; cursive writing may be unreliable. Auto handles both; choose Text &amp; paragraphs for sentences, or Maths &amp; numbers for isolated variables and integers. Leave a clear gap between words and a larger gap between paragraphs.</p><p>Use Select and double-click a block to fix a misreading. Enter adds a text line. The equation editor accepts (a)/(b), x^(2), a_(1), sqrt(x), integral(x^2,x), integral(x^2,x,0,1), diff(x^2,x), partial(f(x,y),x), and mathematical symbols. Voice equation understands general linear, quadratic, and cubic equations, powers, roots, fractions, decimals, inequalities, and common functions, then waits for your approval. The eraser removes handwriting and equations. Touch the board with four or more fingers to clear every element; Undo restores the cleared board. Graph plots functions such as y = x^2, or linear, quadratic and cubic graphs from an x–y table. Choose Table of values, enter your points, and add the graph; double-click it to edit the table later. Ask AI answers your typed question briefly. Answers appear in the dialog; use Add answer to whiteboard if you want to keep one on the board. Manual corrections stay as you edited them. Complex or unread notation can stay as ink. Undo restores your source strokes; Select also offers Restore original handwriting.</p><dl><dt>V / H</dt><dd>Select / pan</dd><dt>P / E</dt><dd>Pen / eraser</dd><dt>Four fingers</dt><dd>Clear every board element</dd><dt>R / O / L / A</dt><dd>Rectangle / circle / line / arrow</dd><dt>T / N</dt><dd>Text / sticky note</dd><dt>Space + drag</dt><dd>Move around the board</dd><dt>Page Up / Page Down</dt><dd>Move up / down</dd><dt>Ctrl + Z / Ctrl + Shift + Z</dt><dd>Undo / redo</dd><dt>Ctrl + D / Delete</dt><dd>Duplicate / remove selection</dd><dt>Double-click</dt><dd>Edit a text, equation, table, or graph element</dd></dl><p>Boards save in this browser on this device. Handwriting is processed by this website's recognition server. Browser voice recognition may use the browser provider's speech service; the microphone starts only after you press Start listening. Download an editable board from File to keep a backup or move your work to another device.</p><button class="wb-primary">Got it</button></form></dialog>
 </section>
 {% endblock %}
-{% block extra_scripts %}<script src="{% static 'educations/whiteboard_calculus.js' %}?v=16" defer></script><script src="{% static 'educations/vendor/katex/katex.min.js' %}" defer></script><script src="{% static 'educations/whiteboard_typesetting.js' %}?v=16" defer></script><script src="{% static 'educations/whiteboard_voice_math.js' %}?v=17" defer></script><script src="{% static 'educations/whiteboard_graph.js' %}?v=16" defer></script><script src="{% static 'educations/whiteboard_selection.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_persistence.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_gestures.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_dialogs.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_ai.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_model.js' %}?v=18" defer></script><script src="{% static 'educations/whiteboard_math.js' %}?v=16" defer></script><script src="{% static 'educations/vendor/mathjax/tex-svg.js' %}?v=4.1.3" defer></script><script src="{% static 'educations/whiteboard.js' %}?v=24" defer></script>{% endblock %}
+{% block extra_scripts %}<script src="{% static 'educations/whiteboard_calculus.js' %}?v=16" defer></script><script src="{% static 'educations/vendor/katex/katex.min.js' %}" defer></script><script src="{% static 'educations/whiteboard_typesetting.js' %}?v=16" defer></script><script src="{% static 'educations/whiteboard_voice_math.js' %}?v=17" defer></script><script src="{% static 'educations/whiteboard_graph.js' %}?v=19" defer></script><script src="{% static 'educations/whiteboard_selection.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_persistence.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_gestures.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_dialogs.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_ai.js' %}?v=2" defer></script><script src="{% static 'educations/whiteboard_uploads.js' %}?v=1" defer></script><script src="{% static 'educations/whiteboard_model.js' %}?v=22" defer></script><script src="{% static 'educations/whiteboard_math.js' %}?v=16" defer></script><script src="{% static 'educations/vendor/mathjax/tex-svg.js' %}?v=4.1.3" defer></script><script src="{% static 'educations/whiteboard.js' %}?v=29" defer></script>{% endblock %}

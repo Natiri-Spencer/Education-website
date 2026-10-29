@@ -1,0 +1,80 @@
+[
+  {
+    "id": "intro",
+    "title": "The female reproductive system",
+    "start": 0,
+    "end": 20
+  },
+  {
+    "id": "location",
+    "title": "Where are these organs?",
+    "start": 20,
+    "end": 40
+  },
+  {
+    "id": "map",
+    "title": "Meet the main organs",
+    "start": 40,
+    "end": 65
+  },
+  {
+    "id": "ovaries",
+    "title": "Ovaries: eggs and hormones",
+    "start": 65,
+    "end": 90
+  },
+  {
+    "id": "tubes",
+    "title": "Fallopian tubes: transport",
+    "start": 90,
+    "end": 110
+  },
+  {
+    "id": "uterus",
+    "title": "Uterus: a muscular organ",
+    "start": 110,
+    "end": 135
+  },
+  {
+    "id": "cervix",
+    "title": "Cervix: the lower neck",
+    "start": 135,
+    "end": 150
+  },
+  {
+    "id": "vagina",
+    "title": "Vagina: a muscular canal",
+    "start": 150,
+    "end": 170
+  },
+  {
+    "id": "ovulation",
+    "title": "Ovulation: releasing an egg",
+    "start": 170,
+    "end": 205
+  },
+  {
+    "id": "transport",
+    "title": "How does the egg move?",
+    "start": 205,
+    "end": 240
+  },
+  {
+    "id": "cycle",
+    "title": "The lining changes during the cycle",
+    "start": 240,
+    "end": 270
+  },
+  {
+    "id": "quiz1",
+    "title": "Check your understanding",
+    "start": 270,
+    "end": 285
+  },
+  {
+    "id": "quiz2",
+    "title": "Remember the route",
+    "start": 285,
+    "end": 300
+  }
+]

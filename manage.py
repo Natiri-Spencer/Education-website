@@ -15,6 +15,10 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    if len(sys.argv) > 1 and sys.argv[1] == 'runserver':
+        from django.conf import settings
+        from educations.local_ai_runtime import ensure_local_ai
+        ensure_local_ai(settings)
     execute_from_command_line(sys.argv)
 
 

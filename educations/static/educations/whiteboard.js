@@ -3,7 +3,7 @@
     const app = document.getElementById('whiteboard-app');
     if (!app || !window.WhiteboardModel) return;
     const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, G = window.WhiteboardGraph, V = window.WhiteboardVoiceMath;
-    const S = window.WhiteboardSelection, P = window.WhiteboardPersistence, Gesture = window.WhiteboardGestures, D = window.WhiteboardDialogs, AI = window.WhiteboardAI, $ = id => document.getElementById(id);
+    const U = window.WhiteboardUploads, S = window.WhiteboardSelection, P = window.WhiteboardPersistence, Gesture = window.WhiteboardGestures, D = window.WhiteboardDialogs, AI = window.WhiteboardAI, $ = id => document.getElementById(id);
     const svg = $('wb-canvas'), world = $('wb-world'), stage = $('wb-stage');
     const paths = {
         cursor: 'M4 3l6 17 3-7 7-3L4 3z', hand: 'M8 12V6a2 2 0 014 0v5-7a2 2 0 014 0v8-6a2 2 0 014 0v9c0 5-3 7-7 7-3 0-5-2-7-4l-3-5a2 2 0 013-2l2 2z',
@@ -47,7 +47,7 @@
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
     let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceResultTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, voiceNetworkErrors = 0;
-    let graphEditId = null, graphPreview = null;
+    let graphEditId = null, graphPreview = null, graphTableFunction = '';
     let aiResult = null, aiContext = null, aiAction = 'explain', aiController = null, aiRevision = 0;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
     if (P) { const loaded = P.load(localStorage, storageKey, M.restore); library = loaded.library; board = loaded.board; }
@@ -272,25 +272,62 @@
             board.items.push(M.placeRecognized(item,board.items));selected=item.id;closeVoice();commit(before);toast('Voice equation added. Undo removes it; double-click to edit it.');
         }catch(reason){error.textContent=reason.message;error.hidden=false;}
     });
+    function graphTableRows(){return [...$('wb-graph-table-body').rows].map(row=>[...row.querySelectorAll('input')].map(input=>input.value));}
+    function renderGraphTable(rows){
+        $('wb-graph-table-body').innerHTML=rows.map(([x,y],i)=>`<tr><td><input type="text" inputmode="decimal" maxlength="24" aria-label="Row ${i+1} x" value="${esc(x)}"></td><td><input type="text" inputmode="decimal" maxlength="24" aria-label="Row ${i+1} y" value="${esc(y)}"></td><td><button type="button" data-remove-graph-row="${i}" aria-label="Remove row ${i+1}">Remove</button></td></tr>`).join('');
+        $('wb-graph-add-row').disabled=rows.length>=30;
+    }
+    function graphModePanels(){
+        const table=$('wb-graph-source').value==='table';
+        $('wb-graph-table-panel').hidden=!table;$('wb-graph-function-panel').hidden=false;
+        $('wb-graph-degree').disabled=table&&!!graphTableFunction;
+        $('wb-graph-table-status').textContent=table&&graphTableFunction?'Values calculated from your function. Change x or the function, then fill the table again. Editing y switches to a manual table.':'';
+    }
+    $('wb-graph-source').addEventListener('change',()=>{graphModePanels();updateGraphPreview();});
+    $('wb-graph-table-body').addEventListener('input',event=>{if(event.target.closest('td')?.cellIndex===1){graphTableFunction='';graphModePanels();}updateGraphPreview();});
+    $('wb-graph-fill-table').addEventListener('click',()=>{
+        try{
+            const rows=G.fillTable($('wb-graph-expression').value,graphTableRows());
+            graphTableFunction=G.sourceExpression($('wb-graph-expression').value);
+            $('wb-graph-source').value='table';$('wb-graph-auto-range').checked=true;
+            renderGraphTable(rows);graphModePanels();updateGraphPreview();
+        }catch(reason){$('wb-graph-error').textContent=reason.message;$('wb-graph-error').hidden=false;}
+    });
+    $('wb-graph-table-body').addEventListener('click',event=>{
+        const button=event.target.closest('[data-remove-graph-row]');if(!button)return;
+        const rows=graphTableRows();rows.splice(Number(button.dataset.removeGraphRow),1);if(!rows.length)rows.push(['','']);renderGraphTable(rows);updateGraphPreview();
+    });
+    $('wb-graph-add-row').addEventListener('click',()=>{const rows=graphTableRows();if(rows.length>=30)return;rows.push(['','']);renderGraphTable(rows);updateGraphPreview();$('wb-graph-table-body').lastElementChild.querySelector('input').focus();});
+    $('wb-graph-degree').addEventListener('change',updateGraphPreview);
+    $('wb-graph-auto-range').addEventListener('change',updateGraphPreview);
     function graphOptions(){return{xMin:$('wb-graph-x-min').value,xMax:$('wb-graph-x-max').value,yMin:$('wb-graph-y-min').value,yMax:$('wb-graph-y-max').value};}
     function updateGraphPreview(){
         const error=$('wb-graph-error');error.hidden=true;
         try{
-            graphPreview=G.plot($('wb-graph-expression').value,graphOptions());
+            const tableMode=$('wb-graph-source').value==='table';
+            const options={...graphOptions(),degree:$('wb-graph-degree').value,autoRange:$('wb-graph-auto-range').checked};
+            graphPreview=tableMode?(graphTableFunction?G.plotFunctionTable($('wb-graph-expression').value,graphTableRows(),options):G.plotTable(graphTableRows(),options)):{...G.plot($('wb-graph-expression').value,graphOptions()),graphSource:'function',tablePoints:[],tableDegree:'auto',tableFunction:''};
+            if(tableMode&&$('wb-graph-auto-range').checked)for(const [id,key] of [['wb-graph-x-min','xMin'],['wb-graph-x-max','xMax'],['wb-graph-y-min','yMin'],['wb-graph-y-max','yMax']])$(id).value=graphPreview[key];
+            $('wb-graph-apply').disabled=false;
             const previewItem={id:'preview',type:'graph',x:0,y:0,w:560,h:320,fill:'#fff',stroke:$('wb-graph-colour').value,width:Number($('wb-graph-width').value),showGrid:$('wb-graph-grid').checked,showAxes:$('wb-graph-axes').checked,...graphPreview};
             $('wb-graph-preview').innerHTML=graphMarkup(previewItem,{x:0,y:0,w:560,h:320});
-        }catch(reason){graphPreview=null;$('wb-graph-preview').innerHTML='';error.textContent=reason.message;error.hidden=false;}
+        }catch(reason){graphPreview=null;$('wb-graph-apply').disabled=true;$('wb-graph-preview').innerHTML='';error.textContent=reason.message;error.hidden=false;}
     }
     function openGraph(item=null){
         finishEdit(true);cancelRecognition();graphEditId=item?.id||null;
         $('wb-graph-heading').textContent=item?'Edit graph':'Graph plotter';$('wb-graph-apply').textContent=item?'Apply changes':'Add to whiteboard';
-        $('wb-graph-expression').value=item?`y = ${item.expression}`:'y = x^2';
+        graphTableFunction=item?.tableFunction||'';
+        $('wb-graph-expression').value=graphTableFunction?`y = ${graphTableFunction}`:item&&item.graphSource!=='table'?`y = ${item.expression}`:'y = x^2';
+        $('wb-graph-source').value=item?.graphSource==='table'?'table':'function';
+        $('wb-graph-degree').value=item?.tableDegree||'auto';
+        $('wb-graph-auto-range').checked=!item;
+        renderGraphTable(item?.graphSource==='table'?item.tablePoints:Array.from({length:5},(_,i)=>[i-2,'']));graphModePanels();
         for(const [id,value] of [['wb-graph-x-min',item?.xMin??-10],['wb-graph-x-max',item?.xMax??10],['wb-graph-y-min',item?.yMin??-10],['wb-graph-y-max',item?.yMax??10]])$(id).value=value;
         $('wb-graph-grid').checked=item?.showGrid!==false;$('wb-graph-axes').checked=item?.showAxes!==false;$('wb-graph-colour').value=item?.stroke||'#1689f8';$('wb-graph-width').value=item?.width||3;
-        updateGraphPreview();if(!$('wb-graph-dialog').open)$('wb-graph-dialog').showModal();$('wb-graph-expression').focus();$('wb-graph-expression').select();
+        updateGraphPreview();if(!$('wb-graph-dialog').open)$('wb-graph-dialog').showModal();const focus=$('wb-graph-source').value==='table'?$('wb-graph-table-body').querySelector('input'):$('wb-graph-expression');focus.focus();focus.select();
     }
     $('wb-add-graph').addEventListener('click',()=>openGraph());
-    for(const id of ['wb-graph-expression','wb-graph-x-min','wb-graph-x-max','wb-graph-y-min','wb-graph-y-max','wb-graph-grid','wb-graph-axes','wb-graph-colour','wb-graph-width'])$(id).addEventListener('input',updateGraphPreview);
+    for(const id of ['wb-graph-expression','wb-graph-x-min','wb-graph-x-max','wb-graph-y-min','wb-graph-y-max','wb-graph-grid','wb-graph-axes','wb-graph-colour','wb-graph-width'])$(id).addEventListener('input',()=>{if(id.match(/wb-graph-[xy]-(min|max)/))$('wb-graph-auto-range').checked=false;updateGraphPreview();});
     function closeGraph(){graphEditId=null;if($('wb-graph-dialog').open)$('wb-graph-dialog').close();}
     $('wb-graph-close').addEventListener('click',closeGraph);$('wb-graph-cancel').addEventListener('click',closeGraph);
     $('wb-graph-dialog').addEventListener('close',()=>{graphEditId=null;});
@@ -299,53 +336,49 @@
         const before=M.clone(board.items),old=board.items.find(item=>item.id===graphEditId),p=centre();
         const item=M.create('graph',old?.x??p.x-280,old?.y??p.y-180,{...(old||{}),...graphPreview,stroke:$('wb-graph-colour').value,width:Number($('wb-graph-width').value),showGrid:$('wb-graph-grid').checked,showAxes:$('wb-graph-axes').checked});
         if(old){item.id=old.id;board.items=board.items.map(current=>current.id===old.id?item:current);}else board.items.push(item);
-        selected=item.id;closeGraph();commit(before);toast(old?'Graph updated.':'Graph added. Double-click it to edit the function or ranges.');
+        setTool('select');selected=item.id;closeGraph();commit(before);toast(old?'Graph updated.':'Graph added. Double-click it to edit the table, function, or ranges.');
     });
-    function selectedAiAction(){return $('wb-ai-actions').querySelector('input:checked').value;}
-    function refreshAiContext(){
-        aiAction=selectedAiAction();aiResult=null;$('wb-ai-preview').hidden=true;$('wb-ai-insert').disabled=true;$('wb-ai-replace').disabled=true;$('wb-ai-error').hidden=true;
-        try{
-            aiContext=S.buildContext(board,selected,aiAction,M.bounds);
-            const selectedItem=chosen(),nearby=Math.max(0,aiContext.items.length-1);
-            $('wb-ai-context').textContent=aiContext.scope==='selection'?`Using the selected ${selectedItem.type}${nearby?` and ${nearby} nearby element${nearby===1?'':'s'}`:''}.`:`Using ${aiContext.items.length} board element${aiContext.items.length===1?'':'s'}.`;
-        }catch(reason){aiContext=null;$('wb-ai-context').textContent=reason.message;}
+    function resetAiAnswer(){
+        aiRevision++;if(aiController)aiController.abort();aiController=null;aiResult=null;
+        $('wb-ai-preview').hidden=true;$('wb-ai-insert').disabled=true;$('wb-ai-error').hidden=true;
+        $('wb-ai-status').textContent='';$('wb-ai-generate').textContent='Get answer';
+        $('wb-ai-generate').disabled=!$('wb-ai-prompt').value.trim();
     }
     function openAi(preferred){
         finishEdit(true);cancelRecognition();
-        const action=preferred||(chosen()?'explain':'summarize'),radio=$('wb-ai-actions').querySelector(`input[value="${action}"]`);
-        if(radio)radio.checked=true;$('wb-ai-prompt').value='';refreshAiContext();D.open($('wb-ai-dialog'),$('wb-ai-prompt'));
+        const text=preferred&&chosen()?.text;
+        $('wb-ai-prompt').value=text?`Explain briefly: ${text}`.slice(0,1000):'';
+        aiAction='answer';aiContext={sourceIds:[],items:[],scope:'question'};resetAiAnswer();
+        D.open($('wb-ai-dialog'),$('wb-ai-prompt'));
     }
-    function closeAi(){aiRevision++;if(aiController)aiController.abort();aiController=null;D.close($('wb-ai-dialog'));}
-    async function selectionPng(){
-        if(!aiContext||!S.needsImage(aiContext))return null;
-        const visualTypes=new Set(['path','image','rectangle','ellipse','line','arrow']),source=new Set(aiContext.sourceIds),items=board.items.filter(item=>source.has(String(item.id))&&visualTypes.has(item.type));
-        if(!items.length)return null;const b=M.allBounds(items),pad=16,w=Math.max(1,b.w+pad*2),h=Math.max(1,b.h+pad*2),scale=Math.min(2,800/Math.max(w,h));
-        const markup=items.map(itemMarkup).join(''),sourceSvg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${b.x-pad} ${b.y-pad} ${w} ${h}"><rect x="${b.x-pad}" y="${b.y-pad}" width="${w}" height="${h}" fill="white"/>${markup}</svg>`;
-        const url=URL.createObjectURL(new Blob([sourceSvg],{type:'image/svg+xml'}));
-        try{const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('The selected drawing could not be prepared.'));image.src=url;});const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);return canvas.toDataURL('image/png');}finally{URL.revokeObjectURL(url);}
-    }
-    $('wb-ai-assist').addEventListener('click',()=>openAi());$('wb-selection-ai').addEventListener('click',()=>openAi('explain'));
-    $('wb-ai-actions').addEventListener('change',refreshAiContext);$('wb-ai-close').addEventListener('click',closeAi);$('wb-ai-cancel').addEventListener('click',closeAi);
-    $('wb-ai-dialog').addEventListener('close',()=>{aiRevision++;if(aiController)aiController.abort();aiController=null;aiResult=null;});
+    function closeAi(){resetAiAnswer();D.close($('wb-ai-dialog'));}
+    $('wb-ai-assist').addEventListener('click',()=>openAi());$('wb-selection-ai').addEventListener('click',()=>openAi('answer'));
+    $('wb-ai-prompt').addEventListener('input',resetAiAnswer);
+    $('wb-ai-close').addEventListener('click',closeAi);$('wb-ai-cancel').addEventListener('click',closeAi);
+    $('wb-ai-dialog').addEventListener('close',resetAiAnswer);
     $('wb-ai-generate').addEventListener('click',async()=>{
-        refreshAiContext();const error=$('wb-ai-error'),button=$('wb-ai-generate');error.hidden=true;if(!aiContext){error.textContent=$('wb-ai-context').textContent;error.hidden=false;return;}
-        const revision=++aiRevision;aiController=new AbortController();button.disabled=true;button.textContent='Generating…';
+        const question=$('wb-ai-prompt').value.trim();if(!question)return;
+        resetAiAnswer();const revision=++aiRevision,controller=new AbortController();aiController=controller;
+        const error=$('wb-ai-error'),button=$('wb-ai-generate');button.disabled=true;button.textContent='Answering…';$('wb-ai-status').textContent='Thinking about your question…';
+        const timeout=setTimeout(()=>controller.abort(),Math.max(15000,Math.min(315000,Number(app.dataset.aiTimeoutMs)||45000)));
         try{
-            const image=await selectionPng(),payload={action:aiAction,prompt:$('wb-ai-prompt').value,context:aiContext,...(image?{image}:{})};
-            const result=await AI.request(app.dataset.aiUrl,app.querySelector('[name=csrfmiddlewaretoken]').value,payload,aiController.signal);
-            if(revision!==aiRevision)return;aiResult=result;$('wb-ai-result-title').textContent=result.title;$('wb-ai-result-body').textContent=result.explanation;$('wb-ai-warnings').replaceChildren(...result.warnings.map(value=>{const li=document.createElement('li');li.textContent=value;return li;}));$('wb-ai-preview').hidden=false;$('wb-ai-insert').disabled=false;$('wb-ai-replace').disabled=!chosen()||!['text','sticky','table'].includes(chosen().type);
-        }catch(reason){if(reason.name!=='AbortError'){error.textContent=reason.message;error.hidden=false;}}
-        finally{if(revision===aiRevision){button.disabled=false;button.textContent='Generate preview';aiController=null;}}
+            const result=await AI.request(app.dataset.aiUrl,app.querySelector('[name=csrfmiddlewaretoken]').value,{action:'answer',prompt:question},controller.signal);
+            if(revision!==aiRevision)return;
+            aiResult=result;$('wb-ai-result-title').textContent='Answer';$('wb-ai-result-body').textContent=result.explanation;
+            $('wb-ai-preview').hidden=false;$('wb-ai-insert').disabled=false;
+        }catch(reason){
+            if(revision!==aiRevision)return;
+            error.textContent=reason.name==='AbortError'?'The answer took too long. Please try again.':reason.message;error.hidden=false;
+        }finally{
+            clearTimeout(timeout);
+            if(revision===aiRevision){button.disabled=false;button.textContent='Get answer';$('wb-ai-status').textContent='';aiController=null;}
+        }
     });
     $('wb-ai-insert').addEventListener('click',()=>{
-        if(!aiResult||!aiContext)return;const p=centre(),raw=AI.insertion(aiResult,aiAction,aiContext.sourceIds,{x:p.x-180,y:p.y-110}),item=M.create('sticky',raw.x,raw.y,raw);
-        const before=M.clone(board.items);board.items.push(item);selected=item.id;closeAi();commit(before);toast('AI-generated note added. Undo removes it.');
-    });
-    $('wb-ai-replace').addEventListener('click',()=>{
-        const item=chosen();if(!aiResult||!item||!['text','sticky','table'].includes(item.type))return;const before=M.clone(board.items);
-        item.text=aiResult.insertText;item.aiGenerated=true;item.aiAction=aiAction;item.aiSourceIds=[...aiContext.sourceIds];
-        if(item.type==='text'){item.format=aiResult.insertFormat;const layout=item.format==='math'?T.mathLayout(item.text,item.fontSize):T.textLayout(item.text,item.fontSize,Math.max(10,item.w-8));item.w=Math.max(item.w,layout.w);item.h=Math.max(45,layout.h);}else if(item.type==='sticky')item.h=Math.max(180,wrap(item.text,Math.max(2,Math.floor((item.w-40)/(item.fontSize*.56)))).length*item.fontSize*1.35+40);
-        closeAi();commit(before);toast('Selection replaced with the approved AI preview. Undo restores it.');
+        if(!aiResult)return;const p=centre(),raw=AI.insertion(aiResult,'answer',[],{x:p.x-180,y:p.y-110});
+        raw.h=Math.max(raw.h,wrap(raw.text,30).length*raw.fontSize*1.35+40);
+        const item=M.create('sticky',raw.x,raw.y,raw),before=M.clone(board.items);
+        board.items.push(item);setTool('select');selected=item.id;closeAi();commit(before);toast('Answer added. Undo removes it.');
     });
     $('wb-review-close').addEventListener('click',()=>$('wb-review-dialog').close());
     $('wb-review-export').addEventListener('click',()=>{
@@ -511,8 +544,9 @@
         const left=46, right=16, top=35, bottom=32, width=Math.max(1,box.w-left-right), height=Math.max(1,box.h-top-bottom);
         const px=x=>box.x+left+(x-item.xMin)/(item.xMax-item.xMin)*width;
         const py=y=>box.y+top+height-(y-item.yMin)/(item.yMax-item.yMin)*height;
+        const tick=value=>Number(value.toPrecision(6));
         const clip=`wb-graph-${String(item.id).replace(/[^a-z0-9_-]/gi,'')}`;
-        let art=`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="10" fill="${item.fill||'#fff'}" stroke="#cbc4d4"/><text x="${box.x+14}" y="${box.y+23}" fill="#332b42" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="700">${esc('y = '+item.expression)}</text><defs><clipPath id="${clip}"><rect x="${box.x+left}" y="${box.y+top}" width="${width}" height="${height}"/></clipPath></defs>`;
+        let art=`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="10" fill="${item.fill||'#fff'}" stroke="#cbc4d4"/><text x="${box.x+14}" y="${box.y+23}" fill="#332b42" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="700">${esc(item.graphSource==='table'?item.expression:'y = '+item.expression)}</text><defs><clipPath id="${clip}"><rect x="${box.x+left}" y="${box.y+top}" width="${width}" height="${height}"/></clipPath></defs>`;
         if(item.showGrid!==false)for(let i=0;i<=10;i++){
             const x=box.x+left+width*i/10,y=box.y+top+height*i/10;
             art+=`<path d="M${x},${box.y+top}v${height}M${box.x+left},${y}h${width}" stroke="#ece8f0" stroke-width="1"/>`;
@@ -521,9 +555,9 @@
         if(item.showAxes!==false){
             if(item.xMin<=0&&item.xMax>=0)art+=`<path d="M${px(0)},${box.y+top}v${height}" stroke="#6e657a" stroke-width="1.4"/>`;
             if(item.yMin<=0&&item.yMax>=0)art+=`<path d="M${box.x+left},${py(0)}h${width}" stroke="#6e657a" stroke-width="1.4"/>`;
-            art+=`<text x="${box.x+left}" y="${box.y+box.h-10}" fill="#6e657a" font-size="11">${esc(item.xMin)}</text><text x="${box.x+box.w-right}" y="${box.y+box.h-10}" fill="#6e657a" font-size="11" text-anchor="end">${esc(item.xMax)}</text><text x="${box.x+left-7}" y="${box.y+top+10}" fill="#6e657a" font-size="11" text-anchor="end">${esc(item.yMax)}</text><text x="${box.x+left-7}" y="${box.y+top+height}" fill="#6e657a" font-size="11" text-anchor="end">${esc(item.yMin)}</text>`;
+            art+=`<text x="${box.x+left}" y="${box.y+box.h-10}" fill="#6e657a" font-size="11">${esc(tick(item.xMin))}</text><text x="${box.x+box.w-right}" y="${box.y+box.h-10}" fill="#6e657a" font-size="11" text-anchor="end">${esc(tick(item.xMax))}</text><text x="${box.x+left-7}" y="${box.y+top+10}" fill="#6e657a" font-size="11" text-anchor="end">${esc(tick(item.yMax))}</text><text x="${box.x+left-7}" y="${box.y+top+height}" fill="#6e657a" font-size="11" text-anchor="end">${esc(tick(item.yMin))}</text>`;
         }
-        art+=`<g clip-path="url(#${clip})">${(item.samples||[]).map(segment=>`<path d="${segment.map(([x,y],i)=>`${i?'L':'M'}${px(x)},${py(y)}`).join(' ')}" fill="none" stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</g>`;
+        art+=`<g clip-path="url(#${clip})">${(item.samples||[]).map(segment=>`<path d="${segment.map(([x,y],i)=>`${i?'L':'M'}${px(x)},${py(y)}`).join(' ')}" fill="none" stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}${item.graphSource==='table'?(item.tablePoints||[]).map(([x,y])=>`<circle cx="${px(x)}" cy="${py(y)}" r="4" fill="${item.stroke}" stroke="#fff" stroke-width="1.5"/>`).join(''):''}</g>`;
         return art;
     }
     function itemMarkup(item) {
@@ -546,6 +580,10 @@
         case 'rectangle': art = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="6" fill="${item.fill}" ${style}/>`; break;
         case 'sticky': art = `<rect x="${b.x + 2}" y="${b.y + 4}" width="${b.w}" height="${b.h}" rx="2" fill="#29203d" opacity=".08"/><path d="M${b.x},${b.y}h${b.w}v${b.h - 22}l-22,22H${b.x}Z" fill="${item.fill}"/><path d="M${b.x + b.w - 22},${b.y + b.h}v-22h22" fill="#000000" opacity=".07"/>${textMarkup(item, b, 20, item.stroke)}`; break;
         case 'text': art = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="transparent"/>${textMarkup(item, b, 4, item.stroke)}`; break;
+        case 'file': {
+            const lines=wrap(item.fileName,Math.max(12,Math.floor((b.w-32)/8))).slice(0,2);
+            art=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="12" fill="#ffffff" stroke="#b69bd7" stroke-width="2"/><text x="${b.x+16}" y="${b.y+25}" fill="#7136b4" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">${esc(item.fileName.split('.').pop().toUpperCase())} FILE</text>${lines.map((line,i)=>`<text x="${b.x+16}" y="${b.y+50+i*19}" fill="#302941" font-family="Segoe UI,Arial,sans-serif" font-size="15">${esc(line)}</text>`).join('')}<text x="${b.x+16}" y="${b.y+b.h-16}" fill="#6e657a" font-family="Segoe UI,Arial,sans-serif" font-size="12">${(item.fileSize/1024).toFixed(1)} KB · Double-click to download</text>`;break;
+        }
         case 'image': art = `<image href="${esc(item.src)}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" preserveAspectRatio="xMidYMid meet"/>`; break;
         case 'graph': art = graphMarkup(item,b); break;
         case 'table': {
@@ -563,7 +601,7 @@
         }
         }
         if(item.aiGenerated)art+=`<text class="wb-ai-note-label" x="${b.x+8}" y="${b.y+b.h-8}" font-family="Segoe UI,Arial,sans-serif">AI-generated</text>`;
-        const accessibility=item.type==='graph'?` role="img" aria-label="${esc(`Graph of y = ${item.expression}, x from ${item.xMin} to ${item.xMax}, y from ${item.yMin} to ${item.yMax}`)}"`:'';
+        const accessibility=item.type==='graph'?` role="img" aria-label="${esc(`${item.graphSource==='table'?item.expression:'Graph of y = '+item.expression}, x from ${item.xMin} to ${item.xMax}, y from ${item.yMin} to ${item.yMax}`)}"`:'';
         return `<g data-wb-item="${esc(item.id)}"${accessibility}>${art}</g>`;
     }
     function render() {
@@ -582,7 +620,9 @@
         $('wb-object-count').textContent = `${board.items.length} element${board.items.length === 1 ? '' : 's'}`;
         $('wb-recognition-mode').value = board.recognitionMode || 'auto';
         $('wb-selection-tools').hidden = !item || tool !== 'select';
-        $('wb-selection-tools').querySelector('[data-wb-action=edit]').disabled = !item || !['text', 'sticky', 'table', 'graph'].includes(item.type);
+        const editButton=$('wb-selection-tools').querySelector('[data-wb-action=edit]');
+        editButton.disabled = !item || !['text', 'sticky', 'table', 'graph', 'file'].includes(item.type);
+        editButton.title=item?.type==='file'?'Download file':'Edit element';editButton.setAttribute('aria-label',editButton.title);
         $('wb-undo').disabled = !history.canUndo; $('wb-redo').disabled = !history.canRedo;
         $('wb-tidy-existing').disabled = recognitionBusy || !board.items.some(M.canRetryRecognition);
         $('wb-selection-tools').querySelector('[data-wb-action="restore-ink"]').disabled = !item?.inkSource?.length;
@@ -597,7 +637,8 @@
         return item;
     }
     function edit(item) {
-        if (!item || !['text', 'sticky', 'table', 'graph'].includes(item.type)) return;
+        if (!item || !['text', 'sticky', 'table', 'graph', 'file'].includes(item.type)) return;
+        if(item.type==='file'){downloadAttachment(item);return;}
         if(item.type==='graph'){openGraph(item);return;}
         if(item.format==='math'){openReview({boardId:board.id,editId:item.id,words:[{text:item.text,format:'math',fontSize:item.fontSize}]});return;}
         editing = item.id; $('wb-edit-text').value = item.text; $('wb-editor').hidden = false;
@@ -787,7 +828,7 @@
     function button(action, label, symbol = 'plus', extra = '') { return `<button class="wb-panel-button" data-wb-action="${action}" ${extra}>${icon(symbol)}${label}</button>`; }
     function renderPanel() {
         if (!panel) return;
-        const titles = { templates: 'Start with a little structure', elements: 'Elements', text: 'Add your words', uploads: 'Your images', style: 'Element style', projects: 'Your whiteboards' };
+        const titles = { templates: 'Start with a little structure', elements: 'Elements', text: 'Add your words', uploads: 'Images & files', style: 'Element style', projects: 'Your whiteboards' };
         $('wb-panel-title').textContent = titles[panel];
         let html = '';
         if (panel === 'templates') {
@@ -800,7 +841,8 @@
         } else if (panel === 'text') {
             html = '<p>A headline, a question, a thought. Double-click text on your board to edit it.</p>' + button('heading', 'Add a heading', 'text') + button('body', 'Add body text', 'text') + button('note', 'Add a sticky note', 'sticky');
         } else if (panel === 'uploads') {
-            html = `<div class="wb-upload-area">${icon('upload')}<p>Bring your lesson to life with an image.</p>${button('upload', 'Choose an image', 'plus')}</div><p>PNG, JPEG, or WebP · up to 10 MB<br>Images stay on this device. You can also drag an image onto the board.</p>`;
+            html = `<div class="wb-upload-area">${icon('upload')}<p>Add images and lesson files to your board.</p>${button('upload', 'Choose images', 'plus')}${button('upload-files', 'Choose files', 'folder')}</div><p>Images: PNG, JPEG, WebP.<br>Files: PDF, Word, Excel, PowerPoint, TXT, CSV.<br>Up to 10 MB each. Drag and drop either onto the board. Files stay on this device and are included in editable board backups.</p>`;
+            html+=board.items.filter(item=>item.type==='file').map(item=>`<button class="wb-board-card" data-wb-download="${esc(item.id)}"><strong>${esc(item.fileName)}</strong><small>Download · ${(item.fileSize/1024).toFixed(1)} KB</small></button>`).join('');
         } else if (panel === 'style') {
             html = `<p>Choose a tool from the floating toolbar. Select an element to change its style.</p><label for="wb-ink">Ink &amp; outline</label><input id="wb-ink" type="color" value="${ink}" data-wb-property="stroke"><div class="wb-swatches">${['#3b3548', '#ef476f', '#1689f8', '#24a87c', '#8b3dff', '#f29b22'].map(c => `<button style="--swatch:${c}" data-wb-colour="${c}" aria-label="Use ${c}"></button>`).join('')}</div><label for="wb-fill">Shape &amp; sticky note colour</label><input id="wb-fill" type="color" value="${fill}" data-wb-property="fill"><label for="wb-width">Stroke width <output id="wb-width-value">${penWidth}</output></label><input id="wb-width" type="range" min="1" max="18" value="${penWidth}" data-wb-property="width"><label for="wb-font-size">Text size</label><select id="wb-font-size" data-wb-property="fontSize">${[14, 18, 24, 32, 40, 56, 72].map(v => `<option value="${v}" ${fontSize === v ? 'selected' : ''}>${v} px</option>`).join('')}</select>`;
         } else if (panel === 'projects') {
@@ -876,9 +918,9 @@
     const actions = {
         new() { loadBoard(M.newBoard()); if (panel === 'projects') renderPanel(); toast('A fresh whiteboard. Your previous board is saved in Projects.'); },
         projects() { if (panel !== 'projects') openPanel('projects'); },
-        import() { $('wb-import').click(); }, upload() { $('wb-upload').click(); },
+        import() { $('wb-import').click(); }, upload() { $('wb-upload').click(); }, 'upload-files'() { $('wb-upload-files').click(); },
         png: exportPng,
-        json() { finishEdit(true); saveNow(); download(new Blob([JSON.stringify(board, null, 2)], { type: 'application/json' }), filename('whiteboard.json')); },
+        async json() { finishEdit(true); saveNow();try{const portable=await U.pack(M.clone(board));download(new Blob([JSON.stringify(portable)],{type:'application/json'}),filename('whiteboard.json'));}catch(error){toast(error.message);} },
         heading() { add('text', { text: 'Your big idea', fontSize: 40, w: 420, h: 100 }); },
         body() { add('text', { text: 'Add a little detail', fontSize: 24 }); }, note() { add('sticky', { fill: '#ffdf80' }); }, table() { add('table'); },
         edit() { edit(chosen()); },
@@ -890,6 +932,7 @@
     };
     app.addEventListener('click', event => {
         const target = event.target.closest('button'); if (!target) return;
+        if(target.dataset.wbDownload)downloadAttachment(board.items.find(item=>item.id===target.dataset.wbDownload));
         if (target.dataset.wbTool) setTool(target.dataset.wbTool);
         if (target.dataset.wbAlternative) $('wb-edit-text').value = target.dataset.wbAlternative;
         if (target.dataset.wbPen) choosePen(target.dataset.wbPen);
@@ -988,6 +1031,7 @@
     window.addEventListener('blur', () => { space = false; if (drag) endDrag({ pointerId: drag.pointer }, true); touches.clear(); touchGesture = null; waitForTouchRelease = false; multiTouchCleared = false; stage.classList.remove('is-panning'); $('wb-eraser-cursor').hidden = true; });
     window.addEventListener('pagehide', saveNow);
     async function uploadImage(file) {
+        const targetBoard=board.id;
         if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) { toast('Choose a PNG, JPEG, or WebP image smaller than 10 MB.'); return; }
         const url = URL.createObjectURL(file);
         try {
@@ -997,18 +1041,39 @@
             const src = canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', .85);
             if (src.length > 4e6) throw new Error('large');
             const width = Math.min(450, canvas.width), height = width * canvas.height / canvas.width;
+            if(board.id!==targetBoard){toast('The board changed. Upload the image again on the correct board.');return;}
             add('image', { src, w: width, h: height }); toast('Image added. Drag to move; use the corner to resize.');
         } catch (_) { toast('This image could not be opened. Try a smaller PNG or JPEG.'); }
         finally { URL.revokeObjectURL(url); }
     }
-    $('wb-upload').addEventListener('change', async () => { await uploadImage($('wb-upload').files[0]); $('wb-upload').value = ''; });
-    stage.addEventListener('dragover', event => { event.preventDefault(); });
-    stage.addEventListener('drop', event => { event.preventDefault(); if (event.dataTransfer.files[0]) uploadImage(event.dataTransfer.files[0]); });
+    async function downloadAttachment(item){
+        if(!item||item.type!=='file')return;
+        try{download(await U.get(item.attachmentId),item.fileName);}catch(error){toast(error.message);}
+    }
+    async function uploadFiles(files){
+        const targetBoard=board.id;
+        for(const [index,file] of Array.from(files).entries()){
+            if(board.id!==targetBoard){toast('Upload stopped because the board changed.');break;}
+            if(['image/png','image/jpeg','image/webp'].includes(file.type)){await uploadImage(file);continue;}
+            try{
+                const meta=await U.store(file,M.uid());
+                if(board.id!==targetBoard){toast('The board changed. Upload the file again on the correct board.');break;}
+                const p=centre();add('file',{...meta,x:p.x-170,y:p.y-65+index*150});
+                toast(`${meta.fileName} added. Double-click the file card to download.`);
+                if(panel==='uploads')renderPanel();
+            }catch(error){toast(`${file.name}: ${error.message}`);}
+        }
+    }
+    for(const id of ['wb-upload','wb-upload-files'])$(id).addEventListener('change',async()=>{const input=$(id);await uploadFiles(input.files);input.value='';});
+    for(const area of [stage,$('wb-panel')]){
+        area.addEventListener('dragover',event=>event.preventDefault());
+        area.addEventListener('drop',event=>{event.preventDefault();if(event.dataTransfer.files.length)uploadFiles(event.dataTransfer.files);});
+    }
     $('wb-import').addEventListener('change', async () => {
         const file = $('wb-import').files[0];
         try {
-            if (!file || file.size > 8 * 1024 * 1024) throw new Error('Choose a board file smaller than 8 MB.');
-            const imported = M.restore(JSON.parse(await file.text())); imported.id = M.uid(); loadBoard(imported); fit(); toast('Board imported. Your other boards are still in Projects.');
+            if (!file || file.size > 64 * 1024 * 1024) throw new Error('Choose a board file smaller than 64 MB.');
+            const raw=JSON.parse(await file.text());const imported=await U.unpack(M.restore(raw),raw.attachments,M.uid);imported.id=M.uid();loadBoard(imported); fit(); toast('Board imported. Your other boards are still in Projects.');
         } catch (error) { toast(error instanceof SyntaxError ? 'This is not a valid whiteboard file.' : error.message); }
         $('wb-import').value = '';
     });

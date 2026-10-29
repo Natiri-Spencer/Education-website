@@ -1,0 +1,25 @@
+Scientific references for the narrated digestion lesson
+
+NIDDK / NIH: Your Digestive System & How It Works
+https://www.niddk.nih.gov/health-information/digestive-diseases/digestive-system-how-it-works
+
+OpenStax: Chemical Digestion and Absorption, Table 23.8
+https://openstax.org/books/anatomy-and-physiology-2e/pages/23-7-chemical-digestion-and-absorption-a-closer-look
+
+NCBI Bookshelf: Physiology, Digestion
+https://www.ncbi.nlm.nih.gov/books/NBK544242/
+
+NCBI Bookshelf: Physiology, Nutrient Absorption
+https://www.ncbi.nlm.nih.gov/books/NBK597379/
+
+NCBI Bookshelf: Microbiology of the Gastrointestinal Tract
+https://www.ncbi.nlm.nih.gov/sites/books/NBK7670/
+
+NCBI Bookshelf: In brief - How does the gallbladder work?
+https://www.ncbi.nlm.nih.gov/books/NBK279386/
+
+Colorado State University: Small Intestinal Brush Border Enzymes
+https://vivo.colostate.edu/hbooks/pathphys/digestion/smallgut/bbenzymes.html
+
+Original schematic drawings. Structures enlarged and transit times compressed.
+The lesson covers the principal human digestive enzymes and supporting activators; microbial enzymes vary between organisms.

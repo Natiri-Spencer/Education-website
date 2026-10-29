@@ -10,11 +10,29 @@ from .models import (
 class CourseModuleInline(admin.TabularInline):
     model = CourseModule
     extra = 1
+    fields = ("position", "title", "description")
+    show_change_link = True
+
+
+@admin.register(CourseModule)
+class CourseModuleAdmin(admin.ModelAdmin):
+    list_display = ("title", "course", "position", "curriculum_reference")
+    list_filter = ("course", "course__subject__grade")
+    search_fields = ("title", "course__title", "curriculum_reference", "learning_outcomes")
+    list_select_related = ("course",)
+    fieldsets = (
+        ("Module", {"fields": ("course", "position", "title", "description")}),
+        ("Curriculum alignment", {"fields": ("curriculum_reference", "learning_outcomes")}),
+        ("Teaching and learning", {"fields": ("lesson_content", "activities", "assessment")}),
+        ("Diagrams and interactive activities", {"fields": ("diagram_kind", "diagram_caption", "simulation_kind")}),
+        ("Teacher only", {"fields": ("teacher_notes",)}),
+    )
 
 
 @admin.register(ShortCourse)
 class ShortCourseAdmin(admin.ModelAdmin):
-    list_display = ("title", "subject", "price", "currency", "is_published")
+    list_display = ("title", "subject", "is_published")
+    exclude = ("price", "currency")
     list_filter = ("is_published", "subject__grade")
     search_fields = ("title", "subject__name", "subject__grade__name")
     prepopulated_fields = {"slug": ("title",)}

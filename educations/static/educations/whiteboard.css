@@ -130,6 +130,23 @@
 .wb-dialog::backdrop{background:#21163166;backdrop-filter:blur(3px)}
 .wb-dialog-close{float:right}
 .wb-dialog h2{font-size:24px;line-height:1.3;margin:10px 0 15px}
+.wb-dialog h2{color:#302941}
+#wb-graph-dialog{box-sizing:border-box;max-width:720px;max-height:calc(100dvh - 24px);overflow-y:auto;padding:24px}
+#wb-graph-dialog [hidden]{display:none!important}
+#wb-graph-dialog select,#wb-graph-dialog input[type=number]{background:#fff;color:#302941;border:1px solid #cfc5dd;border-radius:7px;padding:8px}
+#wb-graph-dialog select{width:100%;font:inherit}
+#wb-graph-function-panel>label,#wb-graph-table-panel>label{display:block;margin:12px 0 6px;font-weight:650}
+.wb-graph-table-scroll{max-height:200px;overflow:auto;margin:10px 0;scroll-padding-top:38px}
+.wb-graph-table{width:100%;border-collapse:collapse;font-size:13px}
+.wb-graph-table caption{text-align:left;color:#42354f;font-weight:700;padding:4px 0}
+.wb-graph-table th,.wb-graph-table td{padding:5px;border:1px solid #ddd3e7;text-align:left}
+.wb-graph-table th{background:#f3ecfc;position:sticky;top:0;z-index:1}
+.wb-graph-table td input{min-width:0!important;padding:7px!important}
+.wb-graph-table td:last-child{width:70px}
+.wb-graph-table button,#wb-graph-add-row,#wb-graph-fill-table{border:1px solid #cfc5dd;border-radius:6px;background:#f6f1fc;color:#513571;padding:7px;cursor:pointer}
+#wb-graph-dialog .wb-graph-fit{display:flex;align-items:center;gap:8px;font-size:13px}
+#wb-graph-preview{height:auto;aspect-ratio:7/4}
+#wb-graph-apply:disabled{opacity:.5;cursor:not-allowed}
 .wb-dialog p{font-size:13px;color:#807388;line-height:1.8}
 .wb-dialog dl{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;font-size:12px;margin:22px 0}
 .wb-dialog dt{color:#7136b4;font-weight:600}

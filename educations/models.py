@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.functions import Lower
+from .course_visuals import DIAGRAM_CHOICES, SIMULATION_CHOICES
 
 class Grade(models.Model):
     name = models.CharField(max_length=100)
@@ -101,6 +102,10 @@ class ShortCourse(models.Model):
     is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse("educations:course_detail", args=[self.slug])
+
     class Meta:
         ordering = ("subject__grade__name", "title")
 
@@ -123,6 +128,19 @@ class CourseModule(models.Model):
     title = models.CharField(max_length=160)
     description = models.TextField(blank=True)
     position = models.PositiveSmallIntegerField(default=1)
+    curriculum_reference = models.CharField(max_length=280, blank=True, help_text="Curriculum version, strand, sub-strand, or reference code.")
+    learning_outcomes = models.TextField(blank=True, help_text="What learners should be able to do. Enter one outcome per line.")
+    lesson_content = models.TextField(blank=True, help_text="Lesson explanations and worked examples. Plain text; separate paragraphs with blank lines.")
+    activities = models.TextField(blank=True, help_text="Guided practice, learning resources, and learner activities.")
+    assessment = models.TextField(blank=True, help_text="Assessment questions and success criteria. Keep private teacher notes out of this learner-visible field.")
+    teacher_notes = models.TextField(blank=True, help_text="Private marking guidance and curriculum review notes. Visible only in the editor and editor preview.")
+    diagram_kind = models.CharField(max_length=40, blank=True, choices=DIAGRAM_CHOICES, help_text="Small local diagram, available without opening a simulation.")
+    diagram_caption = models.TextField(blank=True, help_text="Optional replacement for the diagram's text description. Describe the selected image accurately.")
+    simulation_kind = models.CharField(max_length=20, blank=True, choices=SIMULATION_CHOICES, help_text="Optional activity, downloaded only when the learner opens it.")
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse("educations:course_module", args=[self.course.slug, self.pk])
 
     class Meta:
         ordering = ("position", "id")

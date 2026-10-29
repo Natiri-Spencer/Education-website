@@ -17,6 +17,7 @@ urlpatterns = [
     path('whiteboard/recognize/', recognize_handwriting, name='whiteboard_recognize'),
     path('whiteboard/ai/', whiteboard_ai, name='whiteboard_ai'),
     path('courses/<slug:slug>/', views.course_detail, name='course_detail'),
+    path('courses/<slug:slug>/modules/<int:module_id>/', views.course_module, name='course_module'),
     path('courses/<slug:slug>/checkout/', views.course_checkout, name='course_checkout'),
     path('enrollment/<int:enrollment_id>/', views.enrollment_status, name='enrollment_status'),
     # Upload routes (staff/admin only)

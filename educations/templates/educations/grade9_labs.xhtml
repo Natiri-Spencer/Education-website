@@ -1,0 +1,55 @@
+{% extends 'educations/base.xhtml' %}{% load static %}
+{% block title %}Grade 9 Virtual Labs | CBE STEM ACADEMY{% endblock %}
+{% block body_class %}virtual-labs-body junior-labs-body{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'educations/virtual_labs.css' %}?v=30">
+<link rel="stylesheet" href="{% static 'educations/junior_labs.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/electrical_energy.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/photosynthesis.css' %}?v=2">
+{% endblock %}
+{% block content %}
+<div class="virtual-labs-page" id="grade9-page">
+    <header class="virtual-labs-brand"><a class="brand-back" href="{% url 'virtual_labs' %}" aria-label="Choose another grade">&#8592;</a><strong>Grade 9</strong></header>
+    <section id="g9-dashboard" class="grade-dashboard" aria-labelledby="g9-title">
+        <aside class="grade-sidebar">
+            <h2>Grade 9</h2><div class="sidebar-rule"></div>
+            <p class="sidebar-section-label">GENERAL</p>
+            <button type="button" class="sidebar-link active" data-g9-view="overview" aria-current="page">Home</button>
+            <button type="button" class="sidebar-link" data-g9-view="notebooks">My lab notebooks</button>
+            <p class="sidebar-section-label">EXPLORE GRADE 9 LABS</p>
+            <button type="button" class="sidebar-link" id="g9-science-toggle" aria-controls="g9-science-nav" aria-expanded="true">&#9879; INTEGRATED SCIENCE G9 <span aria-hidden="true">&#8964;</span></button>
+            <nav id="g9-science-nav" aria-label="Grade 9 Integrated Science"><button type="button" class="sidebar-link sidebar-sub-link" data-g9-subject="science">Explore science labs</button><button type="button" class="sidebar-link sidebar-sub-link" data-photo-open>Photosynthesis</button></nav>
+            <button type="button" class="sidebar-link" id="g9-math-toggle" aria-controls="g9-math-nav" aria-expanded="false">&#128208; MATHEMATICS G9 <span aria-hidden="true">&#8964;</span></button>
+            <nav id="g9-math-nav" hidden aria-label="Grade 9 Mathematics"><button type="button" class="sidebar-link sidebar-sub-link" data-g9-subject="math">Explore mathematics labs</button></nav>
+        </aside>
+        <main class="grade-dashboard-main">
+            <div id="g9-overview">
+                <div class="grade-welcome-banner"><div><h1 id="g9-title" tabindex="-1">Welcome to Grade 9 Labs!</h1><p>Explore interactive virtual experiments. Pick a lab below to get started!</p></div><span aria-hidden="true">&#128300;</span></div>
+                <section id="g9-science" aria-labelledby="g9-science-title">
+                    <div class="subject-heading"><span class="subject-icon" aria-hidden="true">&#129514;</span><h2 id="g9-science-title" tabindex="-1">Integrated Science G9</h2><span class="grade-pill">Grade 9</span></div>
+                    <section class="lab-card-group"><h3>Materials and Chemical Changes</h3><div class="lesson-card-grid">
+                        <article class="lesson-card lesson-card-orange"><span class="lesson-card-icon" aria-hidden="true">&#9879;</span><h4 class="lesson-card-title">Chemical Reactions</h4><p class="junior-card-description">Explore changes in materials and record evidence of a reaction.</p><span class="availability-pill">Coming soon</span></article>
+                    </div></section>
+                    <section class="lab-card-group"><h3>Living Things and Their Environment</h3><div class="lesson-card-grid">
+                        <button type="button" class="lesson-card lesson-card-blue available-lesson" data-photo-open><span class="lesson-card-icon" aria-hidden="true">&#127793;</span><span class="lesson-card-title">Photosynthesis</span><span class="junior-card-description">Is light needed? Cover part of a leaf, test for starch and compare your observations.</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">&#8594;</span></button>
+                    </div></section>
+                    <section class="lab-card-group"><h3>Force and Energy</h3><div class="lesson-card-grid">
+                        <article class="lesson-card lesson-card-orange"><span class="lesson-card-icon" aria-hidden="true">&#9889;</span><h4 class="lesson-card-title">Exploring Energy</h4><p class="junior-card-description">Investigate energy changes through guided virtual activities.</p><span class="availability-pill">Coming soon</span></article>
+                    </div></section>
+                </section>
+                <section id="g9-math" hidden aria-labelledby="g9-math-title">
+                    <div class="subject-heading"><span class="subject-icon" aria-hidden="true">&#128208;</span><h2 id="g9-math-title" tabindex="-1">Mathematics G9</h2><span class="grade-pill">Grade 9</span></div>
+                    <section class="lab-card-group"><h3>Mathematical Investigations</h3><div class="lesson-card-grid">
+                        <article class="lesson-card lesson-card-orange"><span class="lesson-card-icon" aria-hidden="true">&#9651;</span><h4 class="lesson-card-title">Geometry and Measurement</h4><p class="junior-card-description">Explore shapes, constructions and measurements.</p><span class="availability-pill">Coming soon</span></article>
+                        <article class="lesson-card lesson-card-blue"><span class="lesson-card-icon" aria-hidden="true">&#128200;</span><h4 class="lesson-card-title">Graphs and Relationships</h4><p class="junior-card-description">Investigate patterns and represent mathematical relationships.</p><span class="availability-pill">Coming soon</span></article>
+                    </div></section>
+                </section>
+            </div>
+            {% include 'educations/photosynthesis_lesson.xhtml' %}
+            <section id="g9-notebooks" class="junior-notebooks" hidden aria-labelledby="g9-notebooks-title"><h1 id="g9-notebooks-title" tabindex="-1">Grade 9 lab notebooks</h1><p>Photosynthesis: light and starch. Records are saved in this browser.</p><div class="table-responsive"><table class="photo-records"><thead><tr><th>Prediction &amp; observations</th><th>Explanation &amp; notes</th><th>Feedback</th></tr></thead><tbody id="photo-hub-log"></tbody></table></div><button type="button" class="orange-button" data-photo-open>Open Photosynthesis</button></section>
+        </main>
+    </section>
+    {% include 'educations/photosynthesis_lab.xhtml' %}
+</div>
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'educations/lab_notebook_store.js' %}?v=2" defer></script><script src="{% static 'educations/photosynthesis_model.js' %}?v=2" defer></script><script src="{% static 'educations/photosynthesis_visuals.js' %}?v=2" defer></script><script src="{% static 'educations/grade9_labs.js' %}?v=2" defer></script><script src="{% static 'educations/photosynthesis.js' %}?v=2" defer></script>{% endblock %}

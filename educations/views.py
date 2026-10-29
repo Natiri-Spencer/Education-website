@@ -3,6 +3,7 @@ import logging
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -14,11 +15,10 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import (
     Grade, Subject, PDFResource, VideoResource, ImageResource,
-    ShortCourse, CourseEnrollment,
+    ShortCourse, CourseEnrollment, CourseModule,
 )
 from .forms import PDFForm, VideoForm, ImageForm
-from .forms import MpesaCheckoutForm
-from .mpesa import MpesaError, initiate_stk_push
+from .course_visuals import module_visual
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +43,7 @@ def about_us(request):
 @ensure_csrf_cookie
 def whiteboard(request):
     return render(request, "educations/whiteboard.xhtml", {
+        "ai_timeout_ms": (settings.WHITEBOARD_AI_LOCAL_TIMEOUT if settings.WHITEBOARD_AI_PROVIDER == "ollama" else settings.WHITEBOARD_AI_TIMEOUT) * 1000 + 15000,
         "whiteboard_colours": [
             {"name": "Black", "hex": "#252525"},
             {"name": "Red", "hex": "#ff485c"},
@@ -57,11 +58,29 @@ def whiteboard(request):
 def virtual_labs(request, grade=None):
     requested_grade = str(grade) if grade is not None else request.GET.get("grade", "")
     selected_grade = requested_grade if requested_grade in {"7", "8", "9"} else ""
-    template = "educations/grade8_labs.xhtml" if selected_grade == "8" else "educations/virtual_labs.xhtml"
+    template = {
+        "8": "educations/grade8_labs.xhtml",
+        "9": "educations/grade9_labs.xhtml",
+    }.get(selected_grade, "educations/virtual_labs.xhtml")
     return render(request, template, {
         "selected_grade": selected_grade,
         "grade_selected": bool(selected_grade),
         "grade_has_labs": selected_grade in {"7", "8"},
+    })
+
+
+def course_module(request, slug, module_id):
+    module = get_object_or_404(
+        CourseModule.objects.select_related("course", "course__subject", "course__subject__grade"),
+        pk=module_id, course__slug=slug,
+    )
+    can_edit = request.user.has_perm("educations.change_coursemodule")
+    if not can_edit and not module.course.is_published:
+        from django.http import Http404
+        raise Http404
+    return render(request, "educations/course_module.xhtml", {
+        "module": module, "course": module.course, "can_edit": can_edit,
+        "visual": module_visual(module),
     })
 
 
@@ -77,79 +96,22 @@ def course_catalog(request):
 
 
 def course_detail(request, slug):
+    courses = ShortCourse.objects.all()
+    if not request.user.has_perm("educations.change_coursemodule"):
+        courses = courses.filter(is_published=True)
     course = get_object_or_404(
-        ShortCourse.objects.filter(is_published=True).select_related(
+        courses.select_related(
             "subject", "subject__grade"
         ).prefetch_related("modules"),
         slug=slug,
         subject__grade__name__in=("Grade 7", "Grade 8", "Grade 9"),
     )
-    checkout_form = MpesaCheckoutForm()
-    already_enrolled = request.user.is_authenticated and CourseEnrollment.objects.filter(
-        user=request.user, course=course, status=CourseEnrollment.Status.PAID
-    ).exists()
-    return render(request, "educations/course_detail.xhtml", {
-        "course": course,
-        "checkout_form": checkout_form,
-        "already_enrolled": already_enrolled,
-    })
+    return render(request, "educations/course_detail.xhtml", {"course": course})
 
 
-@login_required(login_url="accounts:login")
 def course_checkout(request, slug):
-    if request.method != "POST":
-        return redirect("educations:course_detail", slug=slug)
-
-    course = get_object_or_404(
-        ShortCourse.objects.select_related("subject", "subject__grade"),
-        slug=slug,
-        is_published=True,
-        subject__grade__name__in=("Grade 7", "Grade 8", "Grade 9"),
-    )
-    if CourseEnrollment.objects.filter(
-        user=request.user, course=course, status=CourseEnrollment.Status.PAID
-    ).exists():
-        messages.info(request, "You are already enrolled in this course.")
-        return redirect("educations:course_detail", slug=slug)
-
-    form = MpesaCheckoutForm(request.POST)
-    if course.price is None or not course.price.is_finite() or course.price < 1:
-        messages.error(request, "This course is not available for payment yet.")
-        return redirect("educations:course_detail", slug=slug)
-    if not course.price.to_integral_value() == course.price:
-        messages.error(request, "This course price is not set to a whole KES amount.")
-        return redirect("educations:course_detail", slug=slug)
-    if not form.is_valid():
-        return render(request, "educations/course_detail.xhtml", {
-            "course": course,
-            "checkout_form": form,
-            "already_enrolled": False,
-        }, status=400)
-
-    enrollment = CourseEnrollment.objects.create(
-        user=request.user,
-        course=course,
-        amount=course.price,
-        currency=course.currency,
-        phone_number=form.cleaned_data["phone_number"],
-    )
-    try:
-        response = initiate_stk_push(
-            phone_number=enrollment.phone_number,
-            amount=enrollment.amount,
-            course_title=course.title,
-        )
-    except MpesaError as exc:
-        enrollment.status = CourseEnrollment.Status.FAILED
-        enrollment.save(update_fields=["status", "updated_at"])
-        logger.warning("Could not start M-Pesa enrollment payment: %s", exc)
-        messages.error(request, str(exc))
-        return redirect("educations:course_detail", slug=slug)
-
-    enrollment.checkout_request_id = response["CheckoutRequestID"]
-    enrollment.merchant_request_id = response.get("MerchantRequestID", "")
-    enrollment.save(update_fields=["checkout_request_id", "merchant_request_id", "updated_at"])
-    return redirect("educations:enrollment_status", enrollment_id=enrollment.id)
+    # Old checkout links now open the free class; never initiate a payment.
+    return redirect("educations:course_detail", slug=slug)
 
 
 @login_required(login_url="accounts:login")
@@ -159,7 +121,7 @@ def enrollment_status(request, enrollment_id):
         pk=enrollment_id,
         user=request.user,
     )
-    return render(request, "educations/enrollment_status.xhtml", {"enrollment": enrollment})
+    return redirect("educations:course_detail", slug=enrollment.course.slug)
 
 
 @csrf_exempt
