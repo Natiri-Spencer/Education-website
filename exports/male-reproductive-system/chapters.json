@@ -1,0 +1,74 @@
+[
+  {
+    "id": "intro",
+    "title": "The male reproductive system",
+    "start": 0,
+    "end": 20
+  },
+  {
+    "id": "map",
+    "title": "A map of the main parts",
+    "start": 20,
+    "end": 45
+  },
+  {
+    "id": "testes",
+    "title": "Testes: where sperm are made",
+    "start": 45,
+    "end": 70
+  },
+  {
+    "id": "scrotum",
+    "title": "Scrotum: a protective skin pouch",
+    "start": 70,
+    "end": 90
+  },
+  {
+    "id": "epididymis",
+    "title": "Epididymis: sperm mature here",
+    "start": 90,
+    "end": 115
+  },
+  {
+    "id": "duct",
+    "title": "Sperm duct: the transport tube",
+    "start": 115,
+    "end": 140
+  },
+  {
+    "id": "glands",
+    "title": "Glands add fluid",
+    "start": 140,
+    "end": 170
+  },
+  {
+    "id": "urethra",
+    "title": "Penis and urethra",
+    "start": 170,
+    "end": 195
+  },
+  {
+    "id": "journey",
+    "title": "Follow the sperm pathway",
+    "start": 195,
+    "end": 235
+  },
+  {
+    "id": "sperm",
+    "title": "A closer look at a sperm cell",
+    "start": 235,
+    "end": 260
+  },
+  {
+    "id": "puberty",
+    "title": "Puberty and healthy habits",
+    "start": 260,
+    "end": 280
+  },
+  {
+    "id": "quiz",
+    "title": "Check what you remember",
+    "start": 280,
+    "end": 300
+  }
+]

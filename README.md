@@ -19,6 +19,8 @@ The [Female Reproductive System lesson](exports/female-reproductive-system/READM
 
 These files were produced locally and can be imported into Canva. They are not a hosted Canva design. Narration uses the installed Windows voice; the illustration was generated with the built-in ImageGen tool, with the prompt preserved in the asset folder.
 
+The [Male Reproductive System lesson](exports/male-reproductive-system/README.md) is a five-minute Grade 7 animation with simple narration, a realistic labelled human pelvic cutaway, sperm transport, captions and review questions. Its Canva handoff includes 12 scene clips and separate audio and subtitle files.
+
 Additional exports are in `exports/digestion/`, `exports/photosynthesis/` and `exports/branding/`. Editable storyboards and rendering scripts are in `tools/`. Rendering requires Node.js with `sharp`, FFmpeg at the path configured in each script, and Windows SAPI for the narration scripts. These authoring dependencies are separate from the Django website requirements.
 
 Uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add the exported MP4 to the intended grade/subject through the admin resources interface. The female reproductive system lesson has already been added to Grade 7 Integrated Science in the development database. Use persistent media storage on a deployed website.

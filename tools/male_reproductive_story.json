@@ -1,0 +1,137 @@
+[
+  {
+    "id": "intro",
+    "start": 0,
+    "end": 20,
+    "title": "The male reproductive system",
+    "focus": "Learn the parts and their jobs",
+    "narration": [
+      "Welcome to CBE STEM Academy, Grade Seven Integrated Science. Today we learn about the male reproductive system.",
+      "We will name its main parts, explain their jobs, and follow the route taken by sperm."
+    ]
+  },
+  {
+    "id": "map",
+    "start": 20,
+    "end": 45,
+    "title": "A map of the main parts",
+    "focus": "A side view helps us see inside",
+    "narration": [
+      "This side-view cutaway shows parts usually hidden inside the body. Some organs are inside the pelvis. Others are outside.",
+      "Find the testis, scrotum, sperm duct, glands, penis, and urethra. The bladder helps us locate the organs. It belongs to the urinary system."
+    ]
+  },
+  {
+    "id": "testes",
+    "start": 45,
+    "end": 70,
+    "title": "Testes: where sperm are made",
+    "focus": "One testis; two testes",
+    "narration": [
+      "There are usually two testes. One is called a testis. They make sperm, the male reproductive cells. Sperm production normally starts during puberty.",
+      "Sperm develop inside tiny, coiled tubes. The testes also make testosterone. This hormone is a chemical messenger that helps control body changes."
+    ]
+  },
+  {
+    "id": "scrotum",
+    "start": 70,
+    "end": 90,
+    "title": "Scrotum: a protective skin pouch",
+    "focus": "Helps keep the testes slightly cooler",
+    "narration": [
+      "The scrotum is a skin pouch that holds the testes outside the main body cavity. Sperm production works best slightly below normal body temperature.",
+      "Muscles move the testes closer to the body in cold conditions and farther away in warm conditions. This helps control temperature."
+    ]
+  },
+  {
+    "id": "epididymis",
+    "start": 90,
+    "end": 115,
+    "title": "Epididymis: sperm mature here",
+    "focus": "A tightly coiled tube beside each testis",
+    "narration": [
+      "Beside each testis is a tightly coiled tube called the epididymis. Sperm move from the testis into this tube.",
+      "Here, sperm continue to mature and are stored for a time. Remember: the testis makes sperm. The epididymis helps them mature and stores them. The enlarged picture shows its coils."
+    ]
+  },
+  {
+    "id": "duct",
+    "start": 115,
+    "end": 140,
+    "title": "Sperm duct: the transport tube",
+    "focus": "Also called the vas deferens",
+    "narration": [
+      "The sperm duct carries sperm away from the epididymis. Its other name is the vas deferens. Each testis has its own duct.",
+      "This duct travels up into the pelvis and around the bladder. Muscles in its wall squeeze to move sperm along. Watch the dots show the direction."
+    ]
+  },
+  {
+    "id": "glands",
+    "start": 140,
+    "end": 170,
+    "title": "Glands add fluid",
+    "focus": "Sperm plus added fluids form semen",
+    "narration": [
+      "Glands are small organs that make and release substances. The seminal vesicles lie behind the bladder. They add fluid containing sugar that supplies energy to sperm.",
+      "The prostate is just below the bladder. It also adds fluid. Other small glands add a slippery fluid to the urethra.",
+      "Sperm mixed with these fluids is called semen. Sperm are cells; semen is the mixture that carries them. The bladder stores urine, not semen."
+    ]
+  },
+  {
+    "id": "urethra",
+    "start": 170,
+    "end": 195,
+    "title": "Penis and urethra",
+    "focus": "The urethra is a tube through the penis",
+    "narration": [
+      "The penis is an external organ. A tube called the urethra runs through it and opens at the tip.",
+      "Urine and semen both leave through the urethra, but normally at different times. During ejaculation, a muscle at the bladder opening helps stop urine and semen from mixing."
+    ]
+  },
+  {
+    "id": "journey",
+    "start": 195,
+    "end": 235,
+    "title": "Follow the sperm pathway",
+    "focus": "Make → mature → travel → leave",
+    "narration": [
+      "Follow the pathway. Sperm are made in the testes. They move into the epididymis to mature and be stored.",
+      "Next, sperm travel along the sperm duct. Fluid from a seminal vesicle joins the pathway. A short joining tube passes through the prostate into the urethra.",
+      "Glands add more fluid. Semen passes through the urethra and leaves at the tip of the penis. This release is called ejaculation.",
+      "Sperm do not enter the bladder. Muscles help move them through the ducts. The dots are enlarged and the movement is speeded up."
+    ]
+  },
+  {
+    "id": "sperm",
+    "start": 235,
+    "end": 260,
+    "title": "A closer look at a sperm cell",
+    "focus": "Head, middle piece and tail",
+    "narration": [
+      "A sperm cell is tiny. We need a microscope to see it clearly. Its head carries genetic information for inherited features.",
+      "The middle piece releases energy. The tail helps it swim. During fertilisation, a sperm joins with an egg cell. We will explore that process in another lesson."
+    ]
+  },
+  {
+    "id": "puberty",
+    "start": 260,
+    "end": 280,
+    "title": "Puberty and healthy habits",
+    "focus": "People grow at different times",
+    "narration": [
+      "During puberty, the organs develop and sperm production begins. A boy may notice a deeper voice and more body hair. People develop at different times.",
+      "Keep the outside of the genital area clean. Ask a trusted adult or health worker about worrying changes. Never tease someone about their body."
+    ]
+  },
+  {
+    "id": "quiz",
+    "start": 280,
+    "end": 300,
+    "title": "Check what you remember",
+    "focus": "Pause and answer, then check",
+    "narration": [
+      "Pause and answer. Which organs make sperm? Where do sperm mature? What is semen?",
+      "Check: the testes make sperm. Sperm mature in the epididymis. Semen is sperm mixed with fluids from glands. Review the pathway if you need to."
+    ]
+  }
+]
