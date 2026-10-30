@@ -21,9 +21,16 @@ These files were produced locally and can be imported into Canva. They are not a
 
 The [Male Reproductive System lesson](exports/male-reproductive-system/README.md) is a five-minute Grade 7 animation with simple narration, a realistic labelled human pelvic cutaway, sperm transport, captions and review questions. Its Canva handoff includes 12 scene clips and separate audio and subtitle files.
 
+- [Play or download the revised human-anatomy video](exports/male-reproductive-system/male-reproductive-system-grade7-human-anatomy-5min.mp4).
+- [Download narration audio](exports/male-reproductive-system/narration.mp3).
+- [Download the male-system Canva asset pack](exports/male-reproductive-system/male-reproductive-system-canva-assets.zip).
+- [Read the transcript](exports/male-reproductive-system/transcript.txt), [scientific references](exports/male-reproductive-system/sources.md), and [artwork attribution](exports/male-reproductive-system/assets/ATTRIBUTION.md).
+
+The male-system video uses the normal-anatomy panel of a BruceBlaus / Blausen Medical illustration, with labels and animated transport mapped to the depicted organs. The adapted video and scene clips are distributed under CC BY-SA 4.0; retain the included attribution when reusing them. Both reproductive-system lessons are five minutes long, with 1080p video and visible captions.
+
 Additional exports are in `exports/digestion/`, `exports/photosynthesis/` and `exports/branding/`. Editable storyboards and rendering scripts are in `tools/`. Rendering requires Node.js with `sharp`, FFmpeg at the path configured in each script, and Windows SAPI for the narration scripts. These authoring dependencies are separate from the Django website requirements.
 
-Uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add the exported MP4 to the intended grade/subject through the admin resources interface. The female reproductive system lesson has already been added to Grade 7 Integrated Science in the development database. Use persistent media storage on a deployed website.
+Uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add the exported MP4 to the intended grade/subject through the admin resources interface. Both reproductive-system lessons have already been added to Grade 7 Integrated Science in the development database. Use persistent media storage on a deployed website.
 
 Temporary narration fragments, render previews and QA screenshots under `tmp/` are excluded from Git. Final shareable exports remain versioned.
 
