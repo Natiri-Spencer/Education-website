@@ -33,11 +33,17 @@ The [Fertilisation: The Sperm’s Journey lesson](exports/fertilization/README.m
 - [Complete fertilisation video](exports/fertilization/fertilization-grade7-5min.mp4), [audio](exports/fertilization/narration.mp3), and [Canva asset pack](exports/fertilization/fertilization-canva-assets.zip).
 - [Scientific sources and model limits](exports/fertilization/sources.md) and [artwork prompts](exports/fertilization/assets/visual-prompt.txt).
 
-Additional exports are in `exports/digestion/`, `exports/photosynthesis/` and `exports/branding/`. Editable storyboards and rendering scripts are in `tools/`. Rendering requires Node.js with `sharp`, FFmpeg at the path configured in each script, and Windows SAPI for the narration scripts. These authoring dependencies are separate from the Django website requirements.
+Additional exports are in `exports/digestion/`, `exports/photosynthesis/` and `exports/branding/`. Editable storyboards and rendering scripts are in `tools/`. Rendering requires Node.js with `sharp` (and `@napi-rs/canvas` for the pregnancy lesson), FFmpeg at the path configured in each script, and Windows SAPI for the narration scripts. These authoring dependencies are separate from the Django website requirements.
 
 The fertilisation lesson is available in **Grade 7 → Integrated Science → Living Things and Environment** at `/educations/grade-7/integrated-science/living-things-and-environment/fertilisation/`. Its page includes video, audio, English captions, downloads, and a transcript. It serves the versioned files in `exports/fertilization/` with byte-range support for seeking; no database lesson record is required after cloning.
 
 Other uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add those exported MP4s to the intended grade/subject through the admin resources interface. The female-system, male-system and fertilisation lessons have also been added to Grade 7 Integrated Science in the development database. Use persistent media storage for uploads on a deployed website.
+
+The [Implantation and Pregnancy lesson](exports/pregnancy/README.md) continues this sequence under **Grade 7 → Integrated Science → Living Things and Environment**. The five-minute video explains blastocyst implantation, embryo and fetal development, the placenta and umbilical cord, amniotic fluid, the three trimesters, and gestation counting in simple English. It includes original anatomy artwork, narration, visible captions, separate audio, a transcript, and 12 Canva-ready scene clips. The website page is at `/educations/grade-7/integrated-science/living-things-and-environment/implantation-and-pregnancy/` and serves versioned assets without a database lesson record. Scientific references and artwork prompts accompany the export.
+
+- [Watch or download the pregnancy video](exports/pregnancy/pregnancy-grade7-5min.mp4), [listen to the audio](exports/pregnancy/narration.mp3), or [download the Canva pack](exports/pregnancy/pregnancy-canva-assets.zip).
+- [Transcript](exports/pregnancy/transcript.txt), [scientific sources](exports/pregnancy/sources.md), [original artwork prompts](exports/pregnancy/assets/visual-prompts.md), and [verification results](exports/pregnancy/verification.md).
+- Verified: exactly 300 seconds, 1080p at 24 fps, complete video/audio decoding, all 12 narrated clips, caption loading, video seeking, audio playback, and mobile layout. Run `python manage.py test educations.test_curriculum_lessons` for the website lesson checks.
 
 Temporary narration fragments, render previews and QA screenshots under `tmp/` are excluded from Git. Final shareable exports remain versioned.
 

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "intro",
+    "title": "Implantation and pregnancy",
+    "start": 0,
+    "end": 20
+  },
+  {
+    "id": "journey",
+    "title": "The journey to the uterus",
+    "start": 20,
+    "end": 46
+  },
+  {
+    "id": "blastocyst",
+    "title": "A blastocyst forms",
+    "start": 46,
+    "end": 70
+  },
+  {
+    "id": "implantation",
+    "title": "Implantation: attaching to the lining",
+    "start": 70,
+    "end": 103
+  },
+  {
+    "id": "embryo",
+    "title": "The embryo begins to take shape",
+    "start": 103,
+    "end": 129
+  },
+  {
+    "id": "placenta",
+    "title": "Placenta and umbilical cord",
+    "start": 129,
+    "end": 159
+  },
+  {
+    "id": "protection",
+    "title": "A protected place to grow",
+    "start": 159,
+    "end": 181
+  },
+  {
+    "id": "first",
+    "title": "First trimester: the body plan forms",
+    "start": 181,
+    "end": 205
+  },
+  {
+    "id": "second",
+    "title": "Second trimester: growth and movement",
+    "start": 205,
+    "end": 231
+  },
+  {
+    "id": "third",
+    "title": "Third trimester: preparing for birth",
+    "start": 231,
+    "end": 259
+  },
+  {
+    "id": "gestation",
+    "title": "Gestation: how long does pregnancy last?",
+    "start": 259,
+    "end": 282
+  },
+  {
+    "id": "review",
+    "title": "Pause, remember and explain",
+    "start": 282,
+    "end": 300
+  }
+]

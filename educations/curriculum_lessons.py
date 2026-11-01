@@ -41,11 +41,34 @@ def _file_chunks(path, start, length):
 
 @require_safe
 def fertilization_asset(request, kind):
+    return _asset_response(request, kind, _lesson_root(), FERTILIZATION_ASSETS)
+
+
+@require_safe
+def pregnancy_lesson(request):
+    transcript = Path(settings.BASE_DIR) / 'exports' / 'pregnancy' / 'transcript.txt'
+    return render(request, 'educations/pregnancy_lesson.xhtml', {
+        'transcript': transcript.read_text(encoding='utf-8') if transcript.is_file() else '',
+    })
+
+
+@require_safe
+def pregnancy_asset(request, kind):
+    assets = {
+        'video': ('pregnancy-grade7-5min.mp4', 'video/mp4'),
+        'audio': ('narration.mp3', 'audio/mpeg'),
+        'captions': ('pregnancy.vtt', 'text/vtt; charset=utf-8'),
+        'poster': ('poster.png', 'image/png'),
+    }
+    return _asset_response(request, kind, Path(settings.BASE_DIR) / 'exports' / 'pregnancy', assets)
+
+
+def _asset_response(request, kind, root, assets):
     # Only these four lesson files are public; URL input never becomes a file path.
-    if kind not in FERTILIZATION_ASSETS:
+    if kind not in assets:
         raise Http404
-    filename, content_type = FERTILIZATION_ASSETS[kind]
-    path = _lesson_root() / filename
+    filename, content_type = assets[kind]
+    path = root / filename
     if not path.is_file():
         raise Http404
     size = path.stat().st_size
