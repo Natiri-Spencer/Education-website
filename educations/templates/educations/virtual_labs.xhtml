@@ -56,6 +56,7 @@
             <p class="sidebar-section-label">EXPLORE GRADE <span id="sidebar-grade-number">{{ selected_grade|default:"7" }}</span> LABS</p>
             <button type="button" class="sidebar-link science-sidebar-link" id="science-toggle" aria-expanded="true">⚗&nbsp; INTEGRATED SCIENCE <span>⌄</span></button>
             <button type="button" class="sidebar-link sidebar-sub-link" id="science-home">Scientific Investigation</button>
+            {% if selected_grade == "7" %}<a class="sidebar-link sidebar-sub-link" href="#living-things-environment-heading">Living Things and Environment</a>{% endif %}
             <button type="button" class="sidebar-link" id="math-toggle" aria-controls="math-coming" aria-expanded="false">▦&nbsp; MATHEMATICS{% if grade_has_labs %} G7{% endif %} <span>⌄</span></button>
             {% if grade_has_labs %}<div id="math-coming" hidden><p>Geometry</p><button type="button" data-math-topic="geometry">Geometrical Constructions</button><p>Measurements</p><button type="button" data-math-topic="measurement">Volume and Capacity</button></div>{% else %}<p id="math-coming" class="sidebar-coming-note" hidden>Mathematics labs coming soon.</p>{% endif %}
             <button type="button" class="sidebar-link" id="others-toggle" aria-expanded="false">♧&nbsp; OTHERS <span>⌄</span></button>
@@ -94,6 +95,16 @@
                     <button type="button" id="open-electrical-lesson" class="lesson-card lesson-card-blue available-lesson" {% if not grade_has_labs %}hidden{% endif %}><span class="lesson-card-icon" aria-hidden="true">&#9889;</span><span class="lesson-card-title">Electrical Energy</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">&#8594;</span></button>
                 </div>
             </section>
+            {% if selected_grade == "7" %}
+            <section class="lab-card-group" aria-labelledby="living-things-environment-heading">
+                <h3 id="living-things-environment-heading">Living Things and Environment</h3>
+                <div class="lesson-card-grid">
+                    <a class="lesson-card lesson-card-blue available-lesson" href="{% url 'educations:fertilization_lesson' %}" style="text-decoration:none">
+                        <span class="lesson-card-icon" aria-hidden="true">▶</span><span class="lesson-card-title">Fertilisation: The Sperm's Journey</span><span class="availability-pill">5-minute video + audio</span><span class="lesson-card-arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+            </section>
+            {% endif %}
             <p id="grade-coming-note" class="grade-coming-note" {% if grade_has_labs %}hidden{% endif %}>More labs for this grade are being prepared.</p>
         </div>
     </section>

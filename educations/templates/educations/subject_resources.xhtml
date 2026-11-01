@@ -5,6 +5,17 @@
 {% block content %}
     <h1 class="mb-4 text-success">{{ subject.name }} Resources</h1>
 
+    {% if subject.grade.name == "Grade 7" and subject.name|lower == "integrated science" %}
+    <section class="mb-4" aria-labelledby="living-things-environment-heading">
+        <h2 id="living-things-environment-heading">Living Things and Environment</h2>
+        <div class="card"><div class="card-body">
+            <h3 class="h5">Fertilisation: The Sperm's Journey</h3>
+            <p>A 5-minute animation with audio, captions, and a transcript.</p>
+            <a class="btn btn-success" href="{% url 'educations:fertilization_lesson' %}">Open lesson</a>
+        </div></div>
+    </section>
+    {% endif %}
+
     <h2>PDFs</h2>
     <ul class="list-group mb-4">
         {% for pdf in resources.pdfs %}

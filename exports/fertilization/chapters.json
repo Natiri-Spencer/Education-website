@@ -1,0 +1,74 @@
+[
+  {
+    "id": "intro",
+    "title": "Fertilisation: the sperm's journey",
+    "start": 0,
+    "end": 18
+  },
+  {
+    "id": "anatomy",
+    "title": "Where does fertilisation happen?",
+    "start": 18,
+    "end": 43
+  },
+  {
+    "id": "entry",
+    "title": "Sperm begin the journey",
+    "start": 43,
+    "end": 68
+  },
+  {
+    "id": "cervix",
+    "title": "Through the cervix",
+    "start": 68,
+    "end": 93
+  },
+  {
+    "id": "uterus",
+    "title": "Across the uterus",
+    "start": 93,
+    "end": 118
+  },
+  {
+    "id": "tube",
+    "title": "Meeting the egg",
+    "start": 118,
+    "end": 143
+  },
+  {
+    "id": "layers",
+    "title": "The egg has protective layers",
+    "start": 143,
+    "end": 170
+  },
+  {
+    "id": "fusion",
+    "title": "One sperm joins with the egg",
+    "start": 170,
+    "end": 203
+  },
+  {
+    "id": "block",
+    "title": "The egg blocks further entry",
+    "start": 203,
+    "end": 228
+  },
+  {
+    "id": "others",
+    "title": "What happens to the other sperm?",
+    "start": 228,
+    "end": 255
+  },
+  {
+    "id": "zygote",
+    "title": "A new cell: the zygote",
+    "start": 255,
+    "end": 282
+  },
+  {
+    "id": "recap",
+    "title": "Check your understanding",
+    "start": 282,
+    "end": 300
+  }
+]

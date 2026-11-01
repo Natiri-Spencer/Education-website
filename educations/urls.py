@@ -3,10 +3,13 @@ from django.urls import path
 from .import views
 from .whiteboard_recognition import recognize_handwriting
 from .whiteboard_ai import whiteboard_ai
+from .curriculum_lessons import fertilization_lesson, fertilization_asset
 
 app_name = 'educations'
 
 urlpatterns = [
+    path('grade-7/integrated-science/living-things-and-environment/fertilisation/', fertilization_lesson, name='fertilization_lesson'),
+    path('grade-7/integrated-science/living-things-and-environment/fertilisation/media/<slug:kind>/', fertilization_asset, name='fertilization_asset'),
     # Homepage
     path('', views.home, name='home'),
     path('pdfs/', views.pdf_list, name='pdf_list'),

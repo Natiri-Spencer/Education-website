@@ -28,9 +28,16 @@ The [Male Reproductive System lesson](exports/male-reproductive-system/README.md
 
 The male-system video uses the normal-anatomy panel of a BruceBlaus / Blausen Medical illustration, with labels and animated transport mapped to the depicted organs. The adapted video and scene clips are distributed under CC BY-SA 4.0; retain the included attribution when reusing them. Both reproductive-system lessons are five minutes long, with 1080p video and visible captions.
 
+The [Fertilisation: The Sperm’s Journey lesson](exports/fertilization/README.md) follows the vagina → cervix → uterus → fallopian tube, then zooms in on one sperm entering the egg. It explains protective changes, why extra sperm remain outside, how unused sperm are eventually cleared, and the formation of a zygote. The five-minute Grade 7 lesson includes simple narration, anatomical and microscopic teaching visuals, captions, review questions, and 12 Canva scene clips.
+
+- [Complete fertilisation video](exports/fertilization/fertilization-grade7-5min.mp4), [audio](exports/fertilization/narration.mp3), and [Canva asset pack](exports/fertilization/fertilization-canva-assets.zip).
+- [Scientific sources and model limits](exports/fertilization/sources.md) and [artwork prompts](exports/fertilization/assets/visual-prompt.txt).
+
 Additional exports are in `exports/digestion/`, `exports/photosynthesis/` and `exports/branding/`. Editable storyboards and rendering scripts are in `tools/`. Rendering requires Node.js with `sharp`, FFmpeg at the path configured in each script, and Windows SAPI for the narration scripts. These authoring dependencies are separate from the Django website requirements.
 
-Uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add the exported MP4 to the intended grade/subject through the admin resources interface. Both reproductive-system lessons have already been added to Grade 7 Integrated Science in the development database. Use persistent media storage on a deployed website.
+The fertilisation lesson is available in **Grade 7 → Integrated Science → Living Things and Environment** at `/educations/grade-7/integrated-science/living-things-and-environment/fertilisation/`. Its page includes video, audio, English captions, downloads, and a transcript. It serves the versioned files in `exports/fertilization/` with byte-range support for seeking; no database lesson record is required after cloning.
+
+Other uploaded lesson records and media in the local database are not installed by cloning the repository. Apply migrations and add those exported MP4s to the intended grade/subject through the admin resources interface. The female-system, male-system and fertilisation lessons have also been added to Grade 7 Integrated Science in the development database. Use persistent media storage for uploads on a deployed website.
 
 Temporary narration fragments, render previews and QA screenshots under `tmp/` are excluded from Git. Final shareable exports remain versioned.
 
