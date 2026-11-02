@@ -82,6 +82,54 @@ def adolescence_asset(request, kind):
     return _asset_response(request, kind, Path(settings.BASE_DIR) / 'exports' / 'adolescence', assets)
 
 
+REPRODUCTIVE_LESSONS = {
+    'female': {
+        'title': 'Female Reproductive System',
+        'folder': 'female-reproductive-system',
+        'video': 'female-reproductive-system-grade7-5min.mp4',
+        'audio': ('narration.wav', 'audio/wav'),
+        'summary': 'Explore the ovaries, fallopian tubes, uterus, cervix and vagina, and follow the release and movement of an egg.',
+        'aims': ['Name the main organs and explain their jobs.', 'Describe ovulation and the route of an egg.', 'Use correct scientific terms respectfully.'],
+    },
+    'male': {
+        'title': 'Male Reproductive System',
+        'folder': 'male-reproductive-system',
+        'video': 'male-reproductive-system-grade7-human-anatomy-5min.mp4',
+        'audio': ('narration.mp3', 'audio/mpeg'),
+        'summary': 'Explore the male reproductive organs, learn their jobs, and follow the route taken by sperm.',
+        'aims': ['Name the main organs and explain their jobs.', 'Follow sperm through the reproductive system.', 'Explain the difference between sperm and semen.'],
+    },
+}
+
+
+@require_safe
+def reproductive_system_lesson(request, system):
+    if system not in REPRODUCTIVE_LESSONS:
+        raise Http404
+    lesson = REPRODUCTIVE_LESSONS[system]
+    transcript = Path(settings.BASE_DIR) / 'exports' / lesson['folder'] / 'transcript.txt'
+    return render(request, 'educations/reproductive_system_lesson.xhtml', {
+        'lesson': lesson,
+        'system': system,
+        'asset_route': f'educations:{system}_system_asset',
+        'transcript': transcript.read_text(encoding='utf-8') if transcript.is_file() else '',
+    })
+
+
+@require_safe
+def reproductive_system_asset(request, system, kind):
+    if system not in REPRODUCTIVE_LESSONS:
+        raise Http404
+    lesson = REPRODUCTIVE_LESSONS[system]
+    assets = {
+        'video': (lesson['video'], 'video/mp4'),
+        'audio': lesson['audio'],
+        'captions': (lesson['folder'] + '.vtt', 'text/vtt; charset=utf-8'),
+        'poster': ('poster.png', 'image/png'),
+    }
+    return _asset_response(request, kind, Path(settings.BASE_DIR) / 'exports' / lesson['folder'], assets)
+
+
 def _asset_response(request, kind, root, assets):
     # Only these four lesson files are public; URL input never becomes a file path.
     if kind not in assets:

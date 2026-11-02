@@ -6,6 +6,47 @@ from django.urls import reverse
 
 
 class FertilizationLessonTests(TestCase):
+    def test_reproductive_lessons_live_in_grade_seven_strand(self):
+        for system, video, audio in (
+            ('female', 'female-reproductive-system-grade7-5min.mp4', 'narration.wav'),
+            ('male', 'male-reproductive-system-grade7-human-anatomy-5min.mp4', 'narration.mp3'),
+        ):
+            url = reverse(f'educations:{system}_system_lesson')
+            self.assertContains(self.client.get(reverse('virtual_labs_grade', kwargs={'grade': 7})), url)
+            for grade in (8, 9):
+                self.assertNotContains(self.client.get(reverse('virtual_labs_grade', kwargs={'grade': grade})), url)
+            response = self.client.get(url)
+            for kind in ('video', 'audio', 'captions', 'poster'):
+                self.assertContains(response, reverse(f'educations:{system}_system_asset', kwargs={'kind': kind}))
+            self.assertContains(response, 'Read the lesson transcript')
+            if system == 'male':
+                self.assertContains(response, 'CC BY-SA 4.0')
+            with TemporaryDirectory() as temporary, override_settings(BASE_DIR=Path(temporary)):
+                folder = Path(temporary) / 'exports' / f'{system}-reproductive-system'
+                folder.mkdir(parents=True)
+                for kind, filename in [('video', video), ('audio', audio)]:
+                    (folder / filename).write_bytes(b'0123456789')
+                    response = self.client.get(reverse(f'educations:{system}_system_asset', kwargs={'kind': kind}), HTTP_RANGE='bytes=2-5')
+                    self.assertEqual(response.status_code, 206)
+                    self.assertEqual(b''.join(response.streaming_content), b'2345')
+
+    def test_moving_reproductive_uploads_keeps_records_without_duplicate_players(self):
+        from .models import Grade, Subject, VideoResource
+        grade = Grade.objects.create(name='Grade 7')
+        subject = Subject.objects.create(name='Integrated Science', grade=grade)
+        for title, filename in (
+            ('Female Reproductive System', 'female-reproductive-system-grade7-5min.mp4'),
+            ('Male Reproductive System', 'male-reproductive-system-grade7-human-anatomy-5min.mp4'),
+            ('Other science lesson', 'other-science.mp4'),
+        ):
+            VideoResource.objects.create(subject=subject, title=title, video_file='videos/' + filename)
+        response = self.client.get(reverse('educations:subject_resources', args=[subject.pk]))
+        for system in ('female', 'male'):
+            self.assertContains(response, reverse(f'educations:{system}_system_lesson'))
+            self.assertNotContains(response, f'/media/videos/{system}-reproductive-system-grade7-')
+        self.assertContains(response, '/media/videos/other-science.mp4')
+        self.assertEqual(VideoResource.objects.filter(subject=subject).count(), 3)
+
     def test_adolescence_lesson_grade_placement_and_playback(self):
         url = reverse('educations:adolescence_lesson')
         self.assertContains(self.client.get(reverse('virtual_labs_grade', kwargs={'grade': 7})), url)

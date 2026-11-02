@@ -8,6 +8,8 @@
     {% if subject.grade.name == "Grade 7" and subject.name|lower == "integrated science" %}
     <section class="mb-4" aria-labelledby="living-things-environment-heading">
         <h2 id="living-things-environment-heading">Living Things and Environment</h2>
+        <div class="card mb-3"><div class="card-body"><h3 class="h5">Female Reproductive System</h3><p>A five-minute anatomy lesson with narration, captions, and a transcript.</p><a class="btn btn-success" href="{% url 'educations:female_system_lesson' %}">Open female reproductive system lesson</a></div></div>
+        <div class="card mb-3"><div class="card-body"><h3 class="h5">Male Reproductive System</h3><p>A five-minute anatomy lesson with narration, captions, and a transcript.</p><a class="btn btn-success" href="{% url 'educations:male_system_lesson' %}">Open male reproductive system lesson</a></div></div>
         <div class="card"><div class="card-body">
             <h3 class="h5">Fertilisation: The Sperm's Journey</h3>
             <p>A 5-minute animation with audio, captions, and a transcript.</p>

@@ -4,10 +4,15 @@ from .import views
 from .whiteboard_recognition import recognize_handwriting
 from .whiteboard_ai import whiteboard_ai
 from .curriculum_lessons import fertilization_lesson, fertilization_asset, pregnancy_lesson, pregnancy_asset, adolescence_lesson, adolescence_asset
+from .curriculum_lessons import reproductive_system_lesson, reproductive_system_asset
 
 app_name = 'educations'
 
 urlpatterns = [
+    path('grade-7/integrated-science/living-things-and-environment/female-reproductive-system/', reproductive_system_lesson, {'system': 'female'}, name='female_system_lesson'),
+    path('grade-7/integrated-science/living-things-and-environment/female-reproductive-system/media/<slug:kind>/', reproductive_system_asset, {'system': 'female'}, name='female_system_asset'),
+    path('grade-7/integrated-science/living-things-and-environment/male-reproductive-system/', reproductive_system_lesson, {'system': 'male'}, name='male_system_lesson'),
+    path('grade-7/integrated-science/living-things-and-environment/male-reproductive-system/media/<slug:kind>/', reproductive_system_asset, {'system': 'male'}, name='male_system_asset'),
     path('grade-7/integrated-science/living-things-and-environment/physical-changes-during-adolescence/', adolescence_lesson, name='adolescence_lesson'),
     path('grade-7/integrated-science/living-things-and-environment/physical-changes-during-adolescence/media/<slug:kind>/', adolescence_asset, name='adolescence_asset'),
     path('grade-7/integrated-science/living-things-and-environment/implantation-and-pregnancy/', pregnancy_lesson, name='pregnancy_lesson'),

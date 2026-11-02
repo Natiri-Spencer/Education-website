@@ -11,6 +11,8 @@
 
 ## Lesson videos and Canva assets
 
+All five reproductive-health lessons appear under **Grade 7 → Integrated Science → Living Things and Environment** in both the dashboard and subject resources. Female and male reproductive-system videos open dedicated pages with video, audio, captions, downloads and transcripts. Their original upload records and files are retained, while duplicate entries are hidden from the subject's general Videos list. The versioned exports make these pages available after cloning without database lesson records. Their routes end in `/female-reproductive-system/` and `/male-reproductive-system/` under `/educations/grade-7/integrated-science/living-things-and-environment/`.
+
 The [Female Reproductive System lesson](exports/female-reproductive-system/README.md) is a five-minute Grade 7 Integrated Science animation with labelled anatomy, ovulation and egg transport, narration, visible captions and review questions. The exported video is 1920 × 1080 at 24 fps.
 
 - [Play or download the complete video](exports/female-reproductive-system/female-reproductive-system-grade7-5min.mp4).

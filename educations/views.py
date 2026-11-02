@@ -8,6 +8,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -180,10 +181,17 @@ def grade_resources(request, grade_id):
     })
 
 def subject_resources(request, subject_id):
-    subject = get_object_or_404(Subject, id=subject_id)
+    subject = get_object_or_404(Subject.objects.select_related('grade'), id=subject_id)
+    videos = subject.videos.all()
+    if subject.grade.name == 'Grade 7' and subject.name.lower() == 'integrated science':
+        # These two existing uploads now open from their curriculum strand cards.
+        videos = videos.exclude(
+            Q(video_file__endswith='/female-reproductive-system-grade7-5min.mp4') |
+            Q(video_file__endswith='/male-reproductive-system-grade7-human-anatomy-5min.mp4')
+        )
     resources = {
         "pdfs": subject.pdfs.all(),
-        "videos": subject.videos.all(),
+        "videos": videos,
         "images": subject.images.all(),
     }
     return render(request, "educations/subject_resources.xhtml", {
