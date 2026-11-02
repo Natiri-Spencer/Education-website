@@ -1,0 +1,74 @@
+[
+  {
+    "id": "intro",
+    "title": "Physical changes during adolescence",
+    "start": 0,
+    "end": 18
+  },
+  {
+    "id": "hormones",
+    "title": "What starts puberty?",
+    "start": 18,
+    "end": 43
+  },
+  {
+    "id": "growth",
+    "title": "Shared change: a growth spurt",
+    "start": 43,
+    "end": 69
+  },
+  {
+    "id": "skin",
+    "title": "Shared changes: hair, sweat and skin",
+    "start": 69,
+    "end": 95
+  },
+  {
+    "id": "girls",
+    "title": "Typical physical changes in girls",
+    "start": 95,
+    "end": 124
+  },
+  {
+    "id": "periods",
+    "title": "Menstruation: understanding periods",
+    "start": 124,
+    "end": 152
+  },
+  {
+    "id": "boys",
+    "title": "Typical physical changes in boys",
+    "start": 152,
+    "end": 181
+  },
+  {
+    "id": "voice",
+    "title": "Why can the voice change?",
+    "start": 181,
+    "end": 203
+  },
+  {
+    "id": "care",
+    "title": "Personal care: simple daily habits",
+    "start": 203,
+    "end": 230
+  },
+  {
+    "id": "periodcare",
+    "title": "Managing periods with confidence",
+    "start": 230,
+    "end": 253
+  },
+  {
+    "id": "timing",
+    "title": "Different timing is normal",
+    "start": 253,
+    "end": 281
+  },
+  {
+    "id": "review",
+    "title": "Pause, remember and explain",
+    "start": 281,
+    "end": 300
+  }
+]

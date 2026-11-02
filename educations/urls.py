@@ -3,11 +3,13 @@ from django.urls import path
 from .import views
 from .whiteboard_recognition import recognize_handwriting
 from .whiteboard_ai import whiteboard_ai
-from .curriculum_lessons import fertilization_lesson, fertilization_asset, pregnancy_lesson, pregnancy_asset
+from .curriculum_lessons import fertilization_lesson, fertilization_asset, pregnancy_lesson, pregnancy_asset, adolescence_lesson, adolescence_asset
 
 app_name = 'educations'
 
 urlpatterns = [
+    path('grade-7/integrated-science/living-things-and-environment/physical-changes-during-adolescence/', adolescence_lesson, name='adolescence_lesson'),
+    path('grade-7/integrated-science/living-things-and-environment/physical-changes-during-adolescence/media/<slug:kind>/', adolescence_asset, name='adolescence_asset'),
     path('grade-7/integrated-science/living-things-and-environment/implantation-and-pregnancy/', pregnancy_lesson, name='pregnancy_lesson'),
     path('grade-7/integrated-science/living-things-and-environment/implantation-and-pregnancy/media/<slug:kind>/', pregnancy_asset, name='pregnancy_asset'),
     path('grade-7/integrated-science/living-things-and-environment/fertilisation/', fertilization_lesson, name='fertilization_lesson'),

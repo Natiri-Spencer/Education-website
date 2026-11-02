@@ -6,6 +6,23 @@ from django.urls import reverse
 
 
 class FertilizationLessonTests(TestCase):
+    def test_adolescence_lesson_grade_placement_and_playback(self):
+        url = reverse('educations:adolescence_lesson')
+        self.assertContains(self.client.get(reverse('virtual_labs_grade', kwargs={'grade': 7})), url)
+        for grade in (8, 9):
+            self.assertNotContains(self.client.get(reverse('virtual_labs_grade', kwargs={'grade': grade})), url)
+        response = self.client.get(url)
+        for kind in ('video', 'audio', 'captions', 'poster'):
+            self.assertContains(response, reverse('educations:adolescence_asset', kwargs={'kind': kind}))
+        self.assertContains(response, 'Read the lesson transcript')
+        with TemporaryDirectory() as temporary, override_settings(BASE_DIR=Path(temporary)):
+            folder = Path(temporary) / 'exports' / 'adolescence'
+            folder.mkdir(parents=True)
+            (folder / 'adolescence-grade7-5min.mp4').write_bytes(b'adolescence-video')
+            response = self.client.get(reverse('educations:adolescence_asset', kwargs={'kind': 'video'}), HTTP_RANGE='bytes=0-10')
+            self.assertEqual(response.status_code, 206)
+            self.assertEqual(b''.join(response.streaming_content), b'adolescence')
+
     def test_pregnancy_lesson_is_available_in_grade_seven(self):
         url = reverse('educations:pregnancy_lesson')
         response = self.client.get(reverse('virtual_labs_grade', kwargs={'grade': 7}))
@@ -32,6 +49,7 @@ class FertilizationLessonTests(TestCase):
         self.assertContains(response, 'id="living-things-environment-heading"')
         self.assertContains(response, reverse('educations:fertilization_lesson'))
         self.assertContains(response, reverse('educations:pregnancy_lesson'))
+        self.assertContains(response, reverse('educations:adolescence_lesson'))
         subject.name = 'Mathematics'
         subject.save()
         response = self.client.get(reverse('educations:subject_resources', args=[subject.pk]))

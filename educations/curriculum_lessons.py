@@ -63,6 +63,25 @@ def pregnancy_asset(request, kind):
     return _asset_response(request, kind, Path(settings.BASE_DIR) / 'exports' / 'pregnancy', assets)
 
 
+@require_safe
+def adolescence_lesson(request):
+    transcript = Path(settings.BASE_DIR) / 'exports' / 'adolescence' / 'transcript.txt'
+    return render(request, 'educations/adolescence_lesson.xhtml', {
+        'transcript': transcript.read_text(encoding='utf-8') if transcript.is_file() else '',
+    })
+
+
+@require_safe
+def adolescence_asset(request, kind):
+    assets = {
+        'video': ('adolescence-grade7-5min.mp4', 'video/mp4'),
+        'audio': ('narration.mp3', 'audio/mpeg'),
+        'captions': ('adolescence.vtt', 'text/vtt; charset=utf-8'),
+        'poster': ('poster.png', 'image/png'),
+    }
+    return _asset_response(request, kind, Path(settings.BASE_DIR) / 'exports' / 'adolescence', assets)
+
+
 def _asset_response(request, kind, root, assets):
     # Only these four lesson files are public; URL input never becomes a file path.
     if kind not in assets:

@@ -47,6 +47,12 @@ The [Implantation and Pregnancy lesson](exports/pregnancy/README.md) continues t
 
 Temporary narration fragments, render previews and QA screenshots under `tmp/` are excluded from Git. Final shareable exports remain versioned.
 
+**Video 5 — [Physical Changes During Adolescence](exports/adolescence/README.md)** is a five-minute Grade 7 Integrated Science lesson under **Living Things and Environment**. It explains shared changes, typical changes in girls and boys, menstrual periods, voice changes, different puberty timing, and personal care using simple narration and respectful, fully clothed diagrams.
+
+- [Complete video](exports/adolescence/adolescence-grade7-5min.mp4), [audio](exports/adolescence/narration.mp3), and [Canva handoff pack](exports/adolescence/adolescence-canva-assets.zip) with 12 narrated scenes, captions, transcript and artwork notes.
+- [Scientific references and teaching limits](exports/adolescence/sources.md). The local lesson page is `/educations/grade-7/integrated-science/living-things-and-environment/physical-changes-during-adolescence/` and serves the versioned files without a database lesson record.
+- Editable diagrams are in `tools/adolescence_visuals.cjs`; narration and rendering scripts use the `adolescence` prefix. Authoring requires `@napi-rs/canvas`, `sharp`, Windows SAPI and FFmpeg.
+
 ## Whiteboard handwriting autocorrection
 
 The whiteboard keeps every original pen stroke and proposes editable corrections after a short pause. Ordinary, fully covered equations use a fast geometry and Windows Ink path. Fractions, powers, roots, and calculus notation can use the local PP-FormulaNet_plus-M model; prose uses Windows Ink with the bundled PyTorch recognizer as a fallback. Recognition transcribes the writing without solving or repairing the author's mathematics.
