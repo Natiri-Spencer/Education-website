@@ -150,7 +150,8 @@ class PrivateWorkTests(TestCase):
         for _ in range(2):
             self.assertIn(self.client.post(url,{'file':SimpleUploadedFile('a.pdf',b'%PDF-abc')}).status_code,[200,201])
         self.assertEqual(self.client.post(url,{'file':SimpleUploadedFile('a.pdf',b'%PDF-different')}).status_code,409)
-        response=self.client.get(url);self.assertIn('attachment',response['Content-Disposition']);self.assertIn('sandbox',response['Content-Security-Policy']);response.close()
+        response=self.client.get(url);self.assertIn('attachment',response['Content-Disposition']);self.assertIn('sandbox',response['Content-Security-Policy'])
+        self.assertEqual(b''.join(response.streaming_content),b'%PDF-abc')
 
     def test_work_waits_for_attachments(self):
         raw=json.dumps({'boards':[{'items':[{'type':'file','attachmentId':'missing'}]}]})
