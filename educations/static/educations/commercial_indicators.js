@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const root = document.getElementById("commercial-lab-app");
     if (!root) return;
     const solutions = {

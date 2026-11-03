@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const root = document.getElementById("evaporation-activity");
     if (!root) return;
     const get = (id) => root.querySelector(`#evap-${id}`);

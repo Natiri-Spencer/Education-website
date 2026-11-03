@@ -13,6 +13,10 @@ db.sqlite3
 media/
 staticfiles/
 .env
+.env.*
+!.env.example
+!.env.production.example
+deployment-backups/
 .DS_Store
 *.log
 tmp/course-visual-qa/
@@ -36,3 +40,6 @@ tmp/package/
 
 # Temporary render workspaces, audio fragments and QA screenshots
 /tmp/
+
+private-work/
+runtime/

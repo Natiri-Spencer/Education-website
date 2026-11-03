@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const lab = document.querySelector(".lab-app");
     if (!lab) return;
 

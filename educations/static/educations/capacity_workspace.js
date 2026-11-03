@@ -1,11 +1,12 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
  const app=document.getElementById('capacity-workspace');if(!app)return;
  const el=id=>document.getElementById('vc-'+id),model=window.Grade7Capacity,store=window.Grade7Notebooks;
  let verified=false,activity='cuboids',state={l:8,w:5,h:3,r:4,fill:50,shape:'cuboid',unitTask:0,value:2500,from:'mL',to:'L'},measured=new Set(),records=[],zoom=false,ruler={x:140,y:520,angle:0},drag=null,example=0,fields=[];
  const conversions=[[2500,'mL','L'],[1.5,'L','mL'],[2,'m³','cm³'],[750,'cm³','mL'],[3200,'cm³','L'],[1250000,'cm³','m³']];
  const key=()=> 'grade7-capacity-'+activity;
- function save(){try{localStorage.setItem(key()+'-notes',el('notes').value);el('save-status').textContent='Notes saved in this browser.';}catch(_){el('save-status').textContent='Browser storage is unavailable. Copy your notes before leaving.';}}
- function load(){records=store.load(key());try{el('notes').value=localStorage.getItem(key()+'-notes')??(activity==='relationship'?localStorage.getItem('grade7-mathematics-experiment-measurement'):'')??'';}catch(_){el('notes').value='';}el('notebook-title').textContent=model.activities[activity].title+' notebook';el('save-status').textContent='';log();}
+ function save(){try{(window.AcademyStorage||localStorage).setItem(key()+'-notes',el('notes').value);el('save-status').textContent='Notes saved in this browser.';}catch(_){el('save-status').textContent='Browser storage is unavailable. Copy your notes before leaving.';}}
+ function load(){records=store.load(key());try{el('notes').value=(window.AcademyStorage||localStorage).getItem(key()+'-notes')??(activity==='relationship'?(window.AcademyStorage||localStorage).getItem('grade7-mathematics-experiment-measurement'):'')??'';}catch(_){el('notes').value='';}el('notebook-title').textContent=model.activities[activity].title+' notebook';el('save-status').textContent='';log();}
  function log(){store.render(el('log'),records.map(r=>[r.example,r.answers,r.mark]),3);}
  function isSolid(){return ['cuboids','fixed','relationship','cylinders'].includes(activity);}
  function buildFields(){verified=false;el('inputs').replaceChildren();fields=[];

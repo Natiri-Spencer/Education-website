@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const app = document.getElementById('magnetism-lab-app');
     if (!app) return;
     const el = name => document.getElementById('mag-' + name);
@@ -14,7 +15,7 @@
     let method='attraction', frame=null, last=null;
     function state() {
         if (!states[method]) {
-            let notes=[];try {notes=JSON.parse(localStorage.getItem('grade7-magnetism-'+method)||'[]');if(!Array.isArray(notes))notes=[];}catch(_){}
+            let notes=[];try {notes=JSON.parse((window.AcademyStorage||localStorage).getItem('grade7-magnetism-'+method)||'[]');if(!Array.isArray(notes))notes=[];}catch(_){}
             states[method]={placed:[],material:'iron',poles:'NN',angle:'90',prediction:'',answer:'',classification:'',progress:0,running:false,complete:false,notes};
         }
         return states[method];
@@ -59,7 +60,7 @@
         el('feedback').textContent=s.complete?'Record your observation. Choose another setup or reset to repeat.':!assembled?'Choose '+m.items.find(([id])=>!s.placed.includes(id))[1]+' from the shelf.':s.running?'Test in progress.':s.progress>0?'Animation paused.':'Ready for your prediction.';
         el('notebook-title').textContent=m.title+' notebook · '+s.notes.length+' entries';
     }
-    function save() {try {localStorage.setItem('grade7-magnetism-'+method,JSON.stringify(state().notes));}catch(_){el('mark').textContent='Browser storage unavailable; entries will remain for this session.';}}
+    function save() {try {(window.AcademyStorage||localStorage).setItem('grade7-magnetism-'+method,JSON.stringify(state().notes));}catch(_){el('mark').textContent='Browser storage unavailable; entries will remain for this session.';}}
     function notebook() {
         el('log').replaceChildren();const notes=state().notes;
         if(!notes.length){const cell=el('log').insertRow().insertCell();cell.colSpan=method==='attraction'?4:3;cell.textContent='Your checked tests will appear here.';}

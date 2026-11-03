@@ -49,3 +49,40 @@ test('incorrect or missing inter-cell wiring cannot energize the circuit',()=>{
 test('notebook grading allows two-decimal readings and gives corrections',()=>{
     const m=analyze(circuit());assert.equal(grade(m,{current:'.30',voltage:'3.00',brightness:'bright'}),'3/3. Correct.');const wrong=grade(m,{current:'.6',voltage:'1.5',brightness:'dim'});assert(wrong.startsWith('0/3.'));assert(wrong.includes('Current: 0.30 A.'));assert(wrong.includes('Voltage: 3.00 V.'));assert(wrong.includes('Brightness: bright.'));
 });
+
+test('learner can change component order, reverse non-polarised bulbs and move or rotate apparatus',()=>{
+    const s=circuit({method:'bulbs',bulbs:'series',voltage:'b2',positions:{b1:{x:120,y:360},b2:{x:500,y:360},switch:{x:700,y:150}},rotations:{b2:90,c1:180}});
+    s.wires=[['c1-','c2+'],['c1+','b2-'],['b2+','s2'],['s1','b1+'],['b1-','a+'],['a-','c2-'],['v+','b2-'],['v-','b2+']];
+    const m=analyze(s);assert(m.ready&&m.on);near(m.current,.15);near(m.volts,1.5);assert.equal(m.board.parts.b2.x,500);near(m.board.ports['b2+'].x,462);
+});
+test('ammeter can go in the return route rather than a preset position',()=>{
+    const s=circuit();s.wires=[['c1-','c2+'],['c1+','b1-'],['b1+','s2'],['s1','a+'],['a-','c2-'],['v+','c1+'],['v-','c2-']];
+    const m=analyze(s);assert(m.ready&&!m.ammeterReversed);near(m.current,.3);
+});
+test('a parallel challenge rejects a series build and an ammeter in the wrong selected branch',()=>{
+    const s=circuit({method:'bulbs',bulbs:'series'});s.bulbs='parallel';assert(!analyze(s).ready);
+    const b=circuit({method:'bulbs',bulbs:'parallel',current:'b1'});b.current='b2';assert(!analyze(b).ready);
+});
+test('a load connection to the series-cell midpoint cannot bypass one cell through the switch',()=>{
+    const s=circuit();s.wires=[['c1-','c2+'],['c1+','s1'],['s2','c1-'],['c1-','b1+'],['b1-','a+'],['a-','c2-'],['v+','c1+'],['v-','c2-']];
+    const m=analyze(s);assert(m.fault&&!m.on);
+});
+test('explicit inspection checks spacing and meter polarity without prescribing a layout',()=>{
+    const {inspect}=require('../static/educations/electrical_model.js');
+    const s=circuit({positions:{c1:{x:100,y:150},c2:{x:300,y:150},switch:{x:500,y:150},ammeter:{x:700,y:150},b1:{x:100,y:370},voltmeter:{x:500,y:370}}});
+    assert(inspect(s).passed);s.positions.c2={x:100,y:150};assert(inspect(s).issues.some(s=>s.includes('Leave space')));s.positions.c2={x:300,y:150};s.wires=s.wires.map(pair=>pair.map(id=>id==='a+'?'a-':id==='a-'?'a+':id));assert(inspect(s).issues.some(s=>s.includes('Reverse the ammeter')));
+});
+
+test('all component orders and either bulb orientation give the same series readings',()=>{
+    function permutations(a){return a.length?a.flatMap((item,i)=>permutations(a.filter((_,j)=>i!==j)).map(rest=>[item,...rest])):[[]];}
+    for(const order of permutations(['switch','ammeter','b1','b2']))for(let flip=0;flip<8;flip++){
+        const ports={switch:flip&4?['s2','s1']:['s1','s2'],ammeter:['a+','a-'],b1:flip&1?['b1-','b1+']:['b1+','b1-'],b2:flip&2?['b2-','b2+']:['b2+','b2-']};
+        const s=circuit({method:'bulbs',bulbs:'series'});s.wires=[['c1-','c2+']];let last='c1+';for(const id of order){s.wires.push([last,ports[id][0]]);last=ports[id][1];}s.wires.push([last,'c2-'],['v+','c1+'],['v-','c2-']);const m=analyze(s);assert(m.ready&&m.on,order.join(','));near(m.current,.15);near(m.volts,3);
+    }
+});
+test('parallel main ammeter and switch can both be placed in the return path',()=>{
+    const s=circuit({method:'bulbs',bulbs:'parallel'});s.wires=[['c1-','c2+'],['c1+','b1+'],['b1+','b2-'],['b1-','b2+'],['b2+','a+'],['a-','s2'],['s1','c2-'],['v+','c1+'],['v-','c2-']];const m=analyze(s);assert(m.ready&&m.on);near(m.current,.6);near(m.volts,3);
+});
+test('series cell pack may be built in either cell order',()=>{
+    const s=circuit();s.wires=[['c2-','c1+'],['c2+','s1'],['s2','a+'],['a-','b1+'],['b1-','c1-'],['v+','c2+'],['v-','c1-']];const m=analyze(s);assert(m.ready&&m.on);near(m.current,.3);near(m.volts,3);
+});

@@ -1,0 +1,107 @@
+name: Deployment checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DJANGO_DEBUG: "True"
+      DJANGO_LOAD_DOTENV: "False"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install CPU runtime and website requirements
+        run: |
+          pip install 'torch>=2.6,<3' --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+          pip check
+      - name: Collect production assets before rendering tests
+        run: python manage.py collectstatic --noinput
+      - name: Django deployment and lesson checks
+        run: python manage.py test accounts learning spencer_project educations
+      - name: Learner practical and notebook checks
+        run: node --test educations/js_tests/*.test.cjs
+
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create temporary localhost configuration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import secrets
+          text = Path('.env.production.example').read_text()
+          text = text.replace('academy.example.com', 'localhost')
+          text = text.replace('DJANGO_SECRET_KEY=\n', 'DJANGO_SECRET_KEY=' + secrets.token_hex(32) + '\n')
+          text = text.replace('POSTGRES_PASSWORD=\n', 'POSTGRES_PASSWORD=' + secrets.token_hex(32) + '\n')
+          Path('.env.production').write_text(text)
+          PY
+          docker compose --env-file .env.production config --quiet
+      - name: Build production image
+        run: docker compose --env-file .env.production build
+      - name: Validate HTTPS proxy configuration
+        run: docker compose --env-file .env.production run --rm --no-deps proxy caddy validate --config /etc/caddy/Caddyfile
+      - name: Test account boundaries against the PostgreSQL container
+        run: |
+          docker compose --env-file .env.production up -d --wait db cache
+          docker compose --env-file .env.production run --rm -e DJANGO_DEBUG=True -e PUBLIC_REGISTRATION_ENABLED=True -v "$PWD/learning/tests.py:/app/learning/tests.py:ro" web python manage.py test learning
+      - name: Start and test the deployment
+        run: |
+          docker compose --env-file .env.production up -d --wait --wait-timeout 180
+          docker compose --env-file .env.production exec -T web python -c "from pathlib import Path; Path('/app/media/ci-video.mp4').write_bytes(b'0123456789')"
+          for attempt in $(seq 1 15); do
+            if python3 deploy/smoke.py https://localhost --insecure-localhost --test-upload; then exit 0; fi
+            sleep 3
+          done
+          exit 1
+      - name: Exercise twenty isolated learner sessions
+        run: |
+          docker compose --env-file .env.production exec -T -e ACADEMY_TEST_PROVISIONING=1 web python manage.py prepare_trial_users --output /tmp/load-users.json
+          docker compose --env-file .env.production exec -T web cat /tmp/load-users.json > "$RUNNER_TEMP/load-users.json"
+          chmod 600 "$RUNNER_TEMP/load-users.json"
+          python3 deploy/load_check.py https://localhost --insecure-localhost --users "$RUNNER_TEMP/load-users.json" --report "$RUNNER_TEMP/load-report.json"
+      - name: Exercise encrypted backup, failure cleanup and isolated restoration
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y restic
+          sudo ln -s "$GITHUB_WORKSPACE" /opt/cbe-stem-academy
+          python3 - <<'PY'
+          import os,secrets
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          (root/'restic-password').write_text(secrets.token_urlsafe(48))
+          (root/'backup-env').write_text('RESTIC_REPOSITORY='+str(root/'restic-repo')+'\nRESTIC_PASSWORD_FILE=/etc/cbe-restic-password\nAWS_ACCESS_KEY_ID=ci-test-only\nAWS_SECRET_ACCESS_KEY=ci-test-only\nAWS_DEFAULT_REGION=auto\n')
+          PY
+          sudo install -m 600 "$RUNNER_TEMP/restic-password" /etc/cbe-restic-password
+          sudo install -m 600 "$RUNNER_TEMP/backup-env" /etc/cbe-backups.env
+          sudo bash -c 'set -a; source /etc/cbe-backups.env; set +a; restic init'
+          sudo cp /etc/cbe-backups.env /etc/cbe-backups.good.env
+          printf '\nRESTIC_REPOSITORY=/tmp/cbe-intentionally-missing-repository\n' | sudo tee -a /etc/cbe-backups.env >/dev/null
+          if sudo bash deploy/backup.sh; then echo "Expected backup failure was not detected"; exit 1; fi
+          docker compose --env-file .env.production exec -T web python -c "from pathlib import Path; assert not Path('/app/runtime/read-only').exists(); import json; assert json.loads(Path('/app/runtime/backup-status.json').read_text())['failed']"
+          sudo cp /etc/cbe-backups.good.env /etc/cbe-backups.env
+          sudo bash deploy/backup.sh
+          sudo bash deploy/restore-drill.sh
+          docker compose --env-file .env.production exec -T web python -c "from pathlib import Path; assert Path('/app/runtime/restore-success.txt').exists(); assert not Path('/app/runtime/restore-failed').exists()"
+      - name: Logs on failure
+        if: failure()
+        run: docker compose --env-file .env.production logs --tail=100
+      - name: Stop temporary containers
+        if: always()
+        run: docker compose --env-file .env.production down -v

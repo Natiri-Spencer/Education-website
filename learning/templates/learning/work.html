@@ -1,0 +1,17 @@
+{% extends "educations/base.xhtml" %}{% load static %}{% block content %}<h1>{{ work.title }}</h1>
+<p>This is your saved draft. Submitting creates a separate copy that your teacher can review.</p>
+<section class="academy-card">
+<h2>Submit this version</h2>{% if groups %}<form method="post">{% csrf_token %}<label for="submit-class">Class</label>
+<select name="group" id="submit-class">{% for group in groups %}<option value="{{ group.pk }}">{{ group }}</option>{% endfor %}</select>{% if boards != None %}<label for="submit-board">Choose the one whiteboard to share</label>
+<select name="board_id" id="submit-board" required>
+<option value="">Choose one board</option>{% for board in boards %}<option value="{{ board.id }}">{{ board.title|default:"Untitled whiteboard" }}</option>{% endfor %}</select>
+<p>Only the selected board and its documents are shared. Other boards remain private.</p>{% endif %}<button type="submit">Submit a copy</button>
+</form>{% else %}<p>Join a class and wait for teacher approval before submitting.</p>{% endif %}</section>
+<section class="academy-card">
+<h2>Work preview</h2>
+<p>Any automatically checked marks below are practice feedback.</p>
+<div id="work-preview">
+</div>{{ payload|json_script:"work-payload" }}{% for asset in assets %}<p>
+<a href="{% url 'learning:attachment_api' asset.key %}">Download {{ asset.name }}</a>
+</p>{% endfor %}</section>{% endblock %}{% block extra_scripts %}<script src="{% static 'learning/review.js' %}" defer>
+</script>{% endblock %}

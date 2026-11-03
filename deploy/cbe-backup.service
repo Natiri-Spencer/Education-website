@@ -1,0 +1,12 @@
+[Unit]
+Description=CBE STEM ACADEMY encrypted off-server backup
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/cbe-stem-academy
+ExecStart=/bin/bash /opt/cbe-stem-academy/deploy/backup.sh
+ExecStopPost=/bin/bash -c 'cd /opt/cbe-stem-academy && docker compose --env-file .env.production run --rm --no-deps --user 0:0 web python deploy/release_write_pause.py'
+TimeoutStartSec=20min
+UMask=0077

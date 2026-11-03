@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily CBE backup at 02:00 Kenya time
+[Timer]
+OnCalendar=*-*-* 02:00:00 Africa/Nairobi
+Persistent=true
+Unit=cbe-backup.service
+[Install]
+WantedBy=timers.target

@@ -2,7 +2,6 @@
 from django.urls import path
 from .import views
 from .whiteboard_recognition import recognize_handwriting
-from .whiteboard_ai import whiteboard_ai
 from .curriculum_lessons import fertilization_lesson, fertilization_asset, pregnancy_lesson, pregnancy_asset, adolescence_lesson, adolescence_asset
 from .curriculum_lessons import reproductive_system_lesson, reproductive_system_asset
 
@@ -27,7 +26,6 @@ urlpatterns = [
     path('courses/', views.course_catalog, name='course_catalog'),
     path('whiteboard/', views.whiteboard, name='whiteboard'),
     path('whiteboard/recognize/', recognize_handwriting, name='whiteboard_recognize'),
-    path('whiteboard/ai/', whiteboard_ai, name='whiteboard_ai'),
     path('courses/<slug:slug>/', views.course_detail, name='course_detail'),
     path('courses/<slug:slug>/modules/<int:module_id>/', views.course_module, name='course_module'),
     path('courses/<slug:slug>/checkout/', views.course_checkout, name='course_checkout'),

@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const el = id => document.getElementById('photo-' + id);
     if (!el('lesson')) return;
     const model = window.PhotosynthesisModel, store = window.Grade7Notebooks;

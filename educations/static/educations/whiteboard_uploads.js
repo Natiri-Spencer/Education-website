@@ -14,17 +14,44 @@
     let database;
     function db(){
         if(!globalThis.indexedDB)return Promise.reject(Error('Document storage is unavailable in this browser.'));
-        if(!database)database=new Promise((resolve,reject)=>{const request=indexedDB.open('cbe-whiteboard-attachments',1);request.onupgradeneeded=()=>request.result.createObjectStore('files');request.onsuccess=()=>resolve(request.result);request.onerror=()=>{database=null;reject(Error('Document storage could not be opened.'));};});
+        if(!database)database=new Promise((resolve,reject)=>{const request=indexedDB.open('cbe-whiteboard-attachments-'+(globalThis.AcademyStorage?.scope||'guest'),1);request.onupgradeneeded=()=>request.result.createObjectStore('files');request.onsuccess=()=>resolve(request.result);request.onerror=()=>{database=null;reject(Error('Document storage could not be opened.'));};});
         return database;
     }
-    async function put(id,blob){
+    async function put(id,blob,name,queue=true){
         const connection=await db();
-        return new Promise((resolve,reject)=>{const tx=connection.transaction('files','readwrite');tx.objectStore('files').put(blob,id);tx.oncomplete=()=>resolve();tx.onerror=tx.onabort=()=>reject(Error('The document could not be saved. Device storage may be full.'));});
+        return new Promise((resolve,reject)=>{const tx=connection.transaction('files','readwrite');tx.objectStore('files').put(blob,id);tx.oncomplete=()=>{if(queue&&globalThis.AcademyStorage){const storage=globalThis.AcademyStorage;let pending;try{pending=JSON.parse(storage.getItem('@files')||'{}');}catch(_){pending={};}pending[id]=name||'document.txt';storage.setItem('@files',JSON.stringify(pending));}resolve();};tx.onerror=tx.onabort=()=>reject(Error('The document could not be saved. Device storage may be full.'));});
     }
-    async function get(id){
+    async function getLocal(id){
         const connection=await db();
         return new Promise((resolve,reject)=>{const r=connection.transaction('files').objectStore('files').get(id);r.onsuccess=()=>r.result?resolve(r.result):reject(Error('This document is missing from this device. Import its editable board backup or upload it again.'));r.onerror=()=>reject(Error('The document could not be read.'));});
     }
+    async function get(id){
+        try{return await getLocal(id);}catch(error){
+            const s=globalThis.AcademyStorage;if(!s?.onlineEnabled)throw error;
+            const response=await fetch(s.assetURL+encodeURIComponent(id)+'/',{credentials:'same-origin',headers:{'X-Academy-Scope':s.scope}});
+            if(!response.ok)throw Error('This document is unavailable online. Import a board backup or try later.');
+            const blob=await response.blob();await put(id,blob,undefined,false);return blob;
+        }
+    }
+    if(globalThis.AcademyStorage)globalThis.AcademyAttachments={async importLegacy(library){
+        const cards=(library.boards||[]).flatMap(board=>board.items||[]).filter(item=>item.type==='file');if(!cards.length)return;
+        const connection=await new Promise((resolve,reject)=>{const r=indexedDB.open('cbe-whiteboard-attachments',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(Error('Older document storage could not be opened'));});
+        try{if(!connection.objectStoreNames.contains('files'))throw Error('Older document files are missing; import a portable board backup instead.');
+            for(const card of cards){const meta=metadata(card);const blob=await new Promise((resolve,reject)=>{const r=connection.transaction('files').objectStore('files').get(meta.attachmentId);r.onsuccess=()=>r.result?resolve(r.result):reject(Error('An older document is missing.'));r.onerror=()=>reject(Error('An older document could not be read.'));});
+                if(blob.size!==meta.fileSize)throw Error('An older document does not match its file card.');await checkContent(blob,meta.fileName);await put(meta.attachmentId,blob,meta.fileName);
+            }
+        }finally{connection.close();}
+    },async flush(){
+        const s=globalThis.AcademyStorage;if(!s.onlineEnabled)return;let pending;
+        try{pending=JSON.parse(s.getItem('@files')||'{}');}catch(_){pending={};}
+        for(const[id,name]of Object.entries(pending)){
+            const blob=await getLocal(id),body=new FormData();body.set('file',blob,name);
+            const csrf=document.querySelector('[name=csrfmiddlewaretoken]')?.value||document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=').slice(1).join('=')||'';
+            const response=await fetch(s.assetURL+encodeURIComponent(id)+'/',{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf,'X-Academy-Scope':s.scope},body});
+            if(!response.ok){let data;try{data=await response.json();}catch(_){data={};}throw Error(data.error||'Documents are waiting to sync');}
+            delete pending[id];s.setItem('@files',JSON.stringify(pending));
+        }
+    }};
     async function checkContent(blob,name){
         const extension=name.split('.').pop().toLowerCase(),bytes=new Uint8Array(await blob.slice(0,8).arrayBuffer());
         if(extension==='pdf'&&String.fromCharCode(...bytes.slice(0,5))!=='%PDF-')throw Error('This file does not contain a valid PDF header.');
@@ -33,7 +60,7 @@
     }
     async function store(file,id){
         const meta=metadata({fileName:file.name,fileSize:file.size,attachmentId:id});
-        await checkContent(file,meta.fileName);await put(id,file.slice(0,file.size,meta.fileType));return meta;
+        await checkContent(file,meta.fileName);await put(id,file.slice(0,file.size,meta.fileType),meta.fileName);return meta;
     }
     function dataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Could not export this document.'));reader.readAsDataURL(blob);});}
     async function pack(board){
@@ -59,10 +86,10 @@
             if(binary.length!==meta.fileSize)throw Error('Document size does not match its attachment.');
             size+=binary.length;if(size>MAX_EXPORT)throw Error('Keep document attachments below 40 MB per imported board.');
             const blob=new Blob([Uint8Array.from(binary,c=>c.charCodeAt(0))],{type:meta.fileType});await checkContent(blob,meta.fileName);
-            const next={...meta,attachmentId:uid()};byId.set(meta.attachmentId,next);prepared.push([next.attachmentId,blob]);
+            const next={...meta,attachmentId:uid()};byId.set(meta.attachmentId,next);prepared.push([next.attachmentId,blob,meta.fileName]);
         }
         for(const item of files){const match=byId.get(item.attachmentId);if(!match||match.fileSize!==item.fileSize||match.fileName!==item.fileName)throw Error('A document attachment is missing or does not match its file card.');}
-        for(const [id,blob] of prepared)await put(id,blob);
+        for(const [id,blob,name] of prepared)await put(id,blob,name);
         return{...board,items:board.items.map(item=>item.type==='file'?{...item,...byId.get(item.attachmentId)}:item)};
     }
     return{metadata,store,get,pack,unpack,MAX_FILE,formats};

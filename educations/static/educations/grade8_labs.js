@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
  const root=document.getElementById('grade8-page');if(!root)return;
  const el=id=>document.getElementById('g8-'+id),model=window.Grade8Science,visuals=window.Grade8Visuals,store=window.Grade7Notebooks;
  let selectedReagent=null;

@@ -10,9 +10,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'educations/style.css' %}">
     <link rel="stylesheet" href="{% static 'educations/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'learning/learning.css' %}">
+    {{ academy_config|json_script:"academy-config" }}
+    <script src="{% static 'learning/workspace.js' %}"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    <a class="academy-skip" href="#academy-main">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container-fluid">
         <a class="navbar-brand site-brand" href="{% url 'home' %}" aria-label="CBE STEM ACADEMY home">
@@ -64,7 +68,7 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'educations:upload_pdf' %}">Add PDF</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">Add user</a></li>
               {% endif %}
-              <li class="nav-item"><span class="nav-link">Welcome, {{ user.username }}</span></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'learning:dashboard' %}">My Learning</a></li><li class="nav-item"><span class="nav-link">Welcome, {{ user.username }}</span></li>
               <li class="nav-item">
                 <form class="d-inline" method="post" action="{% url 'accounts:logout' %}">
                   {% csrf_token %}
@@ -72,14 +76,14 @@
                 </form>
               </li>
             {% else %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li><li class="nav-item"><a class="nav-link" href="{% url 'learning:signup' %}">Create account</a></li>
             {% endif %}
           </ul>
         </div>
       </div>
     </nav>
 
-    <main class="container mt-4">
+    <main id="academy-main" class="container mt-4">
         {% if messages %}
           {% for message in messages %}
             <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
@@ -91,6 +95,7 @@
         {% block content %}{% endblock %}
     </main>
 
+    <footer class="academy-footer"><a href="{% url 'learning:help' %}">Help</a><a href="{% url 'learning:support' %}">Support</a><a href="{% url 'learning:privacy' %}">Privacy</a><a href="{% url 'learning:terms' %}">Terms</a><a href="{% url 'learning:guardians' %}">Guardian information</a><a href="{% url 'learning:deletion_information' %}">Account deletion</a></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'educations/custom.js' %}"></script>
     {% block extra_scripts %}{% endblock %}

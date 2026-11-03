@@ -1,12 +1,31 @@
 # CBE STEM ACADEMY
 
+## Deployment preparation
+
+The portable Docker deployment is documented in [DEPLOYMENT.md](DEPLOYMENT.md). It provides HTTPS through Caddy, non-root Gunicorn, persistent PostgreSQL and uploads, shared Redis caches/request limits, readiness checks, and a private content-transfer command. The image includes the five curated Grade 7 lessons, private-work storage, consent-aware accounts, class submissions and the CPU handwriting recognizer. Ask AI has been removed. Secrets, local databases, uploads and authoring workspaces are excluded from the build. Copy `.env.production.example` to a private `.env.production` and supply the server domain and fresh secrets before launching.
+
+`python manage.py export_deployment deployment-backups/classroom-transfer.zip` exports accounts, classes, resources and uploaded files for a fresh deployment. Keep this archive private; it contains account password hashes. Browser-only whiteboards and lab notebooks need separate learner exports. GitHub Actions checks application behavior and the Linux deployment stack; the website has not yet been published.
+
+
+
+## Accounts, private work and teacher review
+
+- Public signup starts with an age band and recovery email. Under-18 requests require an explicit guardian acknowledgement before collecting a new learner username or password. Email possession alone does not establish legal guardianship; disputes require staff review. Links expire after 24 hours. Existing accounts and hashes are preserved and complete verification before new online saving.
+- Forgotten-password pages use username plus verified recovery email, one-hour one-use reset links, CSRF protection and request limits. Staff recovery records the identity-check method and requires the learner to change the temporary password.
+- **My Learning** includes grade, recent lessons, explicit self-reported completion, classes, drafts, submissions and feedback. Practice marks are distinct from teacher assessments.
+- Whiteboards, document attachments and Grade 7–9 notebook/reflection/drawing keys use an explicit account-scoped storage adapter. Verified accounts autosave online; offline edits stay queued locally. Concurrent revisions retain both copies until the learner chooses. Old unowned work is never assigned automatically: My Learning offers previewed opt-in import, including legacy whiteboard documents where present.
+- Private files are outside public media. Each learner has a 50 MB allowance and a 10 MB document limit. Export online work, delete drafts and remove unused documents from My Learning. Submitted copies retain their attachments. The current item limits are 400 saved-work keys and 200 private documents per account.
+- Administrators approve users as teachers through the user-list action, then assign them to grade-based class groups. Teachers have no administrator access by default. Learners request membership using class codes; assigned teachers approve it and review only submitted copies. Resubmissions and assessment history are retained.
+- Help, Support, Privacy, Terms, Guardian Information and Account Deletion pages are available. Owner email, real SMTP delivery and Kenyan privacy/content approval are still launch inputs; no compliance certification or classroom trial is claimed.
+
+Use the private operations and rollout instructions in [LAUNCH_READINESS.md](LAUNCH_READINESS.md). The generated [content inventory](CONTENT_REVIEW.md) checks runtime assets and records the published review scope. Named-teacher scientific approval remains required.
 
 ## Current learning features
 
 - CBE STEM ACADEMY branding and an About Us page with the academy mission and vision.
 - Classes with lesson modules, diagrams, activities, assessment questions and teacher notes.
 - A whiteboard graph plotter for linear, quadratic and cubic functions, including implicit multiplication such as `y = 2x + 5`. Students can enter a function to fill an x–y table or plot from entered table values.
-- Image and document uploads, editable graphs, handwriting recognition and concise question-based AI assistance.
+- Image and document uploads, editable graphs, handwriting recognition and account-based private saving.
 - Grade 7–9 science investigations and narrated lesson videos.
 
 ## Lesson videos and Canva assets
@@ -69,27 +88,6 @@ The eraser removes both handwriting and equation elements, including equations c
 
 Uploads accepts multiple PNG/JPEG/WebP images and PDF, Word, Excel, PowerPoint, TXT and CSV documents, up to 10 MB each. Images appear on the canvas. Documents appear as movable file cards; double-click a card or use its download button in Uploads to retrieve the original file. Documents are stored in IndexedDB on the device, keeping large file contents out of the board's localStorage history. Editable board downloads embed attachments for transfer to another browser; importing restores the original bytes under new local attachment IDs. Portable backups support up to 40 MB of document attachments, with a 64 MB board import limit. Download a board backup before clearing browser storage. Documents are attachments, not rendered Office/PDF previews.
 
-### Whiteboard AI Assist
-
-Signed-in learners can open **Ask AI**, type a question, and press **Get answer**. The whiteboard can be empty. Only the typed question is sent; the board and drawings are not automatically included. The assistant is instructed to answer directly in 1–3 short sentences, normally within 80 words, and to ask for essential missing information rather than inventing details. Responses are not guaranteed to be correct.
-
-Answers appear in the dialog first. **Add answer to whiteboard** optionally inserts an AI-labelled note with undo/redo and board persistence. Editing a question invalidates the previous answer and cancels any pending request, preventing stale answers from being inserted. Empty questions, incomplete provider responses, oversized answers, service failures and service limits produce explicit errors. Legacy board-action endpoints remain compatible, but the student interface uses the question-only flow.
-
-AI requests use CSRF protection, sign-in checks, per-minute rate limiting, request-size limits, provider timeouts, and a strict structured-output schema. Board content is treated as untrusted input. The provider key stays on the server. Configure the optional provider in `.env`:
-
-```text
-OPENAI_API_KEY=your-server-side-key
-WHITEBOARD_AI_ENABLED=true
-WHITEBOARD_AI_MODEL=gpt-4o-mini
-WHITEBOARD_AI_TIMEOUT=30
-WHITEBOARD_AI_RATE_LIMIT=20
-```
-
-If no key is configured or the API account has no credits, the rest of the whiteboard continues to work and Ask AI displays an unavailable message. API credits must be available for live answers. Recognition retraining remains a separate measured workflow based on reviewed classroom examples.
-
-To use the project-local alternative instead of the paid API, set `WHITEBOARD_AI_PROVIDER=ollama`, `WHITEBOARD_AI_LOCAL_MODEL=qwen2.5:1.5b`, `WHITEBOARD_AI_LOCAL_URL=http://127.0.0.1:11434`, and `WHITEBOARD_AI_LOCAL_TIMEOUT=120` in `.env`. The model stays in `models/ollama/` and the Windows CPU runtime in `tools/ollama/`; neither belongs in source control. `python manage.py runserver` automatically starts the project-local service when this provider is selected. You can also start it with `tools/start_local_ai.ps1`. On a deployed server, run and supervise the local service alongside Django; the developer's computer does not supply inference to a separately hosted website. The service listens on loopback and cloud inference is disabled. Keep sufficient memory available, and review answers: a small local model may make factual mistakes.
-
-
 The endpoint is CSRF-protected, size-limited, and caches results by exact strokes and model revision. Recognition timeouts and worker failures retain the original ink. On Windows, the native bridge compiles `educations/HandwritingRecognizer.cs` into the ignored `tmp/whiteboard_ink/` directory. The optional formula model runs locally in the ignored `tmp/formula_runtime/` directory, with weights stored under ignored `models/formula/`. A readiness request prewarms the persistent formula worker in the background.
 
 See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTATION_STATUS.md](HANDWRITING_IMPLEMENTATION_STATUS.md) for setup, measured limits, evaluation, and retraining instructions.
@@ -97,8 +95,8 @@ See [WHITEBOARD_PIPELINE.md](WHITEBOARD_PIPELINE.md) and [HANDWRITING_IMPLEMENTA
 Run the whiteboard checks with:
 
 ```powershell
-node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs educations/js_tests/whiteboard_voice_math.test.cjs educations/js_tests/whiteboard_graph.test.cjs educations/js_tests/whiteboard_ai.test.cjs
-.\Scripts\python.exe manage.py test educations.test_handwriting educations.test_ink_accuracy educations.test_whiteboard educations.test_calculus_ink educations.test_math_validation educations.test_neural_ink educations.test_whiteboard_ai
+node --test educations/js_tests/whiteboard.test.cjs educations/js_tests/whiteboard_rendering.test.cjs educations/js_tests/whiteboard_voice_math.test.cjs educations/js_tests/whiteboard_graph.test.cjs
+.\Scripts\python.exe manage.py test educations.test_handwriting educations.test_ink_accuracy educations.test_whiteboard educations.test_calculus_ink educations.test_math_validation educations.test_neural_ink
 .\Scripts\python.exe tools/check_ink_endpoint.py
 ```
 
@@ -168,6 +166,8 @@ The example `.env` settings are for local development. Keep keys and credentials
 
 ## 🌍 Deployment
 
+For the prepared portable stack, follow [DEPLOYMENT.md](DEPLOYMENT.md). It includes configuration, private content transfer, launch checks and backups. The notes below apply when arranging equivalent services on another host.
+
 Set these environment variables on your hosting service:
 
 - `DJANGO_SECRET_KEY` — a private production secret.
@@ -175,6 +175,9 @@ Set these environment variables on your hosting service:
 - `DATABASE_URL` — your hosted PostgreSQL database.
 - `CSRF_TRUSTED_ORIGINS` — your website's HTTPS address.
 - `DJANGO_DEBUG=False` — turn off debug mode.
+- `DJANGO_TRUST_PROXY=True` — only when a private trusted proxy sets the HTTPS forwarding header.
+- `DJANGO_MEDIA_ROOT` — an absolute persistent upload directory, served separately by the proxy.
+- `CACHE_URL` — a private shared Redis service for recognition caches and AI limits.
 
 Run database migrations and collect static files during deployment:
 
@@ -187,7 +190,7 @@ The included `Procfile` starts the app with Gunicorn. Set up persistent storage 
 
 ### Grade 7 animated separation experiments
 
-Mixtures includes hands-on sublimation, paper chromatography, fractional distillation and filtration alongside evaporation. Learners assemble labelled SVG apparatus from a draggable/clickable shelf and run each animated action. Animations can pause and resume; leaving an experiment pauses it. Each method has a separately saved observation notebook with marks and corrections. Filtration uses three concise questions: residue, filtrate and method, marked out of three. Other methods use two marked choices and optional written notes for teacher review. Browser local storage retains notebook entries across reloads; resetting apparatus does not erase them. Clear this notebook affects only the selected method. Notes are local to the browser, not synced to an account.
+Mixtures includes hands-on sublimation, paper chromatography, fractional distillation and filtration alongside evaporation. Learners assemble labelled SVG apparatus from a draggable/clickable shelf and run each animated action. Animations can pause and resume; leaving an experiment pauses it. Each method has a separately saved observation notebook with marks and corrections. Filtration uses three concise questions: residue, filtrate and method, marked out of three. Other methods use two marked choices and optional written notes for teacher review. Browser local storage retains notebook entries across reloads; resetting apparatus does not erase them. Clear this notebook affects only the selected method. Verified signed-in accounts sync notes privately; guests and unverified accounts retain their own device copy. Older unowned device work requires explicit import in My Learning.
 
 The chromatography bands are illustrative, and the distillation model produces an ethanol-rich fraction rather than claiming pure ethanol. Distillation uses electric heating, a packed column, a correctly positioned thermometer, a condenser with lower water inlet and upper outlet, and an open receiver. Sublimation separates ammonium chloride from common salt in a glass beaker, using a visible Bunsen flame and a supported cold-water round-bottom flask to collect a white deposit in a fume cupboard. Reference links are available under About this model on each shelf.
 
@@ -195,17 +198,19 @@ Manual verification: assemble each setup in order; run all actions; pause/resume
 
 ### Grade 7 electrical energy
 
-Electrical Energy under Force & Energy includes a simple circuit, two bulbs in series or parallel, and dry cells in series or parallel (plus a one-cell comparison). Learners bring apparatus from a shelf, connect pairs of terminals, operate the switch, and measure with an ammeter in series and a voltmeter across the selected source or bulb. Parallel bulb circuits support total-current and individual-branch measurements. A wiring guide is optional; it does not connect wires automatically. Changing topology or ammeter location opens the switch and clears wiring; changing voltage target removes only the voltmeter leads. Notebook entries remain saved separately for each investigation and are marked for current, voltage and brightness.
+Electrical Energy under Force & Energy includes a simple circuit, series/parallel bulbs, and series/parallel dry cells with a one-cell comparison. The bench starts empty. Learners predict, drag apparatus from the shelf, choose their own positions, move or rotate components, and connect the terminals. Click-then-place, touch placement, keyboard movement and return-to-shelf actions are also available. Detailed original SVG artwork represents digital meters, modular switches, dry-cell holders, screw lamps in holders, binding posts and insulated leads.
 
-This guided model validates connections against the selected arrangement, accepting equivalent junction wiring. It uses ideal 1.5 V cells, identical fixed 10-ohm bulbs, ideal meters and zero-resistance wires. Bulb glow follows relative electrical power. Incorrect wiring is blocked rather than simulating a damaging short circuit. Parallel cell discharge time and real filament temperature are not simulated. Source links are available under About this model.
+Procedures update with the chosen investigation, circuit arrangement and measurement target. Choosing series/parallel changes the challenge without arranging components or rewiring the learner's circuit. After finishing the build, the learner presses **Check my arrangement**. The switch stays disabled until the check passes; editing the circuit opens it and requires another check. Feedback covers missing equipment, overlapping apparatus, wiring and meter connections. Optional connection tips explain concepts without filling in a solution. The checker accepts alternative component orders, reversed non-polarised lamps and equivalent junction wiring. Parallel circuits support total and branch-current measurements. Predictions and evidence-based conclusions are saved alongside marked readings and remain available in My lab notebooks and printouts; old records are retained.
 
-Run the circuit and learner workflow checks with `node --test educations/js_tests/electrical_model.test.cjs educations/js_tests/electrical_ui.test.cjs`.
+The model uses ideal 1.5 V cells, identical fixed 10-ohm bulbs, ideal meters and zero-resistance wires. Cells form a directly interconnected source pack, with the switch, ammeter and lamps freely ordered in the external circuit. Apparatus position is independent of electrical connectivity. The switch must control every lamp. Brightness follows relative electrical power. The virtual checker prevents energising short circuits and incorrectly connected meters; discharge time and real filament temperature are not modelled. Source links are under About this model. The apparatus drawings represent modern school equipment rather than a particular manufacturer's product.
+
+Run the circuit, learner workflow, notebook and solar-regression checks with `node --test educations/js_tests/electrical_model.test.cjs educations/js_tests/electrical_ui.test.cjs educations/js_tests/lab_notebooks.test.cjs educations/js_tests/energy_sources.test.cjs`.
 
 ### Grade 7 lab notebooks
 
 My lab notebooks in the Grade 7 dashboard lists all 15 investigations, including apparatus identification, both indicator experiments, all five separation methods, the three magnetism tests and the four electrical investigations. It reads the existing experiment notebooks without replacing their records. Students can add a written observation or conclusion for teacher review, and print all notebooks with their saved work or blank tables for experiments not yet recorded.
 
-Apparatus choices and hibiscus classifications now have saved marks and corrections. Evaporation and commercial-indicator records also persist across page reloads and apparatus resets. Each notebook has its own storage; clearing one does not clear the others. Storage is local to the browser and is not synced to a learner account. Run notebook checks with `node --test educations/js_tests/lab_notebooks.test.cjs`.
+Apparatus choices and hibiscus classifications now have saved marks and corrections. Evaporation and commercial-indicator records also persist across page reloads and apparatus resets. Each notebook has its own storage; clearing one does not clear the others. Storage is separated by account, with private online sync for verified accounts and an offline recovery copy. Guest work remains device-only. Run notebook checks with `node --test educations/js_tests/lab_notebooks.test.cjs`.
 
 Sources of energy (Electrical Energy): assemble a solar panel and bulb circuit, connect two wires, and compare uncovered, partly covered and fully covered panel observations. The saved notebook checks brightness and conclusions. Shading is a qualitative teaching model.
 

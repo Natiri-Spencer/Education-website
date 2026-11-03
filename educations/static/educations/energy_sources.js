@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
  const app=document.getElementById('sources-lab-app');if(!app)return;
  const el=id=>document.getElementById('solar-'+id),store=window.Grade7Notebooks,key='grade7-electrical-sources';
  let placed=new Set(),wires=[],selected=null,cover=0,lastBookX=465,notes=store.load(key);

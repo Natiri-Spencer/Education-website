@@ -1,0 +1,20 @@
+{% extends "educations/base.xhtml" %}{% load static %}{% block content %}<h1>{{ submission.title }}</h1>
+<p>{{ submission.owner.username }} · {{ submission.group }} · Version {{ submission.version }} · {{ submission.get_status_display }}</p>
+<p>This submitted copy is fixed. Further edits to the learner’s draft do not change it.</p>
+<section class="academy-card">
+<h2>Submitted work</h2>
+<p>
+<a href="{% url 'learning:submission_export' submission.pk %}">Download complete submitted data</a>
+</p>
+<p>Simulation marks are practice checks; teacher assessments appear separately below.</p>
+<div id="work-preview">
+</div>{{ payload|json_script:"work-payload" }}{% for asset in assets %}<p>
+<a href="{% url 'learning:submission_attachment' submission.pk asset.key %}">Download {{ asset.name }}</a>
+</p>{% endfor %}</section>
+<section class="academy-card">
+<h2>Teacher feedback history</h2>{% for review in assessments %}<article>
+<h3>{{ review.get_status_display }}</h3>
+<p>{{ review.feedback|linebreaksbr }}</p>{% if review.score != None %}<p>Teacher assessment: {{ review.score }}/100</p>{% endif %}<small>{{ review.created_at|date:"d M Y H:i" }}</small>
+</article>{% empty %}<p>Awaiting review.</p>{% endfor %}{% if form %}<form method="post">{% csrf_token %}{{ form.as_div }}<button type="submit">Save assessment</button>
+</form>{% endif %}</section>{% endblock %}{% block extra_scripts %}<script src="{% static 'learning/review.js' %}" defer>
+</script>{% endblock %}

@@ -1,0 +1,6 @@
+services:
+  web:
+    environment:
+      PUBLIC_REGISTRATION_ENABLED: "False"
+  proxy:
+    profiles: [never-start-on-restore]

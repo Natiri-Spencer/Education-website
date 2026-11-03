@@ -1,0 +1,30 @@
+(() => {
+ const root=document.getElementById('work-preview'),source=document.getElementById('work-payload');if(!root||!source)return;
+ let data;try{const envelope=JSON.parse(source.textContent);try{data=JSON.parse(envelope.raw);}catch(_){data=envelope.raw;}}catch(_){root.textContent='This work could not be displayed. Contact support.';return;}
+ const text=(tag,value,parent=root)=>{const n=document.createElement(tag);n.textContent=String(value??'');parent.append(n);return n;};
+ let nodes=0;function value(item,parent=root,depth=0){if(depth>12||nodes++>10000){text('p','Large preview limited. Download the complete submitted data for the full record.',parent);return;}if(Array.isArray(item)){if(item.every(v=>Array.isArray(v)||typeof v==='object')){const table=document.createElement('table');for(const row of item.slice(0,1000)){const tr=document.createElement('tr');for(const cell of Array.isArray(row)?row:Object.entries(row).slice(0,50).map(([k,v])=>k+': '+(typeof v==='object'?JSON.stringify(v):v)))text('td',cell,tr);table.append(tr);}parent.append(table);}else text('p',item.join(' · '),parent);}else if(item&&typeof item==='object'){for(const[k,v]of Object.entries(item).slice(0,200)){text('h3',k,parent);if(typeof v==='object')value(v,parent,depth+1);else text('p',v,parent);}}else text('p',item,parent);}
+ function board(b){text('h3',b.name||b.title||'Whiteboard');const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','-1000 -1000 4000 3000');svg.classList.add('academy-preview-board');svg.setAttribute('aria-label','Submitted drawing preview');svg.setAttribute('role','img');const points=[];let graphSerial=0;const num=v=>Number.isFinite(Number(v))?Math.max(-100000,Math.min(100000,Number(v))):0;
+  for(const i of (b.items||[]).slice(0,1000)){let n;const x=num(i.x),y=num(i.y);points.push([x,y],[x+num(i.w||i.width||200),y+num(i.h||i.height||100)]);
+   if(i.type==='path'||i.type==='stroke'||i.type==='pen'||Array.isArray(i.points)){n=document.createElementNS(svg.namespaceURI,'polyline');const ps=(i.points||[]).slice(0,1000).map(p=>[num(p.x??p[0]),num(p.y??p[1])]);ps.forEach(p=>points.push(p));n.setAttribute('points',ps.map(p=>p.join(',')).join(' '));n.setAttribute('fill','none');n.setAttribute('stroke',/^#[0-9a-f]{3,8}$/i.test(i.stroke||i.colour||'')?(i.stroke||i.colour):'#183845');n.setAttribute('stroke-width',Math.max(1,Math.min(30,num(i.width||3))));}
+   else if(i.type==='image'&&/^data:image\/(png|jpeg|webp);base64,/.test(i.src||'')){n=document.createElementNS(svg.namespaceURI,'image');n.setAttribute('href',i.src);n.setAttribute('x',x);n.setAttribute('y',y);n.setAttribute('width',num(i.w||i.width||300));n.setAttribute('height',num(i.h||i.height||200));}
+   else if(['rectangle','ellipse','line','arrow','sticky'].includes(i.type)){
+     const w=num(i.w||180),h=num(i.h||120);n=document.createElementNS(svg.namespaceURI,i.type==='ellipse'?'ellipse':['line','arrow'].includes(i.type)?'line':'rect');
+     const attrs=i.type==='ellipse'?{cx:x+w/2,cy:y+h/2,rx:Math.abs(w/2),ry:Math.abs(h/2)}:['line','arrow'].includes(i.type)?{x1:x,y1:y,x2:x+w,y2:y+h}:{x:Math.min(x,x+w),y:Math.min(y,y+h),width:Math.abs(w),height:Math.abs(h)};
+     for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);n.setAttribute('stroke',/^#[0-9a-f]{3,8}$/i.test(i.stroke||'')?i.stroke:'#183845');n.setAttribute('stroke-width',Math.max(1,num(i.width||2)));n.setAttribute('fill',/^#[0-9a-f]{3,8}$/i.test(i.fill||'')?i.fill:'none');
+   }
+   else if(i.type==='graph'){
+     n=document.createElementNS(svg.namespaceURI,'g');const w=Math.max(100,num(i.w||560)),h=Math.max(100,num(i.h||360));
+     const title=document.createElementNS(svg.namespaceURI,'text');title.setAttribute('x',x);title.setAttribute('y',y+18);title.textContent='Graph: '+String(i.expression||'');n.append(title);
+     const xmin=num(i.xMin),xmax=num(i.xMax),ymin=num(i.yMin),ymax=num(i.yMax);if(xmax>xmin&&ymax>ymin){
+       const px=a=>x+25+(num(a)-xmin)/(xmax-xmin)*(w-40),py=b=>y+35+(ymax-num(b))/(ymax-ymin)*(h-50);
+       const plot=document.createElementNS(svg.namespaceURI,'g'),defs=document.createElementNS(svg.namespaceURI,'defs'),clip=document.createElementNS(svg.namespaceURI,'clipPath'),rect=document.createElementNS(svg.namespaceURI,'rect'),clipId='review-graph-'+(++graphSerial);clip.setAttribute('id',clipId);for(const[k,v]of Object.entries({x:x+25,y:y+35,width:w-40,height:h-50}))rect.setAttribute(k,v);clip.append(rect);defs.append(clip);n.append(defs,plot);plot.setAttribute('clip-path','url(#'+clipId+')');
+       for(const segment of (i.samples||[]).slice(0,200)){const line=document.createElementNS(svg.namespaceURI,'polyline');line.setAttribute('points',segment.slice(0,3000).filter(p=>Array.isArray(p)&&p.length===2&&Number.isFinite(p[0])&&Number.isFinite(p[1])).map(p=>px(p[0])+','+py(p[1])).join(' '));line.setAttribute('fill','none');line.setAttribute('stroke','#1763b2');line.setAttribute('stroke-width','2');plot.append(line);}
+       for(const[a,b,c,d]of [[xmin,0,xmax,0],[0,ymin,0,ymax]]){if(a<xmin||c>xmax||b<ymin||d>ymax)continue;const line=document.createElementNS(svg.namespaceURI,'line');for(const[k,v]of Object.entries({x1:px(a),y1:py(b),x2:px(c),y2:py(d)}))line.setAttribute(k,v);line.setAttribute('stroke','#394d5c');n.append(line);}
+     }
+   }
+   else{n=document.createElementNS(svg.namespaceURI,'text');n.setAttribute('x',x);n.setAttribute('y',y+20);n.setAttribute('font-size','20');n.textContent=(i.text||i.fileName||i.type||'Drawing element').slice(0,3000);}
+   if(n)svg.append(n);
+  }if(points.length){const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=xs.reduce((a,b)=>Math.min(a,b),Infinity),top=ys.reduce((a,b)=>Math.min(a,b),Infinity);svg.setAttribute('viewBox',`${left-30} ${top-30} ${Math.max(300,xs.reduce((a,b)=>Math.max(a,b),-Infinity)-left+60)} ${Math.max(200,ys.reduce((a,b)=>Math.max(a,b),-Infinity)-top+60)}`);}root.append(svg);for(const i of b.items||[])if(i.text)text(i.type==='table'?'pre':'p',i.text);
+ }
+ if(data?.boards)for(const b of data.boards.slice(0,20))board(b);else value(data);
+})();

@@ -1,0 +1,14 @@
+{% extends "educations/base.xhtml" %}{% block content %}<h1>Teacher dashboard</h1>
+<p>Only your assigned classes and their submitted copies appear here. Practice checks are not teacher assessments.</p>
+<section class="academy-card">
+<h2>Assigned classes</h2>{% for group in groups %}<p>{{ group.name }} · {{ group.grade }} · Class code: <strong>{{ group.code }}</strong>
+</p>{% empty %}<p>Ask an administrator to assign your class.</p>{% endfor %}</section>
+<section class="academy-card">
+<h2>Class membership and progress</h2>{% for member in memberships %}<article class="academy-work-row">
+<div>{{ member.learner.username }} · {{ member.group }} · {% if member.approved %}Approved{% else %}Pending{% endif %}{% if member.approved %}<p>Lessons marked complete across learning: {{ member.completed_count }}. These are learner records, not assessed grades.</p>{% endif %}</div>
+<form method="post" action="{% url 'learning:membership_review' member.pk %}">{% csrf_token %}<button name="decision" value="approve">Approve</button>
+<button name="decision" value="remove">Remove access</button>
+</form>{% if user.is_staff %}<a href="{% url 'learning:staff_recovery' member.learner_id %}">Staff recovery</a>{% endif %}</article>{% empty %}<p>No membership requests.</p>{% endfor %}</section>
+<section class="academy-card">
+<h2>Submitted work</h2>{% for item in submissions %}<p>
+<a href="{% url 'learning:submission' item.pk %}">{{ item.owner.username }} · {{ item.title }} · version {{ item.version }}</a> · {{ item.get_status_display }}</p>{% empty %}<p>No submissions.</p>{% endfor %}</section>{% endblock %}

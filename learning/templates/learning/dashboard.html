@@ -1,0 +1,53 @@
+{% extends "educations/base.xhtml" %}{% load static %}{% block content %}<h1>My Learning</h1>
+<p>Your drafts are private. Teachers see only the work you submit to their classes.</p>{% if not ready %}<div class="alert alert-warning">Online saving requires verification and consent. <a href="{% url 'learning:complete_profile' %}">Complete your account</a>. Existing device copies remain available in their own account space.</div>{% endif %}<div class="academy-grid">
+<section class="academy-card">
+<h2>My grade</h2>
+<form method="post" action="{% url 'learning:choose_grade' %}">{% csrf_token %}<label for="my-grade">Choose grade</label>
+<select id="my-grade" name="grade">{% for grade in grade_choices %}<option value="{{ grade.pk }}" {% if profile.grade_id == grade.pk %}selected{% endif %}>{{ grade.name }}</option>{% endfor %}</select>
+<button type="submit">Save grade</button>
+</form>
+<p>
+<a href="{% url 'virtual_labs' %}">Open virtual labs</a> · <a href="{% url 'educations:whiteboard' %}">Open whiteboard</a>
+</p>
+</section>
+<section class="academy-card">
+<h2>My classes</h2>{% for member in memberships %}<p>{{ member.group.name }} — {% if member.approved %}Approved{% else %}Awaiting teacher approval{% endif %}</p>{% empty %}<p>No class memberships yet.</p>{% endfor %}<form method="post" action="{% url 'learning:join' %}">{% csrf_token %}<label for="class-code">Class code from your teacher</label>
+<input id="class-code" name="code" maxlength="20" required>
+<button type="submit">Request to join</button>
+</form>
+</section>
+</div>
+<section class="academy-card">
+<h2>My saved work</h2>
+<p>{{ used_mb }} MB of 50 MB used. <span id="academy-sync-state" role="status">Checking saved work…</span>
+</p>
+<p>
+<a href="{% url 'learning:export' %}">Download my online-work backup</a>
+</p>
+<div id="academy-legacy-import">
+</div>
+<div id="academy-conflicts">
+</div>{% for item in work %}<article class="academy-work-row">
+<a href="{% url 'learning:work' item.pk %}">{{ item.title }}</a> <span>{{ item.updated_at|date:"d M Y H:i" }}</span>
+<button type="button" data-delete-work="{{ item.key }}" data-revision="{{ item.revision }}">Delete draft</button>
+</article>{% empty %}<p>Open a whiteboard or practical and save your work. After verification, it will appear here.</p>{% endfor %}</section>
+<section class="academy-card">
+<h2>My private documents</h2>
+<p>Documents used in drafts or submitted copies must be retained. You can remove unused documents to free storage.</p>{% for asset in attachments %}<p>{{ asset.name }} ({{ asset.size }} bytes) <a href="{% url 'learning:attachment_api' asset.key %}">Download</a> <button type="button" data-delete-attachment="{{ asset.key }}">Remove if unused</button>
+</p>{% empty %}<p>No private documents uploaded.</p>{% endfor %}</section>
+<div class="academy-grid">
+<section class="academy-card">
+<h2>Recent lessons and progress</h2>
+<p>Completion is your own record of learning, not an assessed grade.</p>{% for item in progress %}<p>
+<a href="{{ item.path }}">{{ item.title }}</a> — {% if item.completed %}Marked complete{% else %}In progress{% endif %}</p>{% empty %}<p>No lessons recorded yet. Use the learning controls on a lesson page.</p>{% endfor %}</section>
+<section class="academy-card">
+<h2>Submissions and feedback</h2>{% for item in submissions %}<p>
+<a href="{% url 'learning:submission' item.pk %}">{{ item.title }} · version {{ item.version }}</a> — {{ item.get_status_display }}</p>{% empty %}<p>No submissions yet. Open a saved work item and choose an approved class.</p>{% endfor %}</section>
+</div>{% if teacher_groups %}<p>
+<a class="btn btn-quiet" href="{% url 'learning:teacher' %}">Teacher dashboard</a>
+</p>{% endif %}<p>
+<a href="{% url 'accounts:password_change' %}">Change password</a> · <a href="{% url 'learning:delete' %}">Request account deletion</a>
+</p>{% endblock %}
+
+{% block extra_scripts %}<script src="{% static 'educations/whiteboard_uploads.js' %}" defer>
+</script>{% endblock %}

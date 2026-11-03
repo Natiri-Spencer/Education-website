@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const app=document.getElementById('notebook-lab-app');if(!app)return;
     const books=window.Grade7Notebooks,el=id=>document.getElementById('nb-'+id),reflectionsKey='grade7-lab-reflections-v1';let selected=books.catalogue[0];
     const reflection=id=>books.load(reflectionsKey).find(entry=>entry.id===id)?.text||'';

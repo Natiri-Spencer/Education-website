@@ -1,12 +1,1 @@
-{% extends "educations/base.xhtml" %}
-
-{% block content %}
-  {% if form.errors %}
-  <p> Your password and username didn't match. Please try again.</p>
-  {% endif %}
-  <form action="{% url 'accounts:login' %}" method="post">
-    {% csrf_token %}
-    {{ form.as_div }}
-    <button name="submit">Login</button>
-  </form>
-{% endblock content %}
+{% extends "educations/base.xhtml" %}{% block title %}Sign in | CBE STEM ACADEMY{% endblock %}{% block content %}<section class="academy-card academy-form"><h1>Sign in</h1>{% if form.errors %}<p role="alert">Your username or password did not match. Please try again.</p>{% endif %}<form action="{% url 'accounts:login' %}" method="post">{% csrf_token %}{{ form.as_div }}<input type="hidden" name="next" value="{{ next }}"><button type="submit">Login</button></form><p><a href="{% url 'accounts:password_reset' %}">Forgotten password?</a> · <a href="{% url 'learning:signup' %}">Create account</a> · <a href="{% url 'learning:help' %}">Help</a></p><p><a href="{% url 'learning:privacy' %}">Privacy</a> · <a href="{% url 'learning:terms' %}">Terms</a> · <a href="{% url 'learning:guardians' %}">Guardian information</a></p></section>{% endblock %}

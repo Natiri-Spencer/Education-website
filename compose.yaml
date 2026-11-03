@@ -1,0 +1,101 @@
+name: cbe-stem-academy
+
+x-app: &app
+  image: cbe-stem-academy:${APP_VERSION:-local}
+  build: .
+  env_file:
+    - .env.production
+  environment:
+    DJANGO_DEBUG: "False"
+    DJANGO_LOAD_DOTENV: "False"
+    DJANGO_TRUST_PROXY: "True"
+    DJANGO_MEDIA_ROOT: /app/media
+    DATABASE_URL: postgresql://academy:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}@db:5432/academy
+    CACHE_URL: redis://cache:6379/0
+    PRIVATE_WORK_ROOT: /app/private-work
+    BACKUP_MAINTENANCE_FILE: /app/runtime/read-only
+    BACKUP_STATUS_FILE: /app/runtime/backup-status.json
+    WHITEBOARD_FORMULA_PREWARM: "False"
+  volumes:
+    - media:/app/media
+    - private_work:/app/private-work
+    - runtime:/app/runtime
+  depends_on:
+    db:
+      condition: service_healthy
+    cache:
+      condition: service_healthy
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: academy
+      POSTGRES_USER: academy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academy -d academy"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: &logs
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  cache:
+    image: redis:7.4-bookworm
+    restart: unless-stopped
+    # Cache is disposable; accounts and sessions remain in PostgreSQL.
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *logs
+
+  web:
+    <<: *app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "deploy/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    logging: *logs
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN in .env.production}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - certificates:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    logging: *logs
+
+volumes:
+  database:
+  media:
+  private_work:
+  runtime:
+  certificates:
+  caddy_config:

@@ -44,7 +44,6 @@ def about_us(request):
 @ensure_csrf_cookie
 def whiteboard(request):
     return render(request, "educations/whiteboard.xhtml", {
-        "ai_timeout_ms": (settings.WHITEBOARD_AI_LOCAL_TIMEOUT if settings.WHITEBOARD_AI_PROVIDER == "ollama" else settings.WHITEBOARD_AI_TIMEOUT) * 1000 + 15000,
         "whiteboard_colours": [
             {"name": "Black", "hex": "#252525"},
             {"name": "Red", "hex": "#ff485c"},

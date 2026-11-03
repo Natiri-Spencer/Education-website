@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     const root = document.getElementById('separation-activity');
     if (!root) return;
     const app = document.getElementById('mixture-lab-app');
@@ -42,7 +43,7 @@
     function state(method) {
         if (!states[method]) {
             let notes = [];
-            try { notes = JSON.parse(localStorage.getItem(storageKey(method)) || '[]'); if (!Array.isArray(notes)) notes = []; } catch (_) { notes = []; }
+            try { notes = JSON.parse((window.AcademyStorage||localStorage).getItem(storageKey(method)) || '[]'); if (!Array.isArray(notes)) notes = []; } catch (_) { notes = []; }
             states[method] = {placed: 0, stage: 0, progress: 0, running: false, notes, draft: {note:'',appearance:'',conclusion:''}};
         }
         return states[method];
@@ -113,7 +114,7 @@
         el('notebook-title').textContent = `${methods[key].title} notebook · ${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
     }
     function persist() {
-        try { localStorage.setItem(storageKey(key),JSON.stringify(state(key).notes)); el('storage').textContent = 'Saved in this browser separately for each method. Resetting apparatus keeps your notes.'; }
+        try { (window.AcademyStorage||localStorage).setItem(storageKey(key),JSON.stringify(state(key).notes)); el('storage').textContent = 'Saved in this browser separately for each method. Resetting apparatus keeps your notes.'; }
         catch (_) { el('storage').textContent = 'Browser storage is unavailable. Notes are kept while this page stays open.'; }
     }
     function render() {

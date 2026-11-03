@@ -1,9 +1,10 @@
-(() => {
+(async () => {
+ if(window.AcademyStorage)await window.AcademyStorage.ready;
     'use strict';
     const app = document.getElementById('whiteboard-app');
     if (!app || !window.WhiteboardModel) return;
     const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, G = window.WhiteboardGraph, V = window.WhiteboardVoiceMath;
-    const U = window.WhiteboardUploads, S = window.WhiteboardSelection, P = window.WhiteboardPersistence, Gesture = window.WhiteboardGestures, D = window.WhiteboardDialogs, AI = window.WhiteboardAI, $ = id => document.getElementById(id);
+    const U = window.WhiteboardUploads, S = window.WhiteboardSelection, P = window.WhiteboardPersistence, Gesture = window.WhiteboardGestures, D = window.WhiteboardDialogs, $ = id => document.getElementById(id);
     const svg = $('wb-canvas'), world = $('wb-world'), stage = $('wb-stage');
     const paths = {
         cursor: 'M4 3l6 17 3-7 7-3L4 3z', hand: 'M8 12V6a2 2 0 014 0v5-7a2 2 0 014 0v8-6a2 2 0 014 0v9c0 5-3 7-7 7-3 0-5-2-7-4l-3-5a2 2 0 013-2l2 2z',
@@ -48,9 +49,8 @@
     let reviews = [], activeReview = null, previewRevision = 0;
     let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceResultTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, voiceNetworkErrors = 0;
     let graphEditId = null, graphPreview = null, graphTableFunction = '';
-    let aiResult = null, aiContext = null, aiAction = 'explain', aiController = null, aiRevision = 0;
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
-    if (P) { const loaded = P.load(localStorage, storageKey, M.restore); library = loaded.library; board = loaded.board; }
+    if (P) { const loaded = P.load((window.AcademyStorage||localStorage), storageKey, M.restore); library = loaded.library; board = loaded.board; }
     if (!board) { board = M.newBoard(); library.push(board); }
     board = M.clone(board);
     function toast(message) {
@@ -60,8 +60,8 @@
     function saveNow() {
         clearTimeout(saveTimeout);
         try {
-            if (P) P.save(localStorage, storageKey, library, board, M.clone);
-            else localStorage.setItem(storageKey, JSON.stringify({ version: 1, activeId: board.id, boards: library }));
+            if (P) P.save((window.AcademyStorage||localStorage), storageKey, library, board, M.clone);
+            else (window.AcademyStorage||localStorage).setItem(storageKey, JSON.stringify({ version: 1, activeId: board.id, boards: library }));
             $('wb-save-state').textContent = 'Saved on this device';
         } catch (_) { $('wb-save-state').textContent = 'Not saved · download a backup'; toast('Device storage is full or unavailable. Download an editable board from File to keep your work.'); }
     }
@@ -109,7 +109,7 @@
         return recognitionCheck;
     }
     async function runRecognition() {
-        if (!recognitionReady || recognitionBusy || drag || editing || touchGesture || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open || $('wb-ai-dialog').open) { if (recognitionPending.size) scheduleRecognition(); return; }
+        if (!recognitionReady || recognitionBusy || drag || editing || touchGesture || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open) { if (recognitionPending.size) scheduleRecognition(); return; }
         const request = M.recognitionRequest(board.items, recognitionPending);
         if (!request.strokes.length) { recognitionPending.clear(); return; }
         const snapshot = M.clone(request), revision = recognitionRevision, boardId = board.id;
@@ -338,117 +338,7 @@
         if(old){item.id=old.id;board.items=board.items.map(current=>current.id===old.id?item:current);}else board.items.push(item);
         setTool('select');selected=item.id;closeGraph();commit(before);toast(old?'Graph updated.':'Graph added. Double-click it to edit the table, function, or ranges.');
     });
-    function resetAiAnswer(){
-        aiRevision++;if(aiController)aiController.abort();aiController=null;aiResult=null;
-        $('wb-ai-preview').hidden=true;$('wb-ai-insert').disabled=true;$('wb-ai-error').hidden=true;
-        $('wb-ai-status').textContent='';$('wb-ai-generate').textContent='Get answer';
-        $('wb-ai-generate').disabled=!$('wb-ai-prompt').value.trim();
-    }
-    function openAi(preferred){
-        finishEdit(true);cancelRecognition();
-        const text=preferred&&chosen()?.text;
-        $('wb-ai-prompt').value=text?`Explain briefly: ${text}`.slice(0,1000):'';
-        aiAction='answer';aiContext={sourceIds:[],items:[],scope:'question'};resetAiAnswer();
-        D.open($('wb-ai-dialog'),$('wb-ai-prompt'));
-    }
-    function closeAi(){resetAiAnswer();D.close($('wb-ai-dialog'));}
-    $('wb-ai-assist').addEventListener('click',()=>openAi());$('wb-selection-ai').addEventListener('click',()=>openAi('answer'));
-    $('wb-ai-prompt').addEventListener('input',resetAiAnswer);
-    $('wb-ai-close').addEventListener('click',closeAi);$('wb-ai-cancel').addEventListener('click',closeAi);
-    $('wb-ai-dialog').addEventListener('close',resetAiAnswer);
-    $('wb-ai-generate').addEventListener('click',async()=>{
-        const question=$('wb-ai-prompt').value.trim();if(!question)return;
-        resetAiAnswer();const revision=++aiRevision,controller=new AbortController();aiController=controller;
-        const error=$('wb-ai-error'),button=$('wb-ai-generate');button.disabled=true;button.textContent='Answering…';$('wb-ai-status').textContent='Thinking about your question…';
-        const timeout=setTimeout(()=>controller.abort(),Math.max(15000,Math.min(315000,Number(app.dataset.aiTimeoutMs)||45000)));
-        try{
-            const result=await AI.request(app.dataset.aiUrl,app.querySelector('[name=csrfmiddlewaretoken]').value,{action:'answer',prompt:question},controller.signal);
-            if(revision!==aiRevision)return;
-            aiResult=result;$('wb-ai-result-title').textContent='Answer';$('wb-ai-result-body').textContent=result.explanation;
-            $('wb-ai-preview').hidden=false;$('wb-ai-insert').disabled=false;
-        }catch(reason){
-            if(revision!==aiRevision)return;
-            error.textContent=reason.name==='AbortError'?'The answer took too long. Please try again.':reason.message;error.hidden=false;
-        }finally{
-            clearTimeout(timeout);
-            if(revision===aiRevision){button.disabled=false;button.textContent='Get answer';$('wb-ai-status').textContent='';aiController=null;}
-        }
-    });
-    $('wb-ai-insert').addEventListener('click',()=>{
-        if(!aiResult)return;const p=centre(),raw=AI.insertion(aiResult,'answer',[],{x:p.x-180,y:p.y-110});
-        raw.h=Math.max(raw.h,wrap(raw.text,30).length*raw.fontSize*1.35+40);
-        const item=M.create('sticky',raw.x,raw.y,raw),before=M.clone(board.items);
-        board.items.push(item);setTool('select');selected=item.id;closeAi();commit(before);toast('Answer added. Undo removes it.');
-    });
-    $('wb-review-close').addEventListener('click',()=>$('wb-review-dialog').close());
-    $('wb-review-export').addEventListener('click',()=>{
-        const review=activeReview;if(!review?.request)return;
-        const example={schemaVersion:1,mode:review.mode||'auto',strokes:review.submittedStrokes||review.request.strokes.map(s=>({id:s.id,points:s.points})),
-            originalStrokes:review.request.strokes,result:review.result||{},
-            expected:review.words.map((w,i)=>({text:$(`wb-review-text-${i}`).value,format:$(`wb-review-format-${i}`).value,strokeIds:w.strokeIds})),
-            verified:false,writer:'',session:''};
-        download(new Blob([JSON.stringify(example,null,2)],{type:'application/json'}),'handwriting-example.json');
-        toast('Example saved on this device. Check the expected text before using it to measure accuracy.');
-    });
-    $('wb-review-dialog').addEventListener('close',()=>{activeReview=null;previewRevision++;if(recognitionPending.size)scheduleRecognition();});
-    $('wb-review-cards').addEventListener('input',updateReviewPreview);
-    $('wb-review-cards').addEventListener('change',updateReviewPreview);
-    $('wb-review-cards').addEventListener('click',event=>{
-        const b=event.target.closest('button');if(!b)return;
-        const input=$(`wb-review-text-${b.dataset.reviewIndex}`);
-        if(b.dataset.reviewAlternative)input.value=b.dataset.reviewAlternative;
-        if(b.dataset.reviewInsert){input.setRangeText(b.dataset.reviewInsert,input.selectionStart,input.selectionEnd,'end');input.focus();}
-        updateReviewPreview();
-    });
-    $('wb-review-keep').addEventListener('click',()=>{
-        const review=activeReview;if(!review?.request)return;
-        const ids=new Set(review.request.strokes.map(s=>s.id));
-        const contexts=new Set(review.request.contextIds);
-        mutate(()=>{board.items=board.items.flatMap(i=>contexts.has(i.id)?i.inkSource.map(s=>({...s,keepInk:true})):i.type==='path'&&ids.has(i.id)?[{...i,keepInk:true}]:[i]);});
-        reviews=reviews.filter(r=>r!==review);$('wb-review-dialog').close();render();
-        toast('Original handwriting kept. Use Undo to restore autocorrection for these strokes.');
-    });
-    $('wb-review-apply').addEventListener('click',async()=>{
-        const review=activeReview, button=$('wb-review-apply');if(!review)return;
-        const revision=previewRevision;
-        const words=M.reviewSelection(review.words,review.words.map((w,i)=>({text:$(`wb-review-text-${i}`).value,format:$(`wb-review-format-${i}`).value,selected:!review.request||$(`wb-review-select-${i}`).checked})));
-        button.disabled=true;$('wb-review-error').hidden=true;
-        try {
-            if(!words.length)throw new Error('Select the lines you have checked, or choose Keep handwriting.');
-            if(words.some(w=>!w.text))throw new Error('Enter a correction, or choose Keep handwriting.');
-            for(const w of words)if(w.format==='math'){
-                const entry=await window.WhiteboardMath.prepare(w.text,w.fontSize||32,w.latex);
-                if(entry.error)throw new Error(entry.error);
-            }
-            if(activeReview!==review||revision!==previewRevision)return;
-            if(review.boardId!==board.id || review.request&&!M.isRecognitionCurrent(board.items,review.request))throw new Error('This handwriting has changed. Close the review and check the updated strokes.');
-            const before=M.clone(board.items);
-            if(review.request){
-                const converted=M.applyRecognition(board.items,review.request,words,true);
-                if(!converted.corrected)throw new Error('The source drawing changed. Close the review and try again.');
-                board.items=converted.items;
-                for(const item of board.items.filter(i=>i.format==='math')){
-                    const layout=window.WhiteboardMath.get(item.text,item.fontSize,item.latexSource===item.text?item.latex:null);
-                    if(layout?.ready)Object.assign(item,M.placeRecognized({...item,w:layout.w,h:layout.h},board.items.filter(i=>i.id!==item.id)));
-                }
-            }else{
-                const w=words[0],old=board.items.find(i=>i.id===review.editId),p=centre();
-                const layout=w.format==='math'?window.WhiteboardMath.get(w.text,w.fontSize||32,w.latex):T.textLayout(w.text,w.fontSize||32);
-                const next={...(old||M.create('text',p.x-180,p.y-60,{fontSize:32,stroke:ink})),text:w.text,format:w.format,manualText:true,w:layout.w,h:layout.h};
-                board.items=board.items.filter(i=>i.id!==review.editId);board.items.push(M.placeRecognized(next,board.items));selected=next.id;
-            }
-            reviews=reviews.filter(r=>r!==review);$('wb-review-dialog').close();commit(before);
-            if(review.request){
-                const approved=new Set(words.flatMap(w=>w.strokeIds));
-                const remaining=review.words.filter(w=>!w.strokeIds.some(id=>approved.has(id)));
-                const sources=review.request.strokes.filter(s=>!approved.has(s.id));
-                if(remaining.length&&sources.length)reviews.push({...review,submittedStrokes:(review.submittedStrokes||sources).filter(s=>!approved.has(s.id)),request:{...review.request,strokes:sources,contextIds:review.request.contextIds.filter(id=>board.items.some(i=>i.id===id))},words:remaining});
-                refreshReviews();
-            }
-            toast('Correction applied. Your exact text is saved; Undo restores the previous writing.');
-        }catch(error){$('wb-review-error').textContent=error.message;$('wb-review-error').hidden=false;}
-        finally{button.disabled=false;}
-    });
+
     function mutate(fn) { const before = M.clone(board.items); fn(); commit(before); }
     function chosen() { return board.items.find(item => item.id === selected); }
     function select(id) {

@@ -1,0 +1,31 @@
+{
+	email {$ACME_EMAIL}
+	admin off
+}
+
+{$SITE_DOMAIN} {
+	encode zstd gzip
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		Strict-Transport-Security "max-age=3600"
+	}
+
+	# Stream uploaded videos/documents directly; never execute uploaded content.
+	handle_path /media/* {
+		root * /srv/media
+		header Content-Security-Policy "default-src 'none'; sandbox"
+		@active path_regexp active (?i)\.(html?|svg|xml|js|mjs|css)$
+		header @active Content-Disposition attachment
+		file_server
+	}
+
+	handle {
+		# The web container has no public port. Caddy sets X-Forwarded-Proto
+		# from the actual connection, ignoring the visitor's supplied value.
+		reverse_proxy web:8000 {
+			header_up X-Academy-Client-IP {remote_host}
+		}
+	}
+}

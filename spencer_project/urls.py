@@ -19,8 +19,13 @@ from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 from educations import views as education_views
+from .health import health, backup_health, operations_health
 
 urlpatterns = [
+    path('', include('learning.urls')),
+    path('health/', health, name='health'),
+    path('health/backups/', backup_health, name='backup_health'),
+    path('health/operations/', operations_health, name='operations_health'),
     path('admin/', admin.site.urls),
     path('', education_views.home, name='home'),
     path('about/', education_views.about_us, name='about_us'),

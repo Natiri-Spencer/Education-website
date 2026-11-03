@@ -1,0 +1,14 @@
+{% extends "educations/base.xhtml" %}{% block content %}<section class="academy-card academy-form">
+<h1>Request account deletion</h1>
+<p>Download your work before requesting deletion. Online saving will pause. An administrator reviews requests, verifies guardian authority where appropriate, and completes approved deletion within 30 days. Encrypted backups expire through their separate 30-day schedule.</p>
+<p>
+<a href="{% url 'learning:export' %}">Download my online work</a>
+</p>
+<form method="post">{% csrf_token %}<label>Password <input name="password" type="password" autocomplete="current-password" required>
+</label>
+<label>
+<input type="checkbox" name="confirm" value="delete" required> I request deletion of this account and its private work.</label>
+<button type="submit">Request deletion</button>
+</form>
+<p>Guardians may request deletion through <a href="{% url 'learning:support' %}">support</a>. Do not send passwords or identity documents.</p>
+</section>{% endblock %}

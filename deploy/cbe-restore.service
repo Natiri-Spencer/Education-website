@@ -1,0 +1,9 @@
+[Unit]
+Description=CBE monthly isolated restoration drill
+After=docker.service network-online.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/cbe-stem-academy
+ExecStart=/bin/bash /opt/cbe-stem-academy/deploy/restore-drill.sh
+TimeoutStartSec=30min
+UMask=0077

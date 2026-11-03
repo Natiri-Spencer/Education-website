@@ -1,0 +1,16 @@
+{% extends "educations/base.xhtml" %}{% block title %}{{ title }} | CBE STEM ACADEMY{% endblock %}{% block content %}<section class="academy-card academy-form">
+<h1>{{ title }}</h1>
+<p>{{ text }}</p>{% if local_email_preview %}<p class="alert alert-info">Email delivery is not connected in this local preview. Approval and recovery messages are written to the development server output.</p>{% endif %}{% if form %}<form method="post">{% csrf_token %}{{ form.as_div }}<button class="btn btn-lime" type="submit">{{ button|default:"Continue" }}</button>
+</form>{% endif %}{% if resend_url %}<p>
+<a href="{{ resend_url }}">Resend approval</a>
+</p>{% endif %}{% if finish_url %}<p>
+<a href="{{ finish_url }}">Choose username and password</a>
+</p>
+<label>Private completion link <input readonly value="{{ request.scheme }}://{{ request.get_host }}{{ finish_url }}">
+</label>{% endif %}<p class="academy-links">
+<a href="{% url 'learning:privacy' %}">Privacy</a> · <a href="{% url 'learning:terms' %}">Terms</a> · <a href="{% url 'learning:guardians' %}">Guardian information</a> · <a href="{% url 'learning:help' %}">Help</a>
+</p>
+<p>
+<a href="{% url 'accounts:login' %}">Sign in</a> · <a href="{% url 'learning:dashboard' %}">My Learning</a>
+</p>
+</section>{% endblock %}

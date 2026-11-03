@@ -17,7 +17,8 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+if os.environ.get("DJANGO_LOAD_DOTENV", "true").lower() in {"1", "true", "yes"}:
+    load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -32,11 +33,14 @@ if not SECRET_KEY:
     SECRET_KEY = "django-insecure-local-development-only"
 
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
+if not DEBUG and (not os.environ.get("DJANGO_ALLOWED_HOSTS") or "*" in ALLOWED_HOSTS):
+    raise RuntimeError("Set DJANGO_ALLOWED_HOSTS to the deployment's explicit hostnames.")
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'learning',
     #my apps
     'educations',
     'accounts',
@@ -58,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'learning.middleware.LearningSafetyMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -75,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'educations.context_processors.grades_context',
+                'learning.context.learning_context',
             ],
         },
     },
@@ -89,6 +95,8 @@ WSGI_APPLICATION = 'spencer_project.wsgi.application'
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL and not DEBUG:
     raise RuntimeError("Set DATABASE_URL to a persistent database in the deployment environment.")
+if not DEBUG and urlparse(DATABASE_URL).scheme not in {"postgres", "postgresql", "postgresql+psycopg"}:
+    raise RuntimeError("Production requires a PostgreSQL DATABASE_URL; SQLite is for development only.")
 
 if DATABASE_URL and urlparse(DATABASE_URL).scheme in {"postgres", "postgresql", "postgresql+psycopg"}:
     parsed_database_url = urlparse(DATABASE_URL)
@@ -132,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get('DJANGO_TIME_ZONE', 'Africa/Nairobi')
 
 USE_I18N = True
 
@@ -160,24 +168,62 @@ WHITEBOARD_FORMULA_TIMEOUT = int(os.environ.get("WHITEBOARD_FORMULA_TIMEOUT", "6
 WHITEBOARD_FORMULA_STARTUP_TIMEOUT = int(os.environ.get("WHITEBOARD_FORMULA_STARTUP_TIMEOUT", "120"))
 WHITEBOARD_FORMULA_PREWARM = os.environ.get("WHITEBOARD_FORMULA_PREWARM", "true").lower() in {"1", "true", "yes"}
 
-# Optional server-side provider for the whiteboard AI Assist dialog.
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-WHITEBOARD_AI_ENABLED = os.environ.get("WHITEBOARD_AI_ENABLED", "true").lower() in {"1", "true", "yes"}
-WHITEBOARD_AI_MODEL = os.environ.get("WHITEBOARD_AI_MODEL", "gpt-4o-mini")
-WHITEBOARD_AI_TIMEOUT = int(os.environ.get("WHITEBOARD_AI_TIMEOUT", "30"))
-WHITEBOARD_AI_RATE_LIMIT = int(os.environ.get("WHITEBOARD_AI_RATE_LIMIT", "20"))
-WHITEBOARD_AI_PROVIDER = os.environ.get("WHITEBOARD_AI_PROVIDER", "openai").lower()
-WHITEBOARD_AI_LOCAL_URL = os.environ.get("WHITEBOARD_AI_LOCAL_URL", "http://127.0.0.1:11434")
-WHITEBOARD_AI_LOCAL_MODEL = os.environ.get("WHITEBOARD_AI_LOCAL_MODEL", "")
-WHITEBOARD_AI_LOCAL_TIMEOUT = int(os.environ.get("WHITEBOARD_AI_LOCAL_TIMEOUT", "120"))
-
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
+
+# Redis shares recognition caches and AI request counters across Gunicorn workers.
+CACHE_URL = os.environ.get("CACHE_URL", "")
+if CACHE_URL:
+    CACHES = {"default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": CACHE_URL,
+        "KEY_PREFIX": "cbe-stem",
+        "OPTIONS": {"socket_connect_timeout": 3, "socket_timeout": 3},
+    }}
 
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()]
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Enable only behind the deployment proxy, which replaces the incoming header.
+SECURE_PROXY_SSL_HEADER = (("HTTP_X_FORWARDED_PROTO", "https")
+                           if os.environ.get("DJANGO_TRUST_PROXY", "false").lower() in {"1", "true", "yes"} else None)
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "3600" if not DEBUG else "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"private_paths": {"()": "learning.checks.PrivatePathFilter"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "filters": ["private_paths"]},
+                 "operations": {"class": "learning.checks.OperationalErrorHandler", "level": "ERROR"}},
+    "loggers": {"django.request": {"handlers": ["console", "operations"], "level": "WARNING", "propagate": False}},
+    "root": {"handlers": ["console"], "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO")},
+}
 
+
+
+# Learner accounts, transactional email and private work.
+PRIVATE_WORK_ROOT = Path(os.environ.get("PRIVATE_WORK_ROOT", str(BASE_DIR / "private-work")))
+PRIVATE_WORK_QUOTA = 50 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = PRIVATE_WORK_QUOTA + 4096
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
+PASSWORD_RESET_TIMEOUT = 3600
+PUBLIC_CONTACT_EMAIL = os.environ.get("PUBLIC_CONTACT_EMAIL", "")
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", PUBLIC_CONTACT_EMAIL)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "accounts@localhost")
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.resend.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "resend")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_TIMEOUT = 15
+ACADEMY_DAILY_EMAIL_LIMIT = int(os.environ.get("ACADEMY_DAILY_EMAIL_LIMIT", "90"))
+BACKUP_MAINTENANCE_FILE = Path(os.environ.get("BACKUP_MAINTENANCE_FILE", str(BASE_DIR / "runtime" / "read-only")))
+BACKUP_STATUS_FILE = Path(os.environ.get("BACKUP_STATUS_FILE", str(BASE_DIR / "runtime" / "backup-status.json")))
+
+PUBLIC_REGISTRATION_ENABLED = DEBUG or os.environ.get("PUBLIC_REGISTRATION_ENABLED", "false").lower() in {"1", "true", "yes"}
