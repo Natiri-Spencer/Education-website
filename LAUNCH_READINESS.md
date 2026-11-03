@@ -34,6 +34,15 @@ The operator must confirm the legal operator name/contact and review the public 
 
 Use the [ODPC children’s-data guidance](https://www.odpc.go.ke/wp-content/uploads/2025/11/ODPC-%E2%80%93-Guidance-Note-for-Processing-Childrens-Data.pdf) and obtain a qualified Kenyan review where needed. The implementation is not a regulatory certification. Domain or business-name registration does not replace these checks.
 
+### Kenyan review record to complete before launch
+
+- **Guardian authority and age:** the ODPC children's guidance calls for reasonable age and parent/guardian-consent verification. The email approval screen is one step only. The operator must approve a proportionate school/guardian verification and dispute procedure, record the method and policy version, and avoid retaining unnecessary identity documents. No real child accounts should be onboarded publicly until that procedure is approved.
+- **Registration:** [ODPC's registration FAQ](https://www.odpc.go.ke/faqs/) lists provision of education among activities that do not receive the small-business registration exemption. Treat registration as a launch requirement and confirm the academy's controller/processor role with ODPC; a small learner count does not establish exemption. No application or certificate has been obtained by this implementation.
+- **Overseas processing:** [ODPC's published data-protection principles](https://www.odpc.go.ke/rights-of-a-data-subject/) require a basis for transfers outside Kenya. Record each provider's actual storage/processing countries, contractual safeguards, access arrangements and the reviewed transfer basis before entering learner data. A provider's brand name alone does not establish its processing location.
+- **Impact assessment:** use the [official ODPC guidance catalogue](https://www.odpc.go.ke/guidelines-2/) for the children's, education-sector and impact-assessment guidance. Have the reviewer document the children's-data risks and whether a formal assessment, submission or consultation is required, then complete any required steps before processing begins. This question remains open, rather than being marked exempt by default.
+
+Record reviewer, date, conclusions, outstanding actions and evidence privately in the launch gate. These notes describe the review work required; they do not assert that statutory consent, registration or an assessment has already been completed.
+
 [CONTENT_REVIEW.md](CONTENT_REVIEW.md) inventories the five curated video lessons, published Grade 7–9 course modules, practical templates and persistence adapters. Automated checks found the required video/audio/caption/poster/transcript/source files and VTT cues. A named teacher must still review the science, units, assessment answers, procedures, safety, captions/transcripts and attribution for every published item. Record corrections and actual approval; do not treat software tests as scientific sign-off.
 
 ## Encrypted backups and monthly restoration
@@ -94,6 +103,12 @@ Production public registration is closed by default. After real checks, write a 
 Run `python manage.py check_learning_launch`. It checks configured email/contact values, production mode and recorded reviews; it does not independently certify the truth of an approval. Only then set `PUBLIC_REGISTRATION_ENABLED=True` and restart. Startup refuses an enabled public launch without this gate. Do not include the private gate, provider credentials or backup archives in GitHub or public media.
 
 ## Test and rollout evidence
+
+Verified on 3 November 2026 against implementation commit `8bbec8c`:
+
+- **132 Python tests and 180 JavaScript tests passed.** Local browser checks passed for sign-in, online saving/reload, private documents retrieved on another device, individual-board submissions, teacher feedback, phone layout and lab initialization. Separate browser checks preserved a 6 MB offline draft across reopening and resolved simultaneous-device revisions while downloading the losing copy.
+- **[Linux deployment workflow passed](https://github.com/Natiri-Spencer/Education-website/actions/runs/41696301368):** production image build, PostgreSQL account-boundary tests, HTTPS readiness/pages, curated and uploaded video range requests, and 20 isolated synthetic learner sessions. All 20 completed with zero errors; p95 save/read/dashboard cycle was **0.54 seconds on the GitHub runner**. This is evidence for the test environment, not a performance guarantee for the eventual VPS or school connection.
+- The same workflow passed deliberate backup-failure cleanup, encrypted restic backup and isolated PostgreSQL/public/private-file restoration, including record counts and file hashes. This used a local encrypted test repository; actual R2 access, off-server recovery and external alert delivery remain to be verified with the owner's provider accounts.
 
 - Local tests cover signup/consent/recovery, legacy-account preservation, CSRF, request limits, learner separation, private downloads, quotas, revisions/tombstones, individual-board submission, teacher boundaries, assessment history, maintenance and deletion.
 - Browser checks use a separate copied QA database and synthetic accounts. They cover sign-in, whiteboard/document saving, fresh-device document retrieval, notebook initialization, submission/feedback and phone layout. These are not a substitute for the supervised human trial.

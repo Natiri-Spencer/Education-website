@@ -20,6 +20,8 @@ The portable Docker deployment is documented in [DEPLOYMENT.md](DEPLOYMENT.md). 
 
 Use the private operations and rollout instructions in [LAUNCH_READINESS.md](LAUNCH_READINESS.md). The generated [content inventory](CONTENT_REVIEW.md) checks runtime assets and records the published review scope. Named-teacher scientific approval remains required.
 
+Validation on 3 November 2026: 132 Python tests and 180 JavaScript tests passed. The [Linux deployment checks](https://github.com/Natiri-Spencer/Education-website/actions/runs/41696301368) passed PostgreSQL permissions, HTTPS/video seeking, 20 synthetic learner sessions with zero errors, encrypted backup failure cleanup and an isolated restoration with matching records/file hashes. Real provider email/storage, target-server capacity and the supervised classroom trial remain launch checks.
+
 ## Current learning features
 
 - CBE STEM ACADEMY branding and an About Us page with the academy mission and vision.
