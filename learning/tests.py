@@ -123,6 +123,24 @@ class PrivateWorkTests(TestCase):
         self.assertEqual(response.json()['payload']['raw'],'[1]')
         self.assertEqual(SavedWork.objects.get().payload['raw'],'[1]')
 
+    def test_individual_boards_have_metadata_lists_and_private_details(self):
+        key = 'eduportal.whiteboards.v2:lesson-1'
+        raw = json.dumps({'version': 1, 'id': 'lesson-1', 'items': []})
+        self.assertEqual(self.save(key, raw).status_code, 200)
+        listing = self.client.get('/learning/api/work/?area=whiteboard&metadata=1').json()['work']
+        self.assertEqual(listing[0]['key'], key)
+        self.assertNotIn('payload', listing[0])
+        self.assertEqual(self.client.get('/learning/api/work/' + key + '/').json()['payload']['raw'], raw)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get('/learning/api/work/?area=whiteboard&metadata=1').json()['work'], [])
+        self.assertEqual(self.client.get('/learning/api/work/' + key + '/').status_code, 404)
+
+    def test_original_document_remains_linked_without_file_card(self):
+        self.client.post('/learning/api/attachments/original/', {'file': SimpleUploadedFile('q.pdf', b'%PDF-abc', content_type='application/pdf')})
+        raw = json.dumps({'version': 1, 'id': 'lesson', 'items': [{'type': 'document-page', 'attachmentId': 'original'}]})
+        self.assertEqual(self.save('eduportal.whiteboards.v2:lesson', raw).status_code, 200)
+        self.assertEqual(list(SavedWork.objects.get().assets.values_list('key', flat=True)), ['original'])
+
     def test_other_user_cannot_read_draft_or_attachment(self):
         self.save();work=SavedWork.objects.get()
         self.client.post('/learning/api/attachments/doc1/',{'file':SimpleUploadedFile('a.pdf',b'%PDF-abc',content_type='application/pdf')})

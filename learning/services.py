@@ -95,7 +95,7 @@ def used_bytes(user):
                for model in (SavedWork, Attachment, Submission))
 
 
-WORK_KEY = re.compile(r'^(?:eduportal\.whiteboards\.v1|grade[789][a-zA-Z0-9_.:-]{1,150})$')
+WORK_KEY = re.compile(r'^(?:eduportal\.whiteboards\.v1|eduportal\.whiteboards\.v2:[a-zA-Z0-9_-]{1,100}|grade[789][a-zA-Z0-9_.:-]{1,150})$')
 FILE_KEY = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9_:-]{0,159}$')
 
 
@@ -103,7 +103,7 @@ def attachment_ids(value):
     found = set()
     def visit(item):
         if isinstance(item, dict):
-            if item.get('type') == 'file' and isinstance(item.get('attachmentId'), str):
+            if item.get('type') in {'file', 'document-page'} and isinstance(item.get('attachmentId'), str):
                 found.add(item['attachmentId'])
             for child in item.values():
                 visit(child)

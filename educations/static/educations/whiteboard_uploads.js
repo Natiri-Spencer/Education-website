@@ -2,6 +2,7 @@
     'use strict';
     const MAX_FILE=10*1024*1024, MAX_EXPORT=40*1024*1024;
     const formats={pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',ppt:'application/vnd.ms-powerpoint',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',txt:'text/plain',csv:'text/csv'};
+    const isAttachment=item=>['file','document-page'].includes(item.type);
     function metadata(raw){
         const fileName=String(raw.fileName||'').split(/[\\/]/).pop().replace(/[\u0000-\u001f\u007f]/g,'');
         const extension=fileName.split('.').pop().toLowerCase();
@@ -34,7 +35,7 @@
         }
     }
     if(globalThis.AcademyStorage)globalThis.AcademyAttachments={async importLegacy(library){
-        const cards=(library.boards||[]).flatMap(board=>board.items||[]).filter(item=>item.type==='file');if(!cards.length)return;
+        const cards=(library.boards||[]).flatMap(board=>board.items||[]).filter(isAttachment);if(!cards.length)return;
         const connection=await new Promise((resolve,reject)=>{const r=indexedDB.open('cbe-whiteboard-attachments',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(Error('Older document storage could not be opened'));});
         try{if(!connection.objectStoreNames.contains('files'))throw Error('Older document files are missing; import a portable board backup instead.');
             for(const card of cards){const meta=metadata(card);const blob=await new Promise((resolve,reject)=>{const r=connection.transaction('files').objectStore('files').get(meta.attachmentId);r.onsuccess=()=>r.result?resolve(r.result):reject(Error('An older document is missing.'));r.onerror=()=>reject(Error('An older document could not be read.'));});
@@ -65,7 +66,7 @@
     function dataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Could not export this document.'));reader.readAsDataURL(blob);});}
     async function pack(board){
         const records=[],seen=new Set();let size=0;
-        for(const item of board.items.filter(i=>i.type==='file')){
+        for(const item of board.items.filter(isAttachment)){
             const meta=metadata(item);if(seen.has(meta.attachmentId))continue;seen.add(meta.attachmentId);
             size+=meta.fileSize;if(size>MAX_EXPORT)throw Error('Keep document attachments below 40 MB per exported board.');
             const blob=await get(meta.attachmentId);if(blob.size!==meta.fileSize)throw Error('A document attachment is damaged. Upload it again.');
@@ -74,7 +75,7 @@
         return{...board,attachments:records};
     }
     async function unpack(board,records,uid){
-        const files=board.items.filter(i=>i.type==='file');if(!files.length)return board;
+        const files=board.items.filter(isAttachment);if(!files.length)return board;
         if(!Array.isArray(records)||records.length>100)throw Error('This board is missing its document attachments.');
         const byId=new Map(),prepared=[];let size=0;
         for(const record of records){
@@ -90,7 +91,7 @@
         }
         for(const item of files){const match=byId.get(item.attachmentId);if(!match||match.fileSize!==item.fileSize||match.fileName!==item.fileName)throw Error('A document attachment is missing or does not match its file card.');}
         for(const [id,blob,name] of prepared)await put(id,blob,name);
-        return{...board,items:board.items.map(item=>item.type==='file'?{...item,...byId.get(item.attachmentId)}:item)};
+        return{...board,items:board.items.map(item=>isAttachment(item)?{...item,...byId.get(item.attachmentId)}:item)};
     }
     return{metadata,store,get,pack,unpack,MAX_FILE,formats};
 }));

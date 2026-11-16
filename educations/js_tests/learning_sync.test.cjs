@@ -1,8 +1,8 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('learning/static/learning/workspace.js','utf8');
-function client({scope='u1',eligible=true,storage=new Map(),remote=[],putStatus=200}={}){
+function client({scope='u1',eligible=true,storage=new Map(),remote=[],putStatus=200,fault={blocked:false}}={}){
  const calls=[],config={scope,eligible,authenticated:scope!=='guest',api:'/learning/api/work/',assets:'/learning/api/attachments/'};
- const native={get length(){return storage.size;},key:i=>[...storage.keys()][i],getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
+ const native={get length(){return storage.size;},key:i=>[...storage.keys()][i],getItem:k=>storage.get(k)??null,setItem:(k,v)=>{if(fault.blocked)throw Error('quota');storage.set(k,v);},removeItem:k=>storage.delete(k)};
  const context={location:{pathname:'/educations/whiteboard/'},FormData:class{},document:{getElementById:id=>id==='academy-config'?{textContent:JSON.stringify(config)}:null,querySelectorAll:()=>[],querySelector:()=>null,cookie:'csrftoken=test',readyState:'loading',addEventListener(){}},fetch:async(url,options)=>{
   calls.push({url,options});const get=options.method==='GET';return {ok:get||putStatus===200,status:get?200:putStatus,json:async()=>get?{work:remote}:{revision:putStatus===409?2:1,payload:{format:1,raw:'online newer'},error:'Test failure'}};
  },localStorage:native,setTimeout,clearTimeout,console};context.window=context;
@@ -32,4 +32,23 @@ test('quota errors preserve the previous revision and local draft',async()=>{
 test('deletions survive a page reload and propagate as revisioned tombstones',async()=>{
  const c=client();await c.api.ready;c.api.setItem('grade7-notes','delete me');await c.api.flush();c.api.removeItem('grade7-notes');
  const again=client({storage:c.storage});await again.api.ready;await again.api.flush();const deletion=again.calls.find(c=>c.options.method==='DELETE');assert(deletion);assert.equal(JSON.parse(deletion.options.body).revision,1);
+});
+test('failed device writes reject acknowledgment and recover on a later successful write',async()=>{
+ const fault={blocked:false},c=client({eligible:false,fault});await c.api.ready;fault.blocked=true;
+ await assert.rejects(c.api.setItemsAsync([['eduportal.whiteboards.v2:lesson','important work']]),/storage/);
+ assert.equal(c.api.getItem('eduportal.whiteboards.v2:lesson'),'important work');
+ assert(!c.api.getStatus().startsWith('Saved'));
+ fault.blocked=false;await c.api.setItemsAsync([['eduportal.whiteboards.v2:lesson','important work']]);
+ assert.equal(c.storage.get('academy:u1:eduportal.whiteboards.v2:lesson'),'important work');
+});
+test('individual board keys sync with their own revision and account scope',async()=>{
+ const c=client();await c.api.ready;
+ const raw=JSON.stringify({version:1,id:'lesson',title:'Lesson',items:[]});
+ await c.api.setItemsAsync([['eduportal.whiteboards.v2:lesson',raw]]);await c.api.flush();
+ const put=c.calls.find(call=>call.options.method==='PUT');
+ assert.equal(put.url,'/learning/api/work/eduportal.whiteboards.v2%3Alesson/');
+ assert.equal(put.options.headers['X-Academy-Scope'],'u1');
+ assert.equal(JSON.parse(put.options.body).payload.raw,raw);
+ assert.equal(JSON.parse(c.api.getItem('@meta:eduportal.whiteboards.v2:lesson')).dirty,false);
+ assert(c.calls[0].url.endsWith('area=whiteboard&metadata=1'));
 });

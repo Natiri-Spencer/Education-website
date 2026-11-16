@@ -26,5 +26,5 @@
    if(n)svg.append(n);
   }if(points.length){const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=xs.reduce((a,b)=>Math.min(a,b),Infinity),top=ys.reduce((a,b)=>Math.min(a,b),Infinity);svg.setAttribute('viewBox',`${left-30} ${top-30} ${Math.max(300,xs.reduce((a,b)=>Math.max(a,b),-Infinity)-left+60)} ${Math.max(200,ys.reduce((a,b)=>Math.max(a,b),-Infinity)-top+60)}`);}root.append(svg);for(const i of b.items||[])if(i.text)text(i.type==='table'?'pre':'p',i.text);
  }
- if(data?.boards)for(const b of data.boards.slice(0,20))board(b);else value(data);
+ if(data?.boards)for(const b of data.boards.slice(0,20))board(b);else if(data?.version===1&&Array.isArray(data.items))board(data);else value(data);
 })();

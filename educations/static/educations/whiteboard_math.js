@@ -10,9 +10,26 @@
         tex: { packages: ['base', 'ams', 'newcommand', 'noundefined'], maxMacros: 500, maxBuffer: 10000 },
         svg: { fontCache: 'none', dynamicPrefix: base+'fonts/svg/dynamic', useXlink: false },
     };
-    const cache = new Map(); let serial = Promise.resolve();
+    const cache = new Map(); let serial = Promise.resolve(), loading;
+    function script(url) {
+        return new Promise((resolve, reject) => {
+            const element = document.createElement('script'); element.src = url;
+            element.onload = resolve;
+            element.onerror = () => { element.remove(); reject(Error('Equation tools could not load. Connect once to prepare offline access.')); };
+            document.head.appendChild(element);
+        });
+    }
+    async function load() {
+        if (window.katex && window.MathJax.startup?.promise) return;
+        if (!loading) loading = (async () => {
+            if (!window.katex) await script(new URL('vendor/katex/katex.min.js', source).href);
+            if (!window.MathJax.startup?.promise) await script(base + 'tex-svg.js');
+        })().catch(error => { loading = null; throw error; });
+        return loading;
+    }
     const cacheKey=(text,font,latex)=>JSON.stringify([text,font,latex||null]);
     window.WhiteboardMath = {
+        load,
         get(text, font, latex=null) { return cache.get(cacheKey(text,font,latex)); },
         prepare(text, font = 32, latex=null) {
             const key = cacheKey(text,font,latex);
@@ -20,6 +37,7 @@
             const entry = { font };
             entry.promise = serial = serial.catch(() => {}).then(async () => {
                 try {
+                    await load();
                     // Keep the source with this particular equation. A previous
                     // model reading must never override manually edited text.
                     window.WhiteboardTypesetting.toLatex(latex||text);

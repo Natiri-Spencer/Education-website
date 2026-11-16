@@ -4,7 +4,8 @@
     else root.WhiteboardModel = model;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
-    const types = new Set(['path', 'rectangle', 'ellipse', 'line', 'arrow', 'text', 'sticky', 'image', 'table', 'graph', 'file']);
+    const types = new Set(['path', 'rectangle', 'ellipse', 'line', 'arrow', 'text', 'sticky', 'image', 'table', 'graph', 'file', 'document-page']);
+    const Docs = typeof module === 'object' && module.exports ? require('./whiteboard_documents.js') : globalThis.WhiteboardDocuments;
     const U = typeof module === 'object' && module.exports ? require('./whiteboard_uploads.js') : globalThis.WhiteboardUploads;
     const T = typeof module === 'object' && module.exports ? require('./whiteboard_typesetting.js') : globalThis.WhiteboardTypesetting;
     const G = typeof module === 'object' && module.exports ? require('./whiteboard_graph.js') : globalThis.WhiteboardGraph;
@@ -18,6 +19,7 @@
         if (type === 'text') Object.assign(item, { w: 280, h: 70, fill: '#3b3548', text: 'Add your text', ...options });
         if (type === 'table') Object.assign(item, { w: 420, h: 180, text: 'Topic\tIdea\tNext step\n\t\t\n\t\t', ...options });
         if (type === 'file') Object.assign(item, { w: 340, h: 130, fill: '#ffffff', ...options });
+        if (type === 'document-page') Object.assign(item, { w: 900, h: 1160, fill: '#ffffff', ...options, locked: true });
         if (type === 'graph') Object.assign(item, { w: 560, h: 360, fill: '#ffffff', stroke: '#1689f8', expression: 'x^2', xMin: -10, xMax: 10, yMin: -10, yMax: 10, showGrid: true, showAxes: true, samples: [], ...options });
         if (type === 'path') item.points = options.points || [[x, y]];
         return item;
@@ -41,12 +43,14 @@
         return { x, y, w: Math.max(...boxes.map(b => b.x + b.w)) - x, h: Math.max(...boxes.map(b => b.y + b.h)) - y };
     }
     function move(item, dx, dy) {
+        if(item.type==='document-page')return item;
         const result = { ...item, x: item.x + dx, y: item.y + dy };
         if (item.type === 'path') result.points = item.points.map(([x, y]) => [x + dx, y + dy]);
         if (item.inkSource) result.inkSource = item.inkSource.map(source => move(source, dx, dy));
         return result;
     }
     function resize(item, width, height) {
+        if(item.type==='document-page')return item;
         const result = clone(item), box = bounds(item);
         width = Math.max(15, width); height = Math.max(15, height);
         if (item.type === 'path') {
@@ -280,7 +284,7 @@
         return { ...view, x: number(view.x + dx), y: number(view.y + dy) };
     }
     function gestureView(view, start, current) {
-        const zoom = Math.max(.25, Math.min(2, view.zoom * current.distance / Math.max(1, start.distance)));
+        const zoom = Math.max(.05, Math.min(2, view.zoom * current.distance / Math.max(1, start.distance)));
         return { zoom, x: current.x - (start.x - view.x) * zoom / view.zoom, y: current.y - (start.y - view.y) * zoom / view.zoom };
     }
     function neatenStroke(item) {
@@ -367,6 +371,9 @@
             Object.assign(item,U.metadata(raw));
             item.w=Math.max(220,Math.min(1200,Math.abs(item.w)));item.h=Math.max(100,Math.min(600,Math.abs(item.h)));
         }
+        if(item.type==='document-page'){
+            Object.assign(item,U.metadata(raw),Docs.pageMetadata(raw));
+        }
         if (item.type === 'graph') {
             if (!G) throw new Error('Graph support is unavailable.');
             const options = {
@@ -385,14 +392,39 @@
         if (!raw || raw.version !== 1 || !Array.isArray(raw.items) || raw.items.length > 3000) throw new Error('Choose a valid EduPortal whiteboard file.');
         const items = raw.items.map(validateItem), seen = new Set();
         for (const item of items) { if (seen.has(item.id)) item.id = uid(); seen.add(item.id); }
-        return { version: 1, id: typeof raw.id === 'string' ? raw.id.slice(0, 100) : uid(), title: (typeof raw.title === 'string' ? raw.title.slice(0, 80).trim() : '') || 'Untitled whiteboard', notes: typeof raw.notes === 'string' ? raw.notes.slice(0, 20000) : '', neatInk: raw.neatInk !== false, recognitionMode: ['auto','text','math'].includes(raw.recognitionMode) ? raw.recognitionMode : 'auto', items, view: { x: number(raw.view?.x), y: number(raw.view?.y), zoom: Math.max(.25, Math.min(2, number(raw.view?.zoom, 1))) }, updated: Number.isFinite(raw.updated) && raw.updated >= 0 && raw.updated < 8e15 ? raw.updated : Date.now() };
+        const active=items.find(i=>i.type==='document-page'&&i.id===raw.activeDocumentPageId);
+        return { version: 1, id: typeof raw.id === 'string' ? raw.id.slice(0, 100) : uid(), title: (typeof raw.title === 'string' ? raw.title.slice(0, 80).trim() : '') || 'Untitled whiteboard', notes: typeof raw.notes === 'string' ? raw.notes.slice(0, 20000) : '', neatInk: raw.neatInk !== false, recognitionMode: ['auto','text','math'].includes(raw.recognitionMode) ? raw.recognitionMode : 'auto', items, ...(active?{activeDocumentPageId:active.id}:{}), view: { x: number(raw.view?.x), y: number(raw.view?.y), zoom: Math.max(.05, Math.min(2, number(raw.view?.zoom, 1))) }, updated: Number.isFinite(raw.updated) && raw.updated >= 0 && raw.updated < 8e15 ? raw.updated : Date.now() };
     }
     function history(items = []) {
-        let past = [], future = [];
+        let past = [], future = [], pastBytes = 0;
+        function apply(current, change, direction) {
+            const values = new Map(current.map(item => [item.id, item]));
+            for (const [id, item] of change[direction]) values.set(id, clone(item));
+            const known = new Set([...change.beforeOrder, ...change.afterOrder]);
+            const laterPages = current.filter(item => item.type === 'document-page' && !known.has(item.id));
+            return [...change[direction + 'Order'].map(id => values.get(id)), ...laterPages];
+        }
         return {
-            commit(before, after) { if (JSON.stringify(before) === JSON.stringify(after)) return false; past.push(clone(before)); if (past.length > 80) past.shift(); future = []; return true; },
-            undo(current) { if (!past.length) return null; future.push(clone(current)); return past.pop(); },
-            redo(current) { if (!future.length) return null; past.push(clone(current)); return future.pop(); },
+            commit(before, after) {
+                const previous = new Map(before.map(item => [item.id, item]));
+                const next = new Map(after.map(item => [item.id, item]));
+                const change = { before: [], after: [], beforeOrder: before.map(i => i.id), afterOrder: after.map(i => i.id) };
+                for (const id of new Set([...previous.keys(), ...next.keys()])) {
+                    const a = previous.get(id), b = next.get(id);
+                    if (a === b || (a && b && JSON.stringify(a) === JSON.stringify(b))) continue;
+                    if (a) change.before.push([id, clone(a)]);
+                    if (b) change.after.push([id, clone(b)]);
+                }
+                if (!change.before.length && !change.after.length && change.beforeOrder.join() === change.afterOrder.join()) return false;
+                past.push(change);
+                change.bytes = JSON.stringify(change).length * 2;
+                pastBytes += change.bytes;
+                while (past.length > 1 && (past.length > 80 || pastBytes > 8 * 1024 * 1024)) pastBytes -= past.shift().bytes;
+                future = [];
+                return true;
+            },
+            undo(current) { if (!past.length) return null; const change = past.pop(); pastBytes -= change.bytes; future.push(change); return apply(current, change, 'before'); },
+            redo(current) { if (!future.length) return null; const change = future.pop(); past.push(change); pastBytes += change.bytes; return apply(current, change, 'after'); },
             get canUndo() { return !!past.length; }, get canRedo() { return !!future.length; },
         };
     }

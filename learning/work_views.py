@@ -61,11 +61,14 @@ def work_api(request, key=None):
         if area in {'grade7', 'grade8', 'grade9'}:
             query = query.filter(key__startswith=area)
         elif area == 'whiteboard':
-            query = query.filter(key='eduportal.whiteboards.v1')
+            query = query.filter(Q(key='eduportal.whiteboards.v1') | Q(key__startswith='eduportal.whiteboards.v2:'))
+        metadata_only = request.GET.get('metadata') == '1'
+        if metadata_only:
+            query = query.defer('payload')
         rows = []
         for item in query:
             row = {'key': item.key, 'title': item.title, 'revision': item.revision, 'deleted': item.deleted, 'updated': item.updated_at.isoformat()}
-            if area:
+            if area and not metadata_only:
                 row['payload'] = item.payload
             rows.append(row)
         return JsonResponse({'work': rows, 'used': used_bytes(request.user), 'quota': settings.PRIVATE_WORK_QUOTA})

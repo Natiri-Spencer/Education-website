@@ -214,7 +214,7 @@ test('two-finger movement and pinch zoom keep the point under the fingers stable
     assert.deepEqual(next, { x: -20, y: 40, zoom: 2 });
     assert.equal((current.x - next.x) / next.zoom, (start.x - view.x) / view.zoom);
     assert.equal((current.y - next.y) / next.zoom, (start.y - view.y) / view.zoom);
-    assert.equal(M.gestureView(view, start, { ...current, distance: 1 }).zoom, .25);
+    assert.equal(M.gestureView(view, start, { ...current, distance: 1 }).zoom, .05);
 });
 
 test('neat ink removes jitter from clearly straight handwriting without changing style', () => {

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#167eaa">
+  <title>{% block title %}Whiteboard{% endblock %}</title>
+  <link rel="icon" href="{% static 'educations/branding/favicon.png' %}">
+  {{ academy_config|json_script:"academy-config" }}
+  <script src="{% static 'educations/whiteboard_offline_boot.js' %}"></script>
+  <script src="{% static 'learning/workspace.js' %}?v=whiteboard-2"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="whiteboard-body">
+  <main id="academy-main">{% block content %}{% endblock %}</main>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

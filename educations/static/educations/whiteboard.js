@@ -5,7 +5,35 @@
     if (!app || !window.WhiteboardModel) return;
     const M = window.WhiteboardModel, T = window.WhiteboardTypesetting, G = window.WhiteboardGraph, V = window.WhiteboardVoiceMath;
     const U = window.WhiteboardUploads, S = window.WhiteboardSelection, P = window.WhiteboardPersistence, Gesture = window.WhiteboardGestures, D = window.WhiteboardDialogs, $ = id => document.getElementById(id);
+    const Docs = window.WhiteboardDocuments, documentImages = new Map(), documentLoads = new Map();
+    let currentDocument = null, documentPreview = null, documentRevision = 0, documentBoardId = null;
+    let boardNavigation = null, boardNavigationRevision = 0, documentSliderTimer;
     const svg = $('wb-canvas'), world = $('wb-world'), stage = $('wb-stage');
+    const deviceStorage = window.AcademyStorage || localStorage;
+    const advanced = $('wb-more-menu'), dock = $('wb-floating-tools');
+    $('wb-more-options').appendChild(app.querySelector('.wb-writing-controls'));
+    $('wb-more-file').append(app.querySelector('.wb-menu-wrap'), $('wb-help'), app.querySelector('.wb-export'));
+    stage.parentElement.insertBefore($('wb-document-tools'), stage);
+    stage.parentElement.insertBefore(dock, $('wb-notes-panel'));
+    for (const selector of ['#wb-shapes-toggle', '[data-wb-tool="line"]', '[data-wb-tool="sticky"]', '.wb-handwriting', '[data-wb-action="table"]']) {
+        const button = dock.querySelector(selector);
+        if (button) {
+            advanced.querySelector(selector)?.remove();
+            button.appendChild(document.createTextNode(button.title.split(' (')[0]));
+            advanced.querySelector('.wb-more-actions').appendChild(button);
+        }
+    }
+    $('wb-more-options').appendChild($('wb-shape-tray'));
+    for (const button of dock.querySelectorAll(':scope > button')) {
+        const labels = {'select': 'Select', 'pan': 'Move', 'text': 'Text'};
+        button.dataset.label = labels[button.dataset.wbTool] || ({'wb-draw-toggle': 'Pen', 'wb-undo': 'Undo', 'wb-redo': 'Redo'}[button.id]) || (button.dataset.wbPen === 'eraser' ? 'Eraser' : '');
+    }
+    $('wb-more-file').append($('wb-notes-toggle'), $('wb-timer-toggle').parentElement, $('wb-fullscreen'));
+    function toggleMore(open) {
+        advanced.hidden = !open;
+        $('wb-more-toggle').setAttribute('aria-expanded', String(open));
+        if (open) { showDrawTray(false); $('wb-more-close').focus(); }
+    }
     const paths = {
         cursor: 'M4 3l6 17 3-7 7-3L4 3z', hand: 'M8 12V6a2 2 0 014 0v5-7a2 2 0 014 0v8-6a2 2 0 014 0v9c0 5-3 7-7 7-3 0-5-2-7-4l-3-5a2 2 0 013-2l2 2z',
         pencil: 'M15 4l5 5M4 15L16 3a2 2 0 013 0l2 2a2 2 0 010 3L9 20l-6 1 1-6z', eraser: 'M15 3l6 6a2 2 0 010 3L11 22H7l-5-5a2 2 0 010-3L13 3a2 2 0 012 0zM8 9l8 8M11 22h11',
@@ -43,30 +71,90 @@
     const pens = { pen: { colour: '#1689f8', width: 3, opacity: 1 }, marker: { colour: '#ff485c', width: 5, opacity: 1 }, highlighter: { colour: '#ffe500', width: 18, opacity: .38 } };
     let activePen = 'marker', eraserSize = 28;
     const touches = new Map();
-    let touchGesture = null, waitForTouchRelease = false, multiTouchCleared = false;
+    let touchGesture = null, waitForTouchRelease = false, penPointer = null;
     let recognitionLabel = 'Recognition on', recognitionReady = false, recognitionBusy = false, recognitionTimer, recognitionController, recognitionRevision = 0, recognitionCheck = null, lastRecognitionCheck = 0;
     const recognitionPending = new Set();
     let reviews = [], activeReview = null, previewRevision = 0;
     let speechRecognition = null, voiceListening = false, voiceSilenceTimer = null, voiceResultTimer = null, voiceTranscriptBase = '', voiceSessionText = '', voicePreviewRevision = 0, voiceNetworkErrors = 0;
     let graphEditId = null, graphPreview = null, graphTableFunction = '';
     let saveTimeout, toastTimeout, timerInterval, timerRemaining = 300;
-    if (P) { const loaded = P.load((window.AcademyStorage||localStorage), storageKey, M.restore); library = loaded.library; board = loaded.board; }
+    let releaseBoardLock;
+    async function ownBoard(candidate) {
+        const next = M.clone(candidate);
+        let release;
+        try { release = await P.claim(navigator.locks, deviceStorage.scope || 'guest', next.id); } catch (_) {}
+        if (!release) {
+            next.id = M.uid(); next.title = (next.title.slice(0, 70) + ' · copy').slice(0, 80);
+            try { release = await P.claim(navigator.locks, deviceStorage.scope || 'guest', next.id); } catch (_) {}
+            toast('Opened a separate copy so work in another tab stays safe.');
+        }
+        releaseBoardLock?.(); releaseBoardLock = release;
+        return next;
+    }
+    let recoveryWarnings = [], started = false, saveGeneration = 0, localSaveState = 'Checking device storage…';
+    const tabActiveKey = 'whiteboard-active:' + (deviceStorage.scope || 'guest');
+    let tabActiveId;
+    try { tabActiveId = sessionStorage.getItem(tabActiveKey); } catch (_) {}
+    try {
+        const loaded = await P.load(deviceStorage, storageKey, M.restore, tabActiveId);
+        library = loaded.library; board = loaded.board; recoveryWarnings = loaded.warnings;
+    } catch (error) { recoveryWarnings.push(error.message); }
     if (!board) { board = M.newBoard(); library.push(board); }
-    board = M.clone(board);
+    board = await ownBoard(board);
+    try { sessionStorage.setItem(tabActiveKey, board.id); } catch (_) {}
+    started = board.items.length > 0;
+    function showSaveState() {
+        const sync = window.AcademyStorage?.getStatus?.() || '';
+        const online = sync === 'Saved online' ? ' · Online copy saved' : sync.includes('Two versions') ? ' · Resolve copies in My Learning' : navigator.onLine === false || window.WhiteboardOfflineShell ? ' · Offline' : window.AcademyStorage?.onlineEnabled ? ' · Waiting to sync' : '';
+        $('wb-save-state').textContent = localSaveState + online;
+        $('wb-save-state').title = sync;
+    }
+    window.addEventListener('academy-storage-status', showSaveState);
     function toast(message) {
         $('wb-toast').textContent = message; $('wb-toast').hidden = false;
         clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { $('wb-toast').hidden = true; }, 3800);
     }
-    function saveNow() {
-        clearTimeout(saveTimeout);
+    async function saveNow() {
+        clearTimeout(saveTimeout); saveTimeout = null;
+        const generation = ++saveGeneration;
+        const localViewKey = viewKey(), localView = JSON.stringify({view: board.view, fit: viewFit});
+        localSaveState = 'Saving…'; showSaveState();
         try {
-            if (P) P.save((window.AcademyStorage||localStorage), storageKey, library, board, M.clone);
-            else (window.AcademyStorage||localStorage).setItem(storageKey, JSON.stringify({ version: 1, activeId: board.id, boards: library }));
-            $('wb-save-state').textContent = 'Saved on this device';
-        } catch (_) { $('wb-save-state').textContent = 'Not saved · download a backup'; toast('Device storage is full or unavailable. Download an editable board from File to keep your work.'); }
+            await P.save(deviceStorage, storageKey, library, board, M.clone);
+            if (deviceStorage.setItemsAsync) await deviceStorage.setItemsAsync([[localViewKey, localView]]);
+            else deviceStorage.setItem(localViewKey, localView);
+            if (generation === saveGeneration) { localSaveState = 'Saved on this device'; showSaveState(); }
+            return true;
+        } catch (_) {
+            if (generation === saveGeneration) { localSaveState = 'Not saved · download a backup'; showSaveState(); }
+            toast('Device storage is full or unavailable. Download an editable board from More → File to keep your work.');
+            return false;
+        }
     }
-    function saveSoon() { $('wb-save-state').textContent = 'Saving…'; clearTimeout(saveTimeout); saveTimeout = setTimeout(saveNow, 350); }
+    async function prepareDocumentCopies() {
+        const boardId = board.id;
+        const originals = [...new Set(board.items.filter(item => ['file', 'document-page'].includes(item.type)).map(item => item.attachmentId))];
+        app.dataset.documentsReady = String(originals.length === 0); app.dataset.documentsPending = String(originals.length > 0);
+        window.dispatchEvent(new CustomEvent('whiteboard-documents-ready', {detail: {ready: originals.length === 0, pending: originals.length > 0}}));
+        let ready = true;
+        for (const id of originals) {
+            if (board.id !== boardId) return;
+            try { await U.get(id); } catch (_) { ready = false; }
+        }
+        if (board.id === boardId) {
+            app.dataset.documentsReady = String(ready); app.dataset.documentsPending = 'false';
+            window.dispatchEvent(new CustomEvent('whiteboard-documents-ready', {detail: {ready, pending: false}}));
+        }
+    }
+    function saveSoon() { localSaveState = 'Saving…'; showSaveState(); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveNow, 250); }
     function commit(before) {
+        const previous = new Map(before.map(item => [item.id, item]));
+        for (const item of board.items) {
+            const original = previous.get(item.id);
+            if (original !== item && (!original || JSON.stringify(original) !== JSON.stringify(item))) {
+                artworkCache.delete(item.id); boundsCache.delete(item);
+            }
+        }
         if (history.commit(before, board.items)) { cancelRecognition(); saveSoon(); }
         render();
         if (recognitionPending.size) scheduleRecognition();
@@ -91,6 +179,7 @@
         if (recognitionReady && recognitionPending.size) recognitionTimer = setTimeout(runRecognition, delay);
     }
     async function initializeRecognition() {
+        if (navigator.onLine === false || window.WhiteboardOfflineShell) { recognitionReady = false; recognitionStatus('Offline · handwriting kept', true); return; }
         if (recognitionCheck) return recognitionCheck;
         lastRecognitionCheck = Date.now();
         recognitionCheck = (async () => {
@@ -162,7 +251,6 @@
         $('wb-review').hidden = !reviews.length;
         $('wb-review').textContent = `Review corrections (${reviews.length})`;
     }
-    let exportingPng = false;
     // Render the same SVG that supplied the dimensions so trailing symbols
     // cannot be clipped by differences between KaTeX and MathJax metrics.
     const mathSvg = (entry,w=entry.w,h=entry.h) =>
@@ -174,7 +262,8 @@
         return `<div class="wb-source-preview"><small>Your handwriting</small><svg role="img" aria-label="Original handwriting for this correction" viewBox="${b.x-pad} ${b.y-pad} ${Math.max(20,b.w+pad*2)} ${Math.max(20,b.h+pad*2)}" style="min-width:${Math.min(1400,Math.max(200,b.w*140/Math.max(20,b.h)))}px">${sources.map(s=>`<path d="${s.points.map(([x,y],i)=>`${i?'L':'M'}${x},${y}`).join(' ')}" fill="none" stroke="#25212e" stroke-width="${Math.max(.8,s.width||1)}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</svg></div>`;
     }
     function openReview(review) {
-        finishEdit(true); cancelRecognition(); activeReview = review;
+        finishEdit(true); cancelRecognition(); toggleMore(false); activeReview = review;
+        $('wb-review-apply').disabled = false;
         $('wb-review-heading').textContent = review.editId ? 'Edit equation' : review.request ? 'Review handwriting' : 'Add equation';
         $('wb-review-help').textContent = review.request ? 'Check the reading, line breaks and spacing. Uncertain ink is kept until you approve it.' : 'Use integral(x^2,x), integral(x^2,x,0,1), diff(x^2,x), diff(x^3,x,2), partial(f(x,y),x), fractions or LaTeX. The preview shows exactly what will appear on the board.';
         $('wb-review-keep').hidden = !review.request;
@@ -196,6 +285,7 @@
             const out=$(`wb-review-preview-${i}`), symbols=$('wb-review-cards').querySelector(`[data-review-symbols="${i}"]`);
             symbols.hidden=format!=='math'; out.classList.remove('has-error');
             if (format!=='math') { out.textContent=text || 'Your text preview'; return; }
+            if (!text.trim()) { out.textContent = 'Your equation preview'; return; }
             out.textContent='Formatting…';
             const entry=await window.WhiteboardMath.prepare(text,28,text===w.text&&format===w.format?w.latex:null);
             if (revision!==previewRevision || activeReview!==review) return;
@@ -205,6 +295,83 @@
     }
     $('wb-review').addEventListener('click',()=>{refreshReviews();if(reviews.length)openReview(reviews[0]);});
     $('wb-add-equation').addEventListener('click',()=>openReview({boardId:board.id,words:[{text:'',format:'math',fontSize:32}]}));
+    function reviewEdits(review) {
+        return review.words.map((word, index) => ({
+            text: $(`wb-review-text-${index}`).value,
+            format: $(`wb-review-format-${index}`).value,
+            selected: !review.request || $(`wb-review-select-${index}`).checked,
+        }));
+    }
+    $('wb-review-cards').addEventListener('input', updateReviewPreview);
+    $('wb-review-cards').addEventListener('change', updateReviewPreview);
+    $('wb-review-cards').addEventListener('click', event => {
+        const button = event.target.closest('button'); if (!button) return;
+        const input = $(`wb-review-text-${button.dataset.reviewIndex}`); if (!input) return;
+        if (button.dataset.reviewAlternative !== undefined) input.value = button.dataset.reviewAlternative;
+        if (button.dataset.reviewInsert !== undefined) input.setRangeText(button.dataset.reviewInsert, input.selectionStart, input.selectionEnd, 'end');
+        input.focus(); updateReviewPreview();
+    });
+    $('wb-review-close').addEventListener('click', () => D.close($('wb-review-dialog')));
+    $('wb-review-dialog').addEventListener('close', () => { activeReview = null; previewRevision++; if (recognitionPending.size) scheduleRecognition(); });
+    $('wb-review-apply').addEventListener('click', async () => {
+        const review = activeReview, button = $('wb-review-apply'), error = $('wb-review-error');
+        if (!review || review.boardId !== board.id) return;
+        const edits = reviewEdits(review), fingerprint = JSON.stringify(edits);
+        error.hidden = true; button.disabled = true;
+        try {
+            const words = M.reviewSelection(review.words, edits);
+            if (!words.length) throw Error('Select a line to replace, or choose Keep handwriting.');
+            if (words.some(word => !word.text)) throw Error('Enter the text or equation for each selected line.');
+            const layouts = await Promise.all(words.map(async word => {
+                const font = word.fontSize || 32;
+                if (word.format !== 'math') return T.textLayout(word.text, font);
+                const entry = await window.WhiteboardMath.prepare(word.text, font, word.latex);
+                if (!entry.ready) throw Error(entry.error || 'The equation could not be formatted. Check its notation.');
+                return entry;
+            }));
+            if (activeReview !== review || board.id !== review.boardId) return;
+            if (JSON.stringify(reviewEdits(review)) !== fingerprint) throw Error('The writing changed while formatting. Check the preview and apply again.');
+            const before = board.items.slice();
+            if (review.request) {
+                const result = M.applyRecognition(board.items, review.request, words, true);
+                if (!result.corrected) throw Error('The original writing changed. Reopen its review before applying.');
+                board.items = result.items; selected = null;
+                reviews = reviews.filter(value => value !== review);
+            } else {
+                const word = words[0], layout = layouts[0], original = board.items.find(item => item.id === review.editId), point = centre();
+                if (review.editId && !original) throw Error('This equation was removed. Close the editor and try again.');
+                const item = M.create('text', original?.x ?? point.x - layout.w / 2, original?.y ?? point.y - layout.h / 2, {
+                    ...original, id: original?.id || M.uid(), text: word.text, format: word.format,
+                    fontSize: word.fontSize || 32, stroke: original?.stroke || ink,
+                    w: layout.w, h: layout.h, manualText: true,
+                });
+                delete item.latex; delete item.latexSource;
+                if (word.format === 'math' && word.latex) { item.latex = word.latex; item.latexSource = word.text; }
+                const others = board.items.filter(value => value.id !== original?.id);
+                const placed = M.placeRecognized(item, others);
+                board.items = original ? board.items.map(value => value.id === original.id ? placed : value) : [...board.items, placed];
+                selected = placed.id;
+            }
+            D.close($('wb-review-dialog')); setTool('select'); commit(before);
+            toast(review.request ? 'Selected writing corrected. Undo restores the original ink.' : 'Equation saved. Double-click it to edit.');
+        } catch (reason) {
+            if (activeReview === review) { error.textContent = reason.message; error.hidden = false; }
+        } finally { if (activeReview === review) button.disabled = false; }
+    });
+    $('wb-review-keep').addEventListener('click', () => {
+        const review = activeReview; if (!review?.request || review.boardId !== board.id) return;
+        const ids = new Set(review.request.strokes.map(stroke => stroke.id));
+        const contexts = new Set(review.request.contextIds);
+        mutate(() => { board.items = board.items.map(item => ids.has(item.id) && item.type === 'path' ? {...item, keepInk: true} : contexts.has(item.id) ? {...item, manualText: true} : item); });
+        reviews = reviews.filter(value => value !== review);
+        for (const id of ids) recognitionPending.delete(id);
+        D.close($('wb-review-dialog')); render(); toast('Original handwriting kept. Undo reverses this choice.');
+    });
+    $('wb-review-export').addEventListener('click', () => {
+        if (!activeReview?.request) return;
+        const sample = {version: 1, mode: activeReview.mode, strokes: activeReview.submittedStrokes || activeReview.request.strokes, edits: reviewEdits(activeReview), suggestions: activeReview.words};
+        download(new Blob([JSON.stringify(sample)], {type: 'application/json'}), 'handwriting-review.json');
+    });
     function stopVoice(message='Microphone is off.') {
         voiceListening=false;clearTimeout(voiceSilenceTimer);voiceSilenceTimer=null;clearTimeout(voiceResultTimer);voiceResultTimer=null;
         if(speechRecognition){const recognition=speechRecognition;speechRecognition=null;try{recognition.stop();}catch(_){/* Already stopped. */}}
@@ -221,6 +388,8 @@
             if(fromTranscript){const parsed=V.parseSpokenMath($('wb-voice-transcript').value);$('wb-voice-expression').value=parsed.expression;}
             expression=$('wb-voice-expression').value.trim();if(!expression){preview.textContent='Your equation preview';return;}
             const tex=T.toLatex(expression);
+            await window.WhiteboardMath.load();
+            if (revision !== voicePreviewRevision) return;
             preview.innerHTML=window.katex.renderToString(tex,{displayMode:true,throwOnError:true,trust:false,maxExpand:500,maxSize:20});apply.disabled=false;
             if(voiceListening)return;
             const entry=await window.WhiteboardMath.prepare(expression,32);
@@ -373,7 +542,7 @@
     function choosePen(name) {
         if (name !== 'eraser') activePen = name;
         $('wb-floating-tools').hidden = false;
-        setTool(name === 'eraser' ? 'eraser' : 'pencil'); showDrawTray(true);
+        setTool(name === 'eraser' ? 'eraser' : 'pencil'); showDrawTray(false);
     }
     function setPenColour(value) {
         pens[activePen].colour = value;
@@ -382,7 +551,9 @@
         ink = value; syncDrawTools();
     }
     function setTool(name) {
+        toggleMore(false);
         finishEdit(true); tool = name; selected = null; lastSelectionTap = null;
+        started = true;
         if (name === 'pencil') { ink = pens[activePen].colour; penWidth = pens[activePen].width; }
         if (name !== 'pencil' && name !== 'eraser') showDrawTray(false);
         $('wb-eraser-cursor').hidden = true;
@@ -418,6 +589,7 @@
                 const current=board.items.find(i=>i.id===item.id);
                 if(!entry.ready||!current||current.text!==item.text||current.fontSize!==item.fontSize)return;
                 Object.assign(current,M.placeRecognized({...current,w:entry.w,h:entry.h},board.items.filter(i=>i.id!==current.id)));
+                artworkCache.delete(current.id); boundsCache.delete(current);
                 saveSoon();render();
             });
             const layout = T.mathLayout(item.text,item.fontSize);
@@ -429,6 +601,28 @@
         }
         const lines = wrap(item.text, Math.max(2, Math.floor((box.w - inset * 2) / (item.fontSize * .56))));
         return `<text x="${box.x + inset}" y="${box.y + inset + item.fontSize}" fill="${colour}" font-family="Segoe UI,Arial,sans-serif" font-size="${item.fontSize}">${lines.map((line, i) => `<tspan x="${box.x + inset}" y="${box.y+inset+item.fontSize+i*item.fontSize*1.35}">${esc(line)}</tspan>`).join('')}</text>`;
+    }
+    const documentKey=item=>item.attachmentId+':'+item.pageNumber;
+    function rememberDocumentPage(key, page) {
+        documentImages.delete(key); documentImages.set(key, page);
+        while (documentImages.size > 3) documentImages.delete(documentImages.keys().next().value);
+        for (const item of board.items) if (item.type === 'document-page') artworkCache.delete(item.id);
+    }
+    async function ensureDocumentPage(item){
+        const key=documentKey(item);if(documentImages.has(key))return documentImages.get(key);
+        if(!documentLoads.has(key))documentLoads.set(key,Docs.page(item,item.pageNumber,U.get).then(page=>{rememberDocumentPage(key,page);return page;}).catch(error=>{const failed={error:error.message};rememberDocumentPage(key,failed);return failed;}).finally(()=>documentLoads.delete(key)));
+        return documentLoads.get(key);
+    }
+    function pageVisible(item){const s=size(),v=board.view;return item.x*v.zoom+v.x<s.w+300&&(item.x+item.w)*v.zoom+v.x>-300&&item.y*v.zoom+v.y<s.h+300&&(item.y+item.h)*v.zoom+v.y>-300;}
+    const artworkCache = new Map();
+    let boundsCache = new WeakMap(), renderFrame = null;
+    function itemBounds(item) {
+        if (drag?.id === item.id || !boundsCache.has(item)) boundsCache.set(item, M.bounds(item));
+        return boundsCache.get(item);
+    }
+    function visibleItem(item) {
+        const b = itemBounds(item), v = board.view, s = size(), margin = 100;
+        return b.x * v.zoom + v.x < s.w + margin && (b.x + b.w) * v.zoom + v.x > -margin && b.y * v.zoom + v.y < s.h + margin && (b.y + b.h) * v.zoom + v.y > -margin;
     }
     function graphMarkup(item, box) {
         const left=46, right=16, top=35, bottom=32, width=Math.max(1,box.w-left-right), height=Math.max(1,box.h-top-bottom);
@@ -450,10 +644,18 @@
         art+=`<g clip-path="url(#${clip})">${(item.samples||[]).map(segment=>`<path d="${segment.map(([x,y],i)=>`${i?'L':'M'}${px(x)},${py(y)}`).join(' ')}" fill="none" stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}${item.graphSource==='table'?(item.tablePoints||[]).map(([x,y])=>`<circle cx="${px(x)}" cy="${py(y)}" r="4" fill="${item.stroke}" stroke="#fff" stroke-width="1.5"/>`).join(''):''}</g>`;
         return art;
     }
-    function itemMarkup(item) {
-        const b = M.bounds(item), style = `stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"`;
+    function itemMarkup(item, pageOverride = null) {
+        const b = itemBounds(item), style = `stroke="${item.stroke}" stroke-width="${item.width}" stroke-linecap="round" stroke-linejoin="round"`;
         let art = '';
         switch (item.type) {
+        case 'document-page': {
+            const page=pageOverride?.src ? pageOverride : documentImages.get(documentKey(item));
+            if(!page&&pageVisible(item)&&!documentLoads.has(documentKey(item))){const boardId=board.id;ensureDocumentPage(item).then(()=>{if(board.id===boardId)render();});}
+            art=`<rect x="${b.x+5}" y="${b.y+6}" width="${b.w}" height="${b.h}" fill="#332244" opacity=".08"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="white" stroke="#ddd4e9" stroke-width="1"/>`;
+            art+=page?.src?`<image href="${page.src}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" preserveAspectRatio="none"/>`:`<text x="${b.x+28}" y="${b.y+50}" fill="#756485" font-size="18">${esc(page?.error||'Loading document page…')}</text>`;
+            art+=`<text x="${b.x}" y="${b.y-12}" fill="#766785" font-family="Segoe UI,Arial,sans-serif" font-size="14">${esc(item.fileName)} · Page ${item.pageNumber} of ${item.pageCount} · Questions locked</text>`;
+            return `<g data-wb-document-page="${esc(item.id)}" role="img" aria-label="${esc(item.fileName+', page '+item.pageNumber)}" pointer-events="none">${art}</g>`;
+        }
         case 'path': {
             const d = item.points.map(([x, y], i) => `${i ? 'L' : 'M'}${x},${y}`).join(' ');
             art = item.points.length === 1 ? `<circle cx="${item.points[0][0]}" cy="${item.points[0][1]}" r="${item.width / 2}" fill="${item.stroke}"/>` : `<path d="${d}" fill="none" ${style}/><path d="${d}" fill="none" stroke="transparent" stroke-width="${Math.max(14, item.width)}"/>`;
@@ -472,7 +674,7 @@
         case 'text': art = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="transparent"/>${textMarkup(item, b, 4, item.stroke)}`; break;
         case 'file': {
             const lines=wrap(item.fileName,Math.max(12,Math.floor((b.w-32)/8))).slice(0,2);
-            art=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="12" fill="#ffffff" stroke="#b69bd7" stroke-width="2"/><text x="${b.x+16}" y="${b.y+25}" fill="#7136b4" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">${esc(item.fileName.split('.').pop().toUpperCase())} FILE</text>${lines.map((line,i)=>`<text x="${b.x+16}" y="${b.y+50+i*19}" fill="#302941" font-family="Segoe UI,Arial,sans-serif" font-size="15">${esc(line)}</text>`).join('')}<text x="${b.x+16}" y="${b.y+b.h-16}" fill="#6e657a" font-family="Segoe UI,Arial,sans-serif" font-size="12">${(item.fileSize/1024).toFixed(1)} KB · Double-click to download</text>`;break;
+            art=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="12" fill="#ffffff" stroke="#b69bd7" stroke-width="2"/><text x="${b.x+16}" y="${b.y+25}" fill="#7136b4" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">${esc(item.fileName.split('.').pop().toUpperCase())} FILE</text>${lines.map((line,i)=>`<text x="${b.x+16}" y="${b.y+50+i*19}" fill="#302941" font-family="Segoe UI,Arial,sans-serif" font-size="15">${esc(line)}</text>`).join('')}<text x="${b.x+16}" y="${b.y+b.h-16}" fill="#6e657a" font-family="Segoe UI,Arial,sans-serif" font-size="12">${(item.fileSize/1024).toFixed(1)} KB · Double-click to open</text>`;break;
         }
         case 'image': art = `<image href="${esc(item.src)}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" preserveAspectRatio="xMidYMid meet"/>`; break;
         case 'graph': art = graphMarkup(item,b); break;
@@ -495,29 +697,51 @@
         return `<g data-wb-item="${esc(item.id)}"${accessibility}>${art}</g>`;
     }
     function render() {
+        if (renderFrame === null) renderFrame = requestAnimationFrame(() => { renderFrame = null; renderNow(); });
+    }
+    function renderNow() {
         const view = board.view;
         world.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.zoom})`);
-        let markup = board.items.map(itemMarkup).join('');
+        const visible = [...board.items.filter(i => i.type === 'document-page'), ...board.items.filter(i => i.type !== 'document-page')].filter(visibleItem);
+        const ids = new Set(visible.map(i => i.id));
+        for (const [id, entry] of artworkCache) if (!ids.has(id)) { entry.node.remove(); artworkCache.delete(id); }
+        // Keep stable SVG nodes so pointer movement updates only the active object.
+        let cursor = world.firstChild;
+        for (const object of visible) {
+            let entry = artworkCache.get(object.id);
+            if (!entry || !entry.node.isConnected) {
+                entry = {node: document.createElementNS('http://www.w3.org/2000/svg', 'g'), item: null};
+                artworkCache.set(object.id, entry);
+            }
+            if (entry.item !== object || drag?.id === object.id) { entry.node.innerHTML = itemMarkup(object); entry.item = object; }
+            if (entry.node !== cursor) world.insertBefore(entry.node, cursor);
+            cursor = entry.node.nextSibling;
+        }
+        while (cursor) { const next = cursor.nextSibling; cursor.remove(); cursor = next; }
+        let markup = '';
         const item = chosen();
         if (item && !drag?.drawing && tool === 'select') {
             const b = M.bounds(item), pad = 6 / view.zoom, handle = 9 / view.zoom;
             markup += `<g data-wb-selection="true"><rect x="${b.x - pad}" y="${b.y - pad}" width="${b.w + pad * 2}" height="${b.h + pad * 2}" fill="none" stroke="#8b3dff" stroke-width="${1.5 / view.zoom}" pointer-events="none"/><rect data-wb-resize="true" x="${b.x + b.w + pad - handle / 2}" y="${b.y + b.h + pad - handle / 2}" width="${handle}" height="${handle}" rx="${2 / view.zoom}" fill="white" stroke="#8b3dff" stroke-width="${1.5 / view.zoom}" style="cursor:nwse-resize"/></g>`;
         }
-        world.innerHTML = markup;
+        if (markup) world.insertAdjacentHTML('beforeend', markup);
+        $('wb-start').hidden = started || board.items.length > 0;
         stage.style.backgroundSize = `${20 * view.zoom}px ${20 * view.zoom}px`;
         stage.style.backgroundPosition = `${view.x}px ${view.y}px`;
         $('wb-zoom').value = Math.round(view.zoom * 100); $('wb-zoom-label').textContent = `${Math.round(view.zoom * 100)}%`;
+        $('wb-phone-zoom-label').textContent = `${Math.round(view.zoom * 100)}%`;
         $('wb-object-count').textContent = `${board.items.length} element${board.items.length === 1 ? '' : 's'}`;
         $('wb-recognition-mode').value = board.recognitionMode || 'auto';
         $('wb-selection-tools').hidden = !item || tool !== 'select';
         const editButton=$('wb-selection-tools').querySelector('[data-wb-action=edit]');
         editButton.disabled = !item || !['text', 'sticky', 'table', 'graph', 'file'].includes(item.type);
-        editButton.title=item?.type==='file'?'Download file':'Edit element';editButton.setAttribute('aria-label',editButton.title);
+        editButton.title=item?.type==='file'?'Open document':'Edit element';editButton.setAttribute('aria-label',editButton.title);
         $('wb-undo').disabled = !history.canUndo; $('wb-redo').disabled = !history.canRedo;
         $('wb-tidy-existing').disabled = recognitionBusy || !board.items.some(M.canRetryRecognition);
         $('wb-selection-tools').querySelector('[data-wb-action="restore-ink"]').disabled = !item?.inkSource?.length;
         refreshReviews();
         syncDrawTools();
+        updateDocumentNavigation();
     }
     function add(type, options = {}) {
         const p = centre(), item = M.create(type, p.x - 100, p.y - 70, { stroke: ink, fill, width: penWidth, fontSize, ...options });
@@ -528,7 +752,7 @@
     }
     function edit(item) {
         if (!item || !['text', 'sticky', 'table', 'graph', 'file'].includes(item.type)) return;
-        if(item.type==='file'){downloadAttachment(item);return;}
+        if(item.type==='file'){openDocument(item);return;}
         if(item.type==='graph'){openGraph(item);return;}
         if(item.format==='math'){openReview({boardId:board.id,editId:item.id,words:[{text:item.text,format:'math',fontSize:item.fontSize}]});return;}
         editing = item.id; $('wb-edit-text').value = item.text; $('wb-editor').hidden = false;
@@ -550,19 +774,37 @@
         editing = null; $('wb-editor').hidden = true;
     }
     function zoomTo(value, anchor) {
-        const old = board.view.zoom, next = Math.max(.25, Math.min(2, value)), s = size();
+        const old = board.view.zoom, next = Math.max(.05, Math.min(2, value)), s = size();
         const point = anchor || { x: s.w / 2, y: s.h / 2 };
         board.view.x = point.x - (point.x - board.view.x) * next / old;
         board.view.y = point.y - (point.y - board.view.y) * next / old;
-        board.view.zoom = next; render(); saveSoon();
+        board.view.zoom = next; render(); saveView();
     }
     function fit() {
-        if (!board.items.length) { board.view = { x: 0, y: 0, zoom: 1 }; render(); saveSoon(); return; }
-        const b = M.allBounds(board.items), s = size(), z = Math.max(.25, Math.min(1.5, (s.w - 180) / Math.max(1, b.w), (s.h - 100) / Math.max(1, b.h)));
-        board.view = { x: (s.w - b.w * z) / 2 - b.x * z + 25, y: (s.h - b.h * z) / 2 - b.y * z, zoom: z }; render(); saveSoon();
+        if (!board.items.length) { board.view = { x: 0, y: 0, zoom: 1 }; render(); saveView('board'); return; }
+        const b = M.allBounds(board.items), s = size(), z = Math.max(.05, Math.min(1.5, (s.w - 48) / Math.max(1, b.w), (s.h - 48) / Math.max(1, b.h)));
+        board.view = { x: (s.w - b.w * z) / 2 - b.x * z, y: (s.h - b.h * z) / 2 - b.y * z, zoom: z }; render(); saveView('board');
     }
     function moveView(dx, dy) {
-        board.view = M.panView(board.view, dx, dy); render(); saveSoon();
+        board.view = M.panView(board.view, dx, dy); render(); saveView();
+    }
+    let viewSaveTimer, viewFit = 'width';
+    const viewKey = () => '@whiteboard-view:' + board.id + ':' + (innerWidth <= 700 ? 'phone' : 'wide');
+    function saveView(fitMode = 'manual') {
+        viewFit = fitMode; clearTimeout(viewSaveTimer);
+        const key = viewKey(), raw = JSON.stringify({view: board.view, fit: viewFit});
+        viewSaveTimer = setTimeout(() => {
+            const result = deviceStorage.setItemsAsync?.([[key, raw]]);
+            if (result) result.catch(() => {}); else try { deviceStorage.setItem(key, raw); } catch (_) {}
+        }, 150);
+    }
+    function restoreView() {
+        clearTimeout(viewSaveTimer);
+        let saved; try { saved = JSON.parse(deviceStorage.getItem(viewKey())); } catch (_) {}
+        if (saved?.view && [saved.view.x, saved.view.y, saved.view.zoom].every(Number.isFinite) && saved.view.zoom >= .05 && saved.view.zoom <= 2) {
+            board.view = saved.view; viewFit = saved.fit || 'manual'; render();
+        } else if (activeDocumentPage()) focusDocumentPage(activeDocumentPage());
+        else { board.view = {x: 0, y: 0, zoom: 1}; if (board.items.length) fit(); else render(); }
     }
     function touchPosition() {
         return Gesture.midpoint(touches, svg.getBoundingClientRect());
@@ -570,19 +812,6 @@
     function startTouch(event) {
         if (event.pointerType !== 'touch') return false;
         touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-        if (Gesture.touchIntent(touches.size) === 'clear') {
-            event.preventDefault();
-            if (drag) endDrag({ pointerId: drag.pointer }, true);
-            if (!multiTouchCleared) {
-                multiTouchCleared = true;
-                if (touchGesture) board.view = touchGesture.view;
-                const before = M.clone(board.items);
-                board.items = []; selected = null; touchGesture = null; cancelRecognition(true); commit(before);
-                toast(before.length ? 'Whiteboard cleared. Undo restores everything.' : 'The whiteboard is already empty.');
-            }
-            for (const id of touches.keys()) svg.setPointerCapture(id);
-            waitForTouchRelease = true; stage.classList.add('is-panning'); $('wb-eraser-cursor').hidden = true; return true;
-        }
         if (Gesture.touchIntent(touches.size) === 'pan-zoom') {
             event.preventDefault();
             if (drag) endDrag({ pointerId: drag.pointer }, true);
@@ -600,10 +829,10 @@
         if (wasGesture) {
             if (cancelled && touchGesture) board.view = touchGesture.view;
             touchGesture = null;
-            if (!touches.size) { waitForTouchRelease = false; multiTouchCleared = false; }
+            if (!touches.size) waitForTouchRelease = false;
             stage.classList.remove('is-panning');
             if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
-            render(); saveSoon();
+            render(); saveView();
         }
         return wasGesture;
     }
@@ -615,12 +844,18 @@
     }
     let lastSelectionTap = null;
     svg.addEventListener('pointerdown', event => {
+        if (!advanced.hidden) { toggleMore(false); return; }
+        if (event.pointerType === 'touch' && penPointer !== null) return;
+        if (event.pointerType === 'pen') {
+            if (drag && drag.pointer !== event.pointerId) endDrag({pointerId: drag.pointer}, true);
+            touches.clear(); touchGesture = null; waitForTouchRelease = false; penPointer = event.pointerId;
+        }
         if (startTouch(event)) return;
         if (event.button !== 0 && event.button !== 1) return;
         if (drag && drag.pointer !== event.pointerId) return;
         if (editing) { finishEdit(true); return; }
         event.preventDefault(); svg.focus({ preventScroll: true });
-        const p = position(event), before = M.clone(board.items);
+        const p = position(event), before = board.items.slice();
         cancelRecognition();
         updateEraserCursor(event); closeDrawMenus();
         svg.setPointerCapture(event.pointerId);
@@ -651,7 +886,6 @@
     svg.addEventListener('pointermove', event => {
         if (touches.has(event.pointerId)) {
             touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-            if (multiTouchCleared) { event.preventDefault(); return; }
             if (touchGesture && touches.size >= 2) {
                 event.preventDefault(); board.view = M.gestureView(touchGesture.view, touchGesture.start, touchPosition()); render(); return;
             }
@@ -679,6 +913,7 @@
         render();
     });
     function endDrag(event, cancel = false) {
+        if (event.pointerId === penPointer) penPointer = null;
         if (!drag || event.pointerId !== drag.pointer) return;
         const action = drag; drag = null; stage.classList.remove('is-panning');
         if (action.type === 'move' && !cancel) {
@@ -697,12 +932,13 @@
             }
             commit(action.before);
             if (action.type === 'pencil') queueRecognition([action.id]);
-        } else saveSoon();
+        } else saveView();
         if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
         render();
     }
     svg.addEventListener('pointerup', event => { if (!finishTouch(event, false)) endDrag(event); if (recognitionPending.size) scheduleRecognition(); });
     svg.addEventListener('pointercancel', event => { if (!finishTouch(event, true)) endDrag(event, true); if (recognitionPending.size) scheduleRecognition(); });
+    svg.addEventListener('lostpointercapture', event => { if (drag?.pointer === event.pointerId) endDrag(event, true); });
     svg.addEventListener('pointerleave', () => { $('wb-eraser-cursor').hidden = true; });
     svg.addEventListener('dblclick', event => {
         // Selection redraws the SVG between clicks, so the browser can target
@@ -731,13 +967,18 @@
         } else if (panel === 'text') {
             html = '<p>A headline, a question, a thought. Double-click text on your board to edit it.</p>' + button('heading', 'Add a heading', 'text') + button('body', 'Add body text', 'text') + button('note', 'Add a sticky note', 'sticky');
         } else if (panel === 'uploads') {
-            html = `<div class="wb-upload-area">${icon('upload')}<p>Add images and lesson files to your board.</p>${button('upload', 'Choose images', 'plus')}${button('upload-files', 'Choose files', 'folder')}</div><p>Images: PNG, JPEG, WebP.<br>Files: PDF, Word, Excel, PowerPoint, TXT, CSV.<br>Up to 10 MB each. Drag and drop either onto the board. Files stay on this device and are included in editable board backups.</p>`;
-            html+=board.items.filter(item=>item.type==='file').map(item=>`<button class="wb-board-card" data-wb-download="${esc(item.id)}"><strong>${esc(item.fileName)}</strong><small>Download · ${(item.fileSize/1024).toFixed(1)} KB</small></button>`).join('');
+            html = `<div class="wb-upload-area">${icon('upload')}<p>Open lesson questions and write answers on the board.</p>${button('upload', 'Choose images', 'plus')}${button('upload-files', 'Choose files', 'folder')}</div><p>PDFs keep their page layout. DOCX, XLSX, PPTX, TXT and CSV open as readable text pages. For original Office formatting and diagrams, use a PDF copy.<br>Up to 10 MB each. Drag and drop a file here or onto the board.</p>`;
+            const attachments=[...new Map(board.items.filter(item=>['file','document-page'].includes(item.type)).map(item=>[item.attachmentId,item])).values()];
+            html+=attachments.map(item=>`<div class="wb-upload-document-card"><strong>${esc(item.fileName)}</strong><small>${(item.fileSize/1024).toFixed(1)} KB</small><div><button data-wb-open-document="${esc(item.id)}">Open pages</button><button data-wb-download="${esc(item.id)}">Download</button></div></div>`).join('');
         } else if (panel === 'style') {
             html = `<p>Choose a tool from the floating toolbar. Select an element to change its style.</p><label for="wb-ink">Ink &amp; outline</label><input id="wb-ink" type="color" value="${ink}" data-wb-property="stroke"><div class="wb-swatches">${['#3b3548', '#ef476f', '#1689f8', '#24a87c', '#8b3dff', '#f29b22'].map(c => `<button style="--swatch:${c}" data-wb-colour="${c}" aria-label="Use ${c}"></button>`).join('')}</div><label for="wb-fill">Shape &amp; sticky note colour</label><input id="wb-fill" type="color" value="${fill}" data-wb-property="fill"><label for="wb-width">Stroke width <output id="wb-width-value">${penWidth}</output></label><input id="wb-width" type="range" min="1" max="18" value="${penWidth}" data-wb-property="width"><label for="wb-font-size">Text size</label><select id="wb-font-size" data-wb-property="fontSize">${[14, 18, 24, 32, 40, 56, 72].map(v => `<option value="${v}" ${fontSize === v ? 'selected' : ''}>${v} px</option>`).join('')}</select>`;
         } else if (panel === 'projects') {
             html = '<p>Saved in this browser on this device. Download an editable file from File to keep a portable backup.</p>' + button('new', 'New whiteboard', 'plus');
-            html += [...library].sort((a, b) => b.updated - a.updated).map(b => `<button class="wb-board-card ${b.id === board.id ? 'is-current' : ''}" data-wb-board="${esc(b.id)}"><strong>${esc(b.id === board.id ? board.title : b.title)}</strong><small>${b.id === board.id ? 'Current board · ' : ''}${b.items.length} elements · ${new Date(b.updated).toLocaleDateString()}</small></button>`).join('');
+            html += [...library].sort((a, b) => b.updated - a.updated).map(b => `<button class="wb-board-card ${b.id === board.id ? 'is-current' : ''}" data-wb-board="${esc(b.id)}"><strong>${esc(b.id === board.id ? board.title : b.title)}</strong><small>${b.id === board.id ? 'Current board · ' : ''}${b.count ?? b.items?.length ?? 'Online'} elements · ${new Date(b.updated).toLocaleDateString()}</small></button>`).join('');
+            const checkpoints = P.recovery(deviceStorage, board.id);
+            if (checkpoints.length) html += '<h3>Recover earlier work</h3>' + checkpoints.map((entry, index) => `<button class="wb-panel-button" data-wb-recovery="${index}">Open recovery copy · ${esc(new Date(entry.time).toLocaleString())}</button>`).join('');
+            if (deviceStorage.getItem(storageKey)) html += button('legacy-backup', 'Download original library', 'download');
+            if (recoveryWarnings.length) html += '<p role="alert">' + recoveryWarnings.map(esc).join(' ') + '</p>';
         }
         $('wb-panel-content').innerHTML = html;
     }
@@ -766,12 +1007,28 @@
             }
         });
     }
-    function loadBoard(next) {
+    let loadRevision = 0;
+    async function loadBoard(next) {
+        const revision = ++loadRevision;
+        const requestedId = next.id;
+        try { if (!next.items) next = await P.open(deviceStorage, next.id, M.restore); }
+        catch (error) { toast(error.message); return false; }
+        if (revision !== loadRevision) return false;
+        finishEdit(true);
+        if (!await saveNow()) return false;
+        if (revision !== loadRevision) return false;
+        boardNavigationRevision++;boardNavigation=null;
+        documentRevision++;D.close($('wb-document-dialog'));documentImages.clear();Docs.release?.();artworkCache.clear();boundsCache = new WeakMap();
         cancelRecognition(true);
-        finishEdit(true); saveNow(); board = M.clone(next); history = M.history(); selected = null;
+        board = await ownBoard(next); history = M.history(); selected = null; started = board.items.length > 0;
+        try { sessionStorage.setItem(tabActiveKey, board.id); } catch (_) {}
         $('wb-title').value = board.title; $('wb-notes').value = board.notes;
         setTool('select'); saveNow(); renderPanel();
         queueRecognition(board.items.filter(M.canRecognize).map(i => i.id));
+        restoreView();
+        openPanel(''); prepareDocumentCopies();
+        if (next.id !== requestedId) toast('An earlier recovery copy has opened. The damaged draft is retained.');
+        return true;
     }
     function template(name) {
         const p = centre(), x = p.x - 320, y = p.y - 180;
@@ -789,27 +1046,38 @@
     function filename(extension) { return `${board.title.replace(/[^\p{L}\p{N}\-_ ]/gu, '').trim() || 'whiteboard'}.${extension}`; }
     async function exportPng() {
         finishEdit(true);
-        await Promise.all(board.items.filter(i=>i.format==='math').map(i=>window.WhiteboardMath.prepare(i.text,i.fontSize,i.latexSource===i.text?i.latex:null)));
-        const b = M.allBounds(board.items), pad = 45, width = Math.max(200, b.w + pad * 2), height = Math.max(150, b.h + pad * 2), scale = Math.min(2, 4096 / Math.max(width, height));
-        exportingPng = true;
-        let artwork;
-        try { artwork = board.items.map(itemMarkup).join(''); } finally { exportingPng = false; }
-        const markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${b.x - pad} ${b.y - pad} ${width} ${height}"><rect x="${b.x - pad}" y="${b.y - pad}" width="${width}" height="${height}" fill="white"/>${artwork}</svg>`;
-        const url = URL.createObjectURL(new Blob([markup], { type: 'image/svg+xml;charset=utf-8' }));
+        const snapshot = M.clone(board), exportName = filename('png');
+        const b = M.allBounds(snapshot.items), pad = 45, width = Math.max(200, b.w + pad * 2), height = Math.max(150, b.h + pad * 2), scale = Math.min(2, 4096 / Math.max(width, height));
+        const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.ceil(width * scale)); canvas.height = Math.max(1, Math.ceil(height * scale));
+        const context = canvas.getContext('2d');
+        async function draw(artwork) {
+            const markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="${b.x-pad} ${b.y-pad} ${width} ${height}">${artwork}</svg>`;
+            const url = URL.createObjectURL(new Blob([markup], {type: 'image/svg+xml;charset=utf-8'}));
+            try { const image = new Image(); image.src = url; await image.decode(); context.drawImage(image, 0, 0); }
+            finally { URL.revokeObjectURL(url); }
+        }
         try {
-            const image = new Image(); image.src = url; await image.decode();
-            const canvas = document.createElement('canvas'); canvas.width = Math.ceil(width * scale); canvas.height = Math.ceil(height * scale);
-            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+            context.fillStyle = 'white'; context.fillRect(0, 0, canvas.width, canvas.height);
+            // Draw one question page at a time so export also respects the image budget.
+            for (const item of snapshot.items.filter(i => i.type === 'document-page')) {
+                const page = await Docs.page(item, item.pageNumber, U.get);
+                await draw(itemMarkup(item, page));
+            }
+            await Promise.all(snapshot.items.filter(i=>i.format==='math').map(i=>window.WhiteboardMath.prepare(i.text,i.fontSize,i.latexSource===i.text?i.latex:null)));
+            await draw(snapshot.items.filter(i => i.type !== 'document-page').map(item => itemMarkup(item)).join(''));
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            if (!blob) throw new Error(); download(blob, filename('png')); toast('Your whiteboard image is ready.');
-        } catch (_) { toast('Could not create the image. You can still download an editable board from File.'); }
-        finally { URL.revokeObjectURL(url); }
+            if (!blob) throw new Error(); download(blob, exportName); toast('Your whiteboard image is ready.');
+        } catch (_) { toast('Could not create the image. Reopen its original documents, or download an editable board from More → File.'); }
+        finally { canvas.width = canvas.height = 0; }
     }
     const actions = {
-        new() { loadBoard(M.newBoard()); if (panel === 'projects') renderPanel(); toast('A fresh whiteboard. Your previous board is saved in Projects.'); },
+        async new() { if (await loadBoard(M.newBoard())) { started = false; render(); if (panel === 'projects') renderPanel(); toast('A fresh whiteboard. Find your previous board in Continue work.'); } },
         projects() { if (panel !== 'projects') openPanel('projects'); },
         import() { $('wb-import').click(); }, upload() { $('wb-upload').click(); }, 'upload-files'() { $('wb-upload-files').click(); },
         png: exportPng,
+        'zoom-out'() { zoomTo(board.view.zoom / 1.2); },
+        'zoom-in'() { zoomTo(board.view.zoom * 1.2); },
+        fit,
         async json() { finishEdit(true); saveNow();try{const portable=await U.pack(M.clone(board));download(new Blob([JSON.stringify(portable)],{type:'application/json'}),filename('whiteboard.json'));}catch(error){toast(error.message);} },
         heading() { add('text', { text: 'Your big idea', fontSize: 40, w: 420, h: 100 }); },
         body() { add('text', { text: 'Add a little detail', fontSize: 24 }); }, note() { add('sticky', { fill: '#ffdf80' }); }, table() { add('table'); },
@@ -819,10 +1087,20 @@
         duplicate() { const item = chosen(); if (item) mutate(() => { const next = M.move(M.clone(item), 25, 25); next.id = M.uid(); board.items.push(next); selected = next.id; }); },
         delete() { if (selected) mutate(() => { board.items = board.items.filter(i => i.id !== selected); selected = null; }); },
         front() { if (chosen()) mutate(() => { const item = chosen(); board.items = board.items.filter(i => i.id !== selected); board.items.push(item); }); },
+        'clear-annotations'() {
+            if (!board.items.some(item => !['file', 'document-page'].includes(item.type))) { toast('There are no annotations to clear.'); return; }
+            cancelRecognition(); D.open($('wb-clear-dialog'), $('wb-clear-cancel'));
+        },
+        'legacy-backup'() { download(new Blob([deviceStorage.getItem(storageKey)], {type: 'application/json'}), 'original-whiteboard-library.json'); },
     };
     app.addEventListener('click', event => {
         const target = event.target.closest('button'); if (!target) return;
+        if (target.dataset.wbRecovery !== undefined) {
+            const entry = P.recovery(deviceStorage, board.id)[Number(target.dataset.wbRecovery)];
+            if (entry) { const recovered = M.restore(JSON.parse(entry.raw)); recovered.id = M.uid(); recovered.title += ' · recovered'; loadBoard(recovered); }
+        }
         if(target.dataset.wbDownload)downloadAttachment(board.items.find(item=>item.id===target.dataset.wbDownload));
+        if(target.dataset.wbOpenDocument)openDocument(board.items.find(item=>item.id===target.dataset.wbOpenDocument));
         if (target.dataset.wbTool) setTool(target.dataset.wbTool);
         if (target.dataset.wbAlternative) $('wb-edit-text').value = target.dataset.wbAlternative;
         if (target.dataset.wbPen) choosePen(target.dataset.wbPen);
@@ -840,6 +1118,7 @@
             syncDrawTools();
         }
         if (target.dataset.wbAction) { actions[target.dataset.wbAction]?.(); $('wb-file-menu').hidden = true; $('wb-file').setAttribute('aria-expanded', 'false'); }
+        if (target.dataset.wbPanel || target.dataset.wbTool || target.dataset.wbPen || (target.dataset.wbAction && !['zoom-in', 'zoom-out', 'fit'].includes(target.dataset.wbAction))) toggleMore(false);
     });
     app.addEventListener('change', event => { if (event.target.dataset.wbProperty) changeProperty(event.target.dataset.wbProperty, event.target.value); });
     $('wb-draw-toggle').addEventListener('click', () => {
@@ -864,6 +1143,21 @@
         syncDrawTools();
     });
     $('wb-file').addEventListener('click', () => { $('wb-file-menu').hidden = !$('wb-file-menu').hidden; $('wb-file').setAttribute('aria-expanded', String(!$('wb-file-menu').hidden)); });
+    $('wb-more-toggle').addEventListener('click', () => toggleMore(advanced.hidden));
+    $('wb-more-close').addEventListener('click', () => { toggleMore(false); $('wb-more-toggle').focus(); });
+    $('wb-clear-cancel').addEventListener('click', () => D.close($('wb-clear-dialog')));
+    $('wb-clear-dialog').addEventListener('close', () => { if (recognitionPending.size) scheduleRecognition(); });
+    $('wb-clear-confirm').addEventListener('click', () => {
+        cancelRecognition(true);
+        mutate(() => { board.items = board.items.filter(item => ['file', 'document-page'].includes(item.type)); selected = null; });
+        D.close($('wb-clear-dialog')); toast('Annotations cleared. Undo restores your work.');
+    });
+    $('wb-present').addEventListener('click', () => {
+        const presenting = app.classList.toggle('is-presenting');
+        $('wb-present').textContent = presenting ? 'Exit present' : 'Present';
+        $('wb-present').setAttribute('aria-pressed', String(presenting));
+        toggleMore(false); openPanel(''); setTool(presenting ? 'pan' : 'select');
+    });
     document.addEventListener('pointerdown', event => { if (!event.target.closest('.wb-menu-wrap')) { $('wb-file-menu').hidden = true; $('wb-file').setAttribute('aria-expanded', 'false'); $('wb-timer-panel').hidden = true; $('wb-timer-toggle').setAttribute('aria-expanded', 'false'); } });
     $('wb-panel-close').addEventListener('click', () => openPanel(panel));
     $('wb-title').addEventListener('input', () => { board.title = $('wb-title').value.trim() || 'Untitled whiteboard'; saveSoon(); });
@@ -872,8 +1166,8 @@
     $('wb-notes-toggle').addEventListener('click', () => { const open = $('wb-notes-panel').hidden; $('wb-notes-panel').hidden = !open; $('wb-notes-toggle').setAttribute('aria-expanded', String(open)); if (open) $('wb-notes').focus(); });
     $('wb-edit-done').addEventListener('click', () => { finishEdit(true); svg.focus(); });
     $('wb-edit-cancel').addEventListener('click', () => { finishEdit(false); svg.focus(); });
-    function undo() { cancelRecognition(true); finishEdit(true); const items = history.undo(board.items); if (items) { board.items = items; selected = null; render(); saveSoon(); } }
-    function redo() { cancelRecognition(true); finishEdit(true); const items = history.redo(board.items); if (items) { board.items = items; selected = null; render(); saveSoon(); } }
+    function undo() { cancelBoardNavigation(); cancelRecognition(true); finishEdit(true); const items = history.undo(board.items); if (items) { board.items = items; selected = null; render(); saveSoon(); } }
+    function redo() { cancelBoardNavigation(); cancelRecognition(true); finishEdit(true); const items = history.redo(board.items); if (items) { board.items = items; selected = null; render(); saveSoon(); } }
     $('wb-undo').addEventListener('click', undo); $('wb-redo').addEventListener('click', redo);
     $('wb-zoom-out').addEventListener('click', () => zoomTo(board.view.zoom - .1));
     $('wb-zoom-in').addEventListener('click', () => zoomTo(board.view.zoom + .1));
@@ -898,13 +1192,14 @@
     $('wb-help').addEventListener('click', () => $('wb-help-dialog').showModal());
     document.addEventListener('keydown', event => {
         const typing = event.target.closest('input,textarea,select,[contenteditable=true]'), command = event.ctrlKey || event.metaKey;
-        if (event.key === 'Escape') { if (editing) finishEdit(false); else if (drag) endDrag({ pointerId: drag.pointer }, true); else { selected = null; showDrawTray(false); $('wb-shape-tray').hidden = true; $('wb-shapes-toggle').setAttribute('aria-expanded', 'false'); render(); } return; }
+        if (event.key === 'Escape') { toggleMore(false); if (editing) finishEdit(false); else if (drag) endDrag({ pointerId: drag.pointer }, true); else { selected = null; showDrawTray(false); $('wb-shape-tray').hidden = true; $('wb-shapes-toggle').setAttribute('aria-expanded', 'false'); render(); } return; }
         if (editing && command && event.key === 'Enter') { event.preventDefault(); finishEdit(true); svg.focus(); return; }
-        if (typing || !$('whiteboard-app').contains(document.activeElement) || $('wb-help-dialog').open || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open) return;
+        if (typing || !$('whiteboard-app').contains(document.activeElement) || $('wb-clear-dialog').open || $('wb-help-dialog').open || $('wb-review-dialog').open || $('wb-voice-dialog').open || $('wb-graph-dialog').open || $('wb-document-dialog').open) return;
         const key = event.key.toLowerCase();
         if (command && ['z', 'y', 'd', 's'].includes(key)) {
-            event.preventDefault(); if (key === 'z') (event.shiftKey ? redo : undo)(); if (key === 'y') redo(); if (key === 'd') actions.duplicate(); if (key === 's') { saveNow(); toast('Saved on this device.'); } return;
+            event.preventDefault(); if (key === 'z') (event.shiftKey ? redo : undo)(); if (key === 'y') redo(); if (key === 'd') actions.duplicate(); if (key === 's') saveNow().then(saved => { if (saved) toast('Saved on this device.'); }); return;
         }
+        if(event.altKey&&['pageup','pagedown'].includes(key)&&activeDocumentPage()){event.preventDefault();stepBoardPage(key==='pageup'?-1:1);return;}
         if (command || event.altKey) return;
         if (key === 'pageup' || key === 'pagedown') { event.preventDefault(); moveView(0, size().h * .75 * (key === 'pageup' ? 1 : -1)); return; }
         if (key === 'home') { event.preventDefault(); board.view.x = 0; board.view.y = 0; render(); saveSoon(); return; }
@@ -918,8 +1213,23 @@
         }
     });
     document.addEventListener('keyup', event => { if (event.key === ' ') { space = false; if (drag?.type !== 'pan') stage.classList.remove('is-panning'); } });
-    window.addEventListener('blur', () => { space = false; if (drag) endDrag({ pointerId: drag.pointer }, true); touches.clear(); touchGesture = null; waitForTouchRelease = false; multiTouchCleared = false; stage.classList.remove('is-panning'); $('wb-eraser-cursor').hidden = true; });
+    window.addEventListener('blur', () => { space = false; if (drag) endDrag({ pointerId: drag.pointer }, true); touches.clear(); touchGesture = null; waitForTouchRelease = false; penPointer = null; stage.classList.remove('is-panning'); $('wb-eraser-cursor').hidden = true; });
     window.addEventListener('pagehide', saveNow);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+    window.addEventListener('online', () => {
+        showSaveState(); initializeRecognition();
+        if (window.WhiteboardOfflineShell) reconnectAccount();
+    });
+    let reconnectTimer;
+    async function reconnectAccount() {
+        clearTimeout(reconnectTimer);
+        if (drag || editing || saveTimeout) { reconnectTimer = setTimeout(reconnectAccount, 300); return; }
+        if (await saveNow()) {
+            if (drag || editing || saveTimeout) reconnectTimer = setTimeout(reconnectAccount, 300);
+            else location.reload();
+        }
+    }
+    window.addEventListener('offline', () => { cancelRecognition(); recognitionReady = false; recognitionStatus('Offline · handwriting kept', true); showSaveState(); });
     async function uploadImage(file) {
         const targetBoard=board.id;
         if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) { toast('Choose a PNG, JPEG, or WebP image smaller than 10 MB.'); return; }
@@ -937,9 +1247,163 @@
         finally { URL.revokeObjectURL(url); }
     }
     async function downloadAttachment(item){
-        if(!item||item.type!=='file')return;
+        if(!item||!['file','document-page'].includes(item.type))return;
         try{download(await U.get(item.attachmentId),item.fileName);}catch(error){toast(error.message);}
     }
+    let documentPageNumber=1;
+    function activeDocumentPage(){return Docs.activePage(board.items,board.activeDocumentPageId,centre());}
+    function cancelBoardNavigation(){boardNavigationRevision++;boardNavigation=null;updateDocumentNavigation();}
+    function updateDocumentNavigation(){
+        const paper=boardNavigation?.meta||activeDocumentPage();$('wb-document-tools').hidden=!paper;if(!paper)return;
+        const number=boardNavigation?.number||paper.pageNumber;
+        $('wb-document-label').textContent=paper.fileName;$('wb-document-label').title=paper.fileName;
+        const input=$('wb-board-page-number');input.max=paper.pageCount;
+        if(document.activeElement!==input)input.value=number;
+        $('wb-board-page-count').textContent=`of ${paper.pageCount}`;
+        $('wb-board-page-previous').disabled=number<=1;$('wb-board-page-next').disabled=number>=paper.pageCount;
+        $('wb-board-page-status').textContent=boardNavigation?`Opening page ${number}…`:'';
+    }
+    function prefetchDocumentPages(meta,number){for(const next of Docs.adjacentPages(number,meta.pageCount))Docs.page(meta,next,U.get).catch(()=>{});}
+    function getOrAddDocumentPage(meta,number,page){
+        let paper=board.items.find(i=>i.type==='document-page'&&i.attachmentId===meta.attachmentId&&i.pageNumber===number);
+        if(!paper){
+            const position=Docs.placement(board.items,page.w,page.h,centre());
+            paper=M.create('document-page',position.x,position.y,{...U.metadata(meta),...position,pageNumber:number,pageCount:page.pageCount});
+            board.items.push(paper); selected = null; saveSoon(); render();
+        }
+        return paper;
+    }
+    async function goToBoardPage(value){
+        const meta=boardNavigation?.meta||activeDocumentPage();if(!meta||drag)return;
+        const number=Docs.pageNumber(value,meta.pageCount),revision=++boardNavigationRevision,boardId=board.id;
+        finishEdit(true);cancelRecognition();saveNow();$('wb-board-page-number').value=number;
+        const existing=board.items.find(i=>i.type==='document-page'&&i.attachmentId===meta.attachmentId&&i.pageNumber===number);
+        if(existing){boardNavigation=null;selected=null;focusDocumentPage(existing);svg.focus({preventScroll:true});prefetchDocumentPages(existing,number);return;}
+        boardNavigation={meta:M.clone(meta),number};updateDocumentNavigation();
+        try{
+            const page=await Docs.page(meta,number,U.get,false,()=>revision===boardNavigationRevision&&boardId===board.id);
+            if(revision!==boardNavigationRevision||boardId!==board.id)return;
+            rememberDocumentPage(meta.attachmentId+':'+number,page);
+            const paper=getOrAddDocumentPage(meta,number,page);boardNavigation=null;focusDocumentPage(paper);svg.focus({preventScroll:true});prefetchDocumentPages(paper,number);
+        }catch(error){if(revision===boardNavigationRevision&&boardId===board.id){boardNavigation=null;updateDocumentNavigation();toast(error.message);}}
+    }
+    function stepBoardPage(delta){const paper=boardNavigation?.meta||activeDocumentPage();if(paper)goToBoardPage((boardNavigation?.number||paper.pageNumber)+delta);}
+    $('wb-board-page-previous').addEventListener('click',()=>stepBoardPage(-1));
+    $('wb-board-page-next').addEventListener('click',()=>stepBoardPage(1));
+    $('wb-board-page-go').addEventListener('click',()=>goToBoardPage($('wb-board-page-number').value));
+    $('wb-board-page-number').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();goToBoardPage(event.target.value);}});
+    $('wb-board-page-number').setAttribute('enterkeyhint', 'go');
+    $('wb-board-page-number').addEventListener('change', event => { if (event.target.value) goToBoardPage(event.target.value); else updateDocumentNavigation(); });
+    function syncViewerNavigation(number,count){
+        $('wb-document-number').value=number;$('wb-document-slider').value=number;
+        for(const id of ['wb-document-first','wb-document-previous'])$(id).disabled=number<=1;
+        for(const id of ['wb-document-last','wb-document-next'])$(id).disabled=number>=count;
+    }
+    async function openDocument(item){
+        if(!item)return;
+        if(!Docs.canOpen(item.fileName)){toast('For this older Office file, save a PDF copy to open and write on its pages. The original is still available to download.');return;}
+        cancelBoardNavigation();finishEdit(true);cancelRecognition();documentBoardId=board.id;currentDocument=M.clone(item);documentPreview=null;
+        $('wb-document-title').textContent=item.fileName;$('wb-document-note').textContent='Opening document on this device…';
+        $('wb-document-status').textContent='Loading document…';$('wb-document-count').textContent='';
+        $('wb-document-number').max=1;$('wb-document-slider').max=1;syncViewerNavigation(1,1);
+        $('wb-document-image').hidden=true;$('wb-document-text').textContent='';$('wb-document-write').disabled=true;
+        D.open($('wb-document-dialog'));const revision=++documentRevision;
+        try{
+            const doc=await Docs.open(currentDocument,U.get);if(revision!==documentRevision||documentBoardId!==board.id)return;
+            $('wb-document-number').max=doc.numPages;$('wb-document-slider').max=doc.numPages;$('wb-document-count').textContent=`of ${doc.numPages}`;
+            $('wb-document-note').textContent=doc.note;await previewDocumentPage(item.pageNumber||1);
+        }catch(error){if(revision===documentRevision)$('wb-document-status').textContent=error.message;}
+    }
+    async function previewDocumentPage(number){
+        clearTimeout(documentSliderTimer);
+        const meta=currentDocument,revision=++documentRevision,limit=Number($('wb-document-number').max)||1;
+        if(!meta)return;
+        const target=Docs.pageNumber(number,limit);documentPageNumber=target;documentPreview=null;
+        $('wb-document-image').hidden=true;$('wb-document-remove').hidden=true;
+        syncViewerNavigation(target,limit);
+        $('wb-document-write').disabled=true;$('wb-document-status').textContent=`Loading page ${documentPageNumber}…`;
+        try{
+            const page=await Docs.page(meta,target,U.get,false,()=>revision===documentRevision&&documentBoardId===board.id);
+            if(revision!==documentRevision||documentBoardId!==board.id||!$('wb-document-dialog').open)return;
+            documentPreview=page;rememberDocumentPage(meta.attachmentId+':'+target,page);
+            $('wb-document-image').src=page.src;$('wb-document-image').alt=`${meta.fileName}, page ${target}`;$('wb-document-image').hidden=false;
+            $('wb-document-text').textContent=page.text||'This is a scanned page. Read the questions in the preview above.';
+            $('wb-document-status').textContent=`Page ${documentPageNumber} ready. Add it to the board to answer the questions.`;$('wb-document-write').disabled=false;
+            $('wb-document-remove').hidden=!board.items.some(i=>i.type==='document-page'&&i.attachmentId===meta.attachmentId&&i.pageNumber===documentPageNumber);
+            prefetchDocumentPages({...meta,pageCount:limit},target);
+        }catch(error){if(revision===documentRevision)$('wb-document-status').textContent=error.message;}
+    }
+    function focusDocumentPage(item, mode = 'width'){
+        const s=size(), availableWidth=s.w-32, availableHeight=s.h-56;
+        const zoom=Math.max(.05,Math.min(1.5,availableWidth/item.w,mode==='page'?availableHeight/item.h:1.5));
+        board.activeDocumentPageId=item.id;board.view={zoom,x:(s.w-item.w*zoom)/2-item.x*zoom,y:32-item.y*zoom};render();saveView(mode);saveSoon();
+    }
+    $('wb-document-close').addEventListener('click',()=>D.close($('wb-document-dialog')));
+    $('wb-document-dialog').addEventListener('close',()=>{documentRevision++;clearTimeout(documentSliderTimer);if(recognitionPending.size)scheduleRecognition();});
+    const fitButton = document.createElement('button'); fitButton.id = 'wb-page-fit'; fitButton.textContent = 'Fit'; fitButton.title = 'Switch fit width and fit page';
+    $('wb-document-tools').insertBefore(fitButton, $('wb-document-browse'));
+    fitButton.addEventListener('click', () => { const paper = activeDocumentPage(); if (paper) focusDocumentPage(paper, viewFit === 'width' ? 'page' : 'width'); });
+    svg.addEventListener('dblclick', event => { if (tool === 'pan' && activeDocumentPage()) { const rect = svg.getBoundingClientRect(); zoomTo(board.view.zoom < 1 ? 1.2 : (size().w - 32) / activeDocumentPage().w, {x: event.clientX - rect.left, y: event.clientY - rect.top}); } });
+    let thumbnailObserver;
+    $('wb-thumbnails-toggle').addEventListener('click', () => {
+        const grid = $('wb-thumbnails'); grid.hidden = !grid.hidden;
+        $('wb-thumbnails-toggle').setAttribute('aria-expanded', String(!grid.hidden));
+        thumbnailObserver?.disconnect();
+        if (grid.hidden || !currentDocument) return;
+        const meta = M.clone(currentDocument), count = Number($('wb-document-number').max);
+        grid.innerHTML = Array.from({length: count}, (_, index) => `<button data-document-thumbnail="${index + 1}" aria-label="Preview page ${index + 1}"${index + 1 === documentPageNumber ? ' aria-current="page"' : ''}><img alt="" loading="lazy"><span>Page ${index + 1}</span></button>`).join('');
+        const current = grid.querySelector('[aria-current=page]');
+        if (current) grid.scrollTop = current.offsetTop - grid.firstElementChild.offsetTop;
+        thumbnailObserver = new IntersectionObserver(entries => {
+            for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                thumbnailObserver.unobserve(entry.target);
+                Docs.page(meta, Number(entry.target.dataset.documentThumbnail), U.get, true, () => $('wb-document-dialog').open && !grid.hidden).then(page => { if (entry.target.isConnected) entry.target.querySelector('img').src = page.src; }).catch(() => {});
+            }
+        }, {root: grid, rootMargin: '80px'});
+        for (const button of grid.children) thumbnailObserver.observe(button);
+    });
+    $('wb-thumbnails').addEventListener('click', event => {
+        const target = event.target.closest('[data-document-thumbnail]');
+        if (target) { previewDocumentPage(target.dataset.documentThumbnail); $('wb-thumbnails').hidden = true; $('wb-thumbnails-toggle').setAttribute('aria-expanded', 'false'); thumbnailObserver?.disconnect(); }
+    });
+    $('wb-reader-zoom').addEventListener('click', () => {
+        const enlarged = app.querySelector('.wb-document-preview').classList.toggle('is-enlarged');
+        $('wb-reader-zoom').setAttribute('aria-pressed', String(enlarged)); $('wb-reader-zoom').textContent = enlarged ? 'Fit preview' : 'Enlarge preview';
+    });
+    $('wb-document-dialog').addEventListener('close', () => { thumbnailObserver?.disconnect(); $('wb-thumbnails').hidden = true; $('wb-thumbnails-toggle').setAttribute('aria-expanded', 'false'); });
+    $('wb-document-previous').addEventListener('click',()=>previewDocumentPage(documentPageNumber-1));
+    $('wb-document-next').addEventListener('click',()=>previewDocumentPage(documentPageNumber+1));
+    $('wb-document-first').addEventListener('click',()=>previewDocumentPage(1));
+    $('wb-document-last').addEventListener('click',()=>previewDocumentPage(Number($('wb-document-number').max)));
+    $('wb-document-go').addEventListener('click',()=>previewDocumentPage($('wb-document-number').value));
+    $('wb-document-number').addEventListener('change',event=>previewDocumentPage(event.target.value));
+    $('wb-document-number').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();previewDocumentPage(event.target.value);}});
+    $('wb-document-slider').addEventListener('input',event=>{
+        clearTimeout(documentSliderTimer);documentRevision++;documentPageNumber=Number(event.target.value);documentPreview=null;$('wb-document-write').disabled=true;
+        syncViewerNavigation(documentPageNumber,Number(event.target.max));$('wb-document-status').textContent=`Opening page ${documentPageNumber}…`;
+        const number=documentPageNumber;documentSliderTimer=setTimeout(()=>previewDocumentPage(number),120);
+    });
+    $('wb-document-slider').addEventListener('change',event=>previewDocumentPage(event.target.value));
+    $('wb-document-dialog').addEventListener('keydown',event=>{
+        if(event.target.closest('input,textarea,select'))return;
+        const delta={ArrowLeft:-1,ArrowRight:1,PageUp:-1,PageDown:1}[event.key];
+        if(delta){event.preventDefault();event.stopPropagation();previewDocumentPage(documentPageNumber+delta);}
+        if(['Home','End'].includes(event.key)){event.preventDefault();event.stopPropagation();previewDocumentPage(event.key==='Home'?1:Number($('wb-document-number').max));}
+    });
+    $('wb-document-download').addEventListener('click',()=>downloadAttachment(currentDocument));
+    $('wb-document-remove').addEventListener('click',()=>{
+        if(documentBoardId!==board.id)return;
+        mutate(()=>{board.items=board.items.filter(i=>!(i.type==='document-page'&&i.attachmentId===currentDocument.attachmentId&&i.pageNumber===documentPageNumber));});
+        D.close($('wb-document-dialog'));toast('Question sheet removed. Your answers are kept. Undo restores the sheet.');
+    });
+    $('wb-document-browse').addEventListener('click',async()=>{const paper=activeDocumentPage();if(paper){await openDocument(paper);if($('wb-thumbnails').hidden)$('wb-thumbnails-toggle').click();}});
+    $('wb-document-write').addEventListener('click',()=>{
+        if(!documentPreview||documentBoardId!==board.id)return;
+        const paper=getOrAddDocumentPage(currentDocument,documentPageNumber,documentPreview);
+        D.close($('wb-document-dialog'));panel='';$('wb-panel').hidden=true;app.querySelectorAll('[data-wb-panel]').forEach(el=>el.setAttribute('aria-expanded','false'));
+        choosePen('pen');focusDocumentPage(paper);toast('Write your answers on or beside this page. The questions stay locked; Undo and erasing affect your answers.');
+    });
     async function uploadFiles(files){
         const targetBoard=board.id;
         for(const [index,file] of Array.from(files).entries()){
@@ -948,11 +1412,13 @@
             try{
                 const meta=await U.store(file,M.uid());
                 if(board.id!==targetBoard){toast('The board changed. Upload the file again on the correct board.');break;}
-                const p=centre();add('file',{...meta,x:p.x-170,y:p.y-65+index*150});
-                toast(`${meta.fileName} added. Double-click the file card to download.`);
+                const p=centre(),card=add('file',{...meta,x:p.x-170,y:p.y-65+index*150});
+                toast(`${meta.fileName} added. Open it to write on its pages.`);
                 if(panel==='uploads')renderPanel();
+                if(files.length===1&&Docs.canOpen(meta.fileName))await openDocument(card);
             }catch(error){toast(`${file.name}: ${error.message}`);}
         }
+        prepareDocumentCopies();
     }
     for(const id of ['wb-upload','wb-upload-files'])$(id).addEventListener('change',async()=>{const input=$(id);await uploadFiles(input.files);input.value='';});
     for(const area of [stage,$('wb-panel')]){
@@ -963,7 +1429,7 @@
         const file = $('wb-import').files[0];
         try {
             if (!file || file.size > 64 * 1024 * 1024) throw new Error('Choose a board file smaller than 64 MB.');
-            const raw=JSON.parse(await file.text());const imported=await U.unpack(M.restore(raw),raw.attachments,M.uid);imported.id=M.uid();loadBoard(imported); fit(); toast('Board imported. Your other boards are still in Projects.');
+            const raw=JSON.parse(await file.text());const imported=await U.unpack(M.restore(raw),raw.attachments,M.uid);imported.id=M.uid();if(await loadBoard(imported)){ fit(); toast('Board imported. Your other boards are in Continue work.'); }
         } catch (error) { toast(error instanceof SyntaxError ? 'This is not a valid whiteboard file.' : error.message); }
         $('wb-import').value = '';
     });
@@ -984,5 +1450,20 @@
         updateTimer();
     });
     $('wb-timer-reset').addEventListener('click', () => { clearInterval(timerInterval); timerInterval = null; timerRemaining = Math.max(1, Math.min(120, Number($('wb-timer-minutes').value) || 5)) * 60; $('wb-timer-start').textContent = 'Start'; updateTimer(); });
-    $('wb-title').value = board.title; $('wb-notes').value = board.notes; choosePen('marker'); render(); saveNow(); initializeRecognition();
+    let lastStageWidth = 0;
+    new ResizeObserver(() => {
+        const width = size().w;
+        if (lastStageWidth && Math.abs(width - lastStageWidth) > 60 && activeDocumentPage()) focusDocumentPage(activeDocumentPage(), viewFit === 'page' ? 'page' : 'width');
+        lastStageWidth = width; render();
+    }).observe(stage);
+    function viewportHeight() {
+        document.documentElement.style.setProperty('--wb-viewport-height', `${window.visualViewport?.height || innerHeight}px`);
+        const statusParent = innerHeight <= 500 && innerWidth >= 480 ? advanced : $('wb-title').parentElement;
+        if ($('wb-save-state').parentElement !== statusParent) statusParent.appendChild($('wb-save-state'));
+    }
+    window.visualViewport?.addEventListener('resize', viewportHeight); window.addEventListener('resize', viewportHeight); viewportHeight();
+    $('wb-title').value = board.title; $('wb-notes').value = board.notes;
+    choosePen('pen'); started = board.items.length > 0; restoreView(); render(); saveNow(); initializeRecognition();
+    prepareDocumentCopies();
+    if (recoveryWarnings.length) toast(recoveryWarnings[0]);
 })();

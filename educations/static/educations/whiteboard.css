@@ -242,6 +242,36 @@
 .wb-math-symbols{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}
 .wb-math-symbols button{border:1px solid #e2d7ee;border-radius:6px;background:white;color:#654582;min-width:31px;height:30px;padding:3px 8px;font-size:13px!important}
 .wb-review-dialog .wb-text-alternatives{margin:8px 0}
+.wb-document-dialog{width:min(1000px,96vw);max-width:min(1000px,96vw);max-height:92dvh;padding:22px;overflow:auto;color:#352b46}
+.wb-document-dialog header{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.wb-document-dialog h2{color:#352b46;font-size:20px;margin:0;overflow-wrap:anywhere}
+.wb-document-dialog>p{margin:8px 0;font-size:12px}
+.wb-document-navigation{position:sticky;top:-22px;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:#fff;padding:12px 0;border-bottom:1px solid #e9e0f1}
+.wb-document-navigation button,.wb-document-dialog footer button{border:1px solid #dccfea;border-radius:8px;background:#faf7ff;color:#634580;padding:9px 12px;font-size:12px!important}
+.wb-document-dialog .wb-document-navigation .wb-primary{width:auto;background:#8b3dff;color:#fff;border-color:#8b3dff;margin-left:auto}
+.wb-document-navigation label{display:flex;align-items:center;gap:6px;font-size:12px;margin:0}
+.wb-document-navigation input{width:60px;border:1px solid #d6c8e2;border-radius:6px;padding:7px;color:#493957;background:white}
+.wb-document-navigation>span{font-size:12px;color:#7d6c8d}
+.wb-document-preview{background:#eeeaf2;padding:18px;border:1px solid #e0d9e8;border-radius:9px;min-height:120px;text-align:center}
+.wb-document-preview img{display:block;max-width:100%;width:740px;height:auto;margin:auto;box-shadow:0 3px 15px #30203c22}
+.wb-document-dialog details{font-size:12px;color:#7d6c8d;margin-top:10px}
+.wb-document-dialog pre{max-height:220px;overflow:auto;white-space:pre-wrap;font-size:13px;background:#faf7fe;color:#392d45;padding:12px}
+.wb-document-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;font-size:11px;color:#7d6c8d}
+.wb-upload-document-card{padding:13px;border:1px solid #e0d5ee;border-radius:9px;margin-top:12px;font-size:12px;overflow-wrap:anywhere}
+.wb-upload-document-card strong,.wb-upload-document-card small{display:block;margin-bottom:7px}
+.wb-upload-document-card>div{display:flex;gap:7px}
+.wb-upload-document-card button{border:1px solid #d5c4e7;border-radius:6px;padding:7px 10px;background:#faf7ff;color:#7440a7;font-size:12px!important}
+.wb-document-tools{position:absolute;left:85px;top:65px;max-width:calc(100% - 160px);padding:8px 12px;border:1px solid #e1d5ef;border-radius:9px;background:#ffffffee;z-index:4;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;color:#766285;box-shadow:0 2px 8px #3520400c}
+.wb-document-tools #wb-board-page-status:empty{display:none}
+.wb-document-tools>span:first-child{font-weight:600;max-width:190px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.wb-document-tools button{background:#f2e8ff;border:0;color:#7135ad;border-radius:6px;padding:6px 10px;font-size:11px!important}
+.wb-document-tools label{display:flex;align-items:center;gap:5px;margin:0;font-size:11px}
+.wb-document-tools input{width:58px;height:29px;padding:4px 5px;border:1px solid #d9c7e9;border-radius:6px;background:#fff;color:#4d315e;font-size:12px!important}
+.wb-document-tools button:disabled{opacity:.35}
+.wb-document-tools #wb-board-page-status{color:#8655ac}
+.wb-document-navigation .wb-document-scrubber{flex-basis:100%;display:flex;align-items:center;gap:12px;color:#786587;font-size:11px;padding:5px 0}
+.wb-document-navigation .wb-document-scrubber input{flex:1;width:auto;height:20px;padding:0;border:0;accent-color:#8b3dff}
+@media(max-width:650px){.wb-document-dialog{padding:14px}.wb-document-navigation{top:-14px}.wb-document-navigation .wb-primary{margin-left:0}.wb-document-preview{padding:7px}.wb-document-tools{left:65px;max-width:calc(100% - 80px);gap:5px;padding:6px}.wb-document-tools>span:first-child{max-width:150px;flex-basis:100%}.wb-document-tools button{padding:6px 7px}}
 .wb-source-preview{background:#fff;border-radius:8px;border:1px solid #e7e0ee;padding:10px;margin-bottom:14px;overflow:auto}
 .wb-source-preview small{display:block;color:#82728f;font-size:11px;margin-bottom:5px}
 .wb-source-preview svg{display:block;width:100%;height:150px}

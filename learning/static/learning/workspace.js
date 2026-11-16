@@ -4,26 +4,46 @@
  const configNode=document.getElementById('academy-config');if(!configNode)return;
  const cfg=JSON.parse(configNode.textContent),prefix='academy:'+cfg.scope+':',memory=new Map(),conflicts=new Map();
  let native;try{native=window.localStorage;}catch(_){native=null;}
- let deviceFailure=false,persistScheduled=false,persistPromise=Promise.resolve();const pendingWrites=new Map();
+ // Remember the last server-confirmed device scope. Signing out replaces it with guest.
+ if(!cfg.offline)try{native?.setItem('academy-whiteboard-device-scope',JSON.stringify(cfg));}catch(_){}
+ if(!cfg.offline)try{window.sessionStorage?.setItem('whiteboard-session-scope',JSON.stringify(cfg));}catch(_){}
+ let deviceFailure=false,persistScheduled=false,persistPromise=Promise.resolve(),deviceAvailable=false;const pendingWrites=new Map(),failedWrites=new Set(),remoteWork=new Map();
  const deviceDB=new Promise(resolve=>{if(!window.indexedDB){resolve(null);return;}try{const r=window.indexedDB.open('academy-workspace-'+cfg.scope,1);r.onupgradeneeded=()=>r.result.createObjectStore('records');r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null);}catch(_){resolve(null);}});
- async function persist(){persistScheduled=false;const entries=[...pendingWrites];pendingWrites.clear();const db=await deviceDB;if(!db){if(entries.some(([,entry])=>!entry.nativeSaved))deviceFailure=true;return;}
-  await new Promise(resolve=>{try{const tx=db.transaction('records','readwrite'),store=tx.objectStore('records');for(const[key,entry]of entries)entry.value===null?store.delete(key):store.put(entry.value,key);tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>{deviceFailure=entries.some(([,entry])=>!entry.nativeSaved);resolve();};}catch(_){deviceFailure=true;resolve();}});
+ async function persist(){persistScheduled=false;const entries=[...pendingWrites];pendingWrites.clear();const db=await deviceDB;
+  const success=db&&await new Promise(resolve=>{try{const tx=db.transaction('records','readwrite'),store=tx.objectStore('records');for(const[key,entry]of entries)entry.value===null?store.delete(key):store.put(entry.value,key);tx.oncomplete=()=>resolve(true);tx.onabort=tx.onerror=()=>resolve(false);}catch(_){resolve(false);}});
+  for(const [key,entry] of entries){let saved=success||entry.nativeSaved;if(!saved){try{if(!native)throw Error();entry.value===null?native.removeItem(prefix+key):native.setItem(prefix+key,entry.value);saved=true;}catch(_){}}if(saved)failedWrites.delete(key);else failedWrites.add(key);}
+  deviceFailure=failedWrites.size>0;
  }
  function persistSoon(k,value,nativeSaved){pendingWrites.set(k,{value,nativeSaved});if(!persistScheduled){persistScheduled=true;persistPromise=persistPromise.then(()=>Promise.resolve().then(persist));}}
  async function loadDevice(){const db=await deviceDB;if(!db)return;await new Promise(resolve=>{try{const tx=db.transaction('records'),store=tx.objectStore('records'),keys=store.getAllKeys(),values=store.getAll();tx.oncomplete=()=>{for(let i=0;i<keys.result.length;i++)memory.set(keys.result[i],values.result[i]);resolve();};tx.onerror=tx.onabort=()=>{deviceFailure=true;resolve();};}catch(_){deviceFailure=true;resolve();}});}
- const known=k=>/^(eduportal\.whiteboards\.v1|grade[789][a-zA-Z0-9_.:-]{1,150})$/.test(k);
+ const known=k=>/^(eduportal\.whiteboards\.v1|eduportal\.whiteboards\.v2:[a-zA-Z0-9_-]{1,100}|grade[789][a-zA-Z0-9_.:-]{1,150})$/.test(k);
  const read=k=>{if(memory.has(k))return memory.get(k);try{return native?.getItem(prefix+k)??null;}catch(_){return null;}};
- function write(k,v){memory.set(k,v);let saved=false;try{if(!native)throw Error();native.setItem(prefix+k,v);saved=true;}catch(_){}persistSoon(k,v,saved);}
+ function write(k,v){memory.set(k,v);let saved=false;if(!deviceAvailable||!k.startsWith('eduportal.whiteboards.v2:'))try{if(!native)throw Error();native.setItem(prefix+k,v);saved=true;}catch(_){}persistSoon(k,v,saved);}
  const meta=k=>{try{return JSON.parse(read('@meta:'+k)||'{}');}catch(_){return {};}};
  let state='Checking saved work…',busy=false;
- function status(message){if(deviceFailure&&!message.startsWith('Saved online'))message+=' · Device recovery unavailable: keep this tab open and download a backup.';state=message;for(const n of document.querySelectorAll('#academy-sync-state,#academy-cloud-status,#wb-save-state'))n.textContent=message;}
+ function status(message){if(deviceFailure&&!message.startsWith('Saved online'))message+=' · Download a backup to keep this work.';state=message;for(const n of document.querySelectorAll('#academy-sync-state,#academy-cloud-status'))n.textContent=message;if(typeof CustomEvent!=='undefined')window.dispatchEvent(new CustomEvent('academy-storage-status',{detail:{message}}));}
  const csrf=()=>document.querySelector('[name=csrfmiddlewaretoken]')?.value||document.cookie.split('; ').find(s=>s.startsWith('csrftoken='))?.split('=').slice(1).join('=')||'';
- async function call(url,method='GET',body){const response=await fetch(url,{method,credentials:'same-origin',headers:{'X-CSRFToken':csrf(),'X-Academy-Scope':cfg.scope,...(body instanceof FormData?{}:{'Content-Type':'application/json'})},body:body instanceof FormData?body:body===undefined?undefined:JSON.stringify(body)});let data;try{data=await response.json();}catch(_){data={error:'The server could not complete saving.'};}return {response,data};}
- function mark(k,deleted=false){if(!known(k))return;write('@meta:'+k,JSON.stringify({...meta(k),dirty:true,deleted}));status(cfg.eligible?'Waiting to sync':'Saved on this device · verify your account for online saving');}
+ async function call(url,method='GET',body,timeoutMs=10000){
+  const controller=typeof AbortController==='undefined'?null:new AbortController();
+  const timer=controller?setTimeout(()=>controller.abort(),timeoutMs):null;
+  try{const response=await fetch(url,{method,credentials:'same-origin',signal:controller?.signal,headers:{'X-CSRFToken':csrf(),'X-Academy-Scope':cfg.scope,...(body instanceof FormData?{}:{'Content-Type':'application/json'})},body:body instanceof FormData?body:body===undefined?undefined:JSON.stringify(body)});let data;try{data=await response.json();}catch(_){data={error:'The server could not complete saving.'};}return {response,data};}
+  finally{clearTimeout(timer);}
+ }
+ function mark(k,deleted=false){if(!known(k))return;write('@meta:'+k,JSON.stringify({...meta(k),dirty:true,deleted}));status(cfg.eligible?'Waiting to sync':'Device saving');}
  const storage={scope:cfg.scope,onlineEnabled:cfg.eligible,assetURL:cfg.assets,getItem:read,setItem(k,v){v=String(v);write(k,v);mark(k);},removeItem(k){memory.delete(k);try{native?.removeItem(prefix+k);}catch(_){}persistSoon(k,null,true);mark(k,true);},ready:null};
  window.AcademyStorage=storage;
+ storage.keys=()=>[...new Set([...ownKeys(),...remoteWork.keys()])];
+ storage.remoteWork=remoteWork;
+ storage.getStatus=()=>state;
+ storage.isDeleted=key=>!!meta(key).deleted;
+ storage.setItemsAsync=async entries=>{for(const[key,value]of entries){write(key,String(value));mark(key);}await persistPromise;if(entries.some(([key])=>failedWrites.has(key)))throw Error('Device storage is full or unavailable. Download an editable backup.');};
+ storage.ensure=async key=>{
+  const row=remoteWork.get(key);if(!row||meta(key).dirty||(read(key)!==null&&meta(key).revision===row.revision))return read(key);
+  try{const {response,data}=await call(cfg.api+encodeURIComponent(key)+'/');if(!response.ok)throw Error(data.error||'This saved board could not be opened.');if(data.deleted)return null;write(key,data.payload.raw);write('@meta:'+key,JSON.stringify({revision:data.revision,dirty:false}));await persistPromise;return read(key);}
+  catch(error){if(read(key)!==null){status('Waiting to sync · device copy opened');return read(key);}throw error;}
+ };
  function ownKeys(){const keys=new Set([...memory.keys()]);try{for(let i=0;i<(native?.length||0);i++){const k=native.key(i);if(k?.startsWith(prefix))keys.add(k.slice(prefix.length));}}catch(_){}return [...keys].filter(known);}
- function title(k){return k==='eduportal.whiteboards.v1'?'My whiteboard library':k.replace(/^grade([789])-?/,'Grade $1 · ').replaceAll('-',' ');}
+ function title(k){if(k==='eduportal.whiteboards.v1')return 'My whiteboard library';if(k.startsWith('eduportal.whiteboards.v2:')){try{return JSON.parse(read(k)).title||'Whiteboard';}catch(_){return 'Whiteboard';}}return k.replace(/^grade([789])-?/,'Grade $1 · ').replaceAll('-',' ');}
  const flushWaiters=[];
  async function flush(){if(!cfg.eligible)return;if(busy){await new Promise(resolve=>flushWaiters.push(resolve));return flush();}busy=true;try{await persistPromise;
    if(window.AcademyAttachments)await window.AcademyAttachments.flush();
@@ -39,11 +59,12 @@
  function pendingDeleted(){const candidates=new Set([...memory.keys()]);try{for(let i=0;i<(native?.length||0);i++){const k=native.key(i);if(k?.startsWith(prefix))candidates.add(k.slice(prefix.length));}}catch(_){}return [...candidates].filter(k=>k.startsWith('@meta:')&&meta(k.slice(6)).deleted).map(k=>k.slice(6));}
  function downloadJSON(name,value){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  function renderConflicts(){const root=document.getElementById('academy-conflicts');if(!root)return;root.replaceChildren();for(const [key,item]of conflicts){const box=document.createElement('section'),heading=document.createElement('h3');heading.textContent='Choose a version: '+title(key);box.append(heading);for(const [label,action]of [['Download both copies',()=>downloadJSON('conflicting-work.json',{key,device:item.local,online:item.remote})],['Keep this device version',()=>{downloadJSON('online-work-before-switch.json',{key,payload:item.remote});write('@meta:'+key,JSON.stringify({revision:item.revision,dirty:true}));conflicts.delete(key);renderConflicts();flush();}],['Use online version',()=>{downloadJSON('device-work-before-switch.json',{key,raw:item.local});write(key,item.remote?.raw||'');write('@meta:'+key,JSON.stringify({revision:item.revision,dirty:false}));conflicts.delete(key);location.reload();}]]){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=action;box.append(b);}root.append(box);}}
- async function bootstrap(){await loadDevice();if(!cfg.eligible){status(cfg.authenticated?'Saved on this device · complete account verification':'Saved on this device · sign in for online saving');return;}
+ async function bootstrap(){await loadDevice();deviceAvailable=!!(await deviceDB);if(!cfg.eligible){status(cfg.offline?'Offline · online saving resumes when connected':cfg.authenticated?'Complete account verification for online saving':'Sign in for online saving');return;}
   try{let area=location.pathname.includes('whiteboard')?'whiteboard':location.pathname.match(/grade\/(7|8|9)/)?.[1];if(area&&area!=='whiteboard')area='grade'+area;
-   const {response,data}=await call(cfg.api+(area?'?area='+area:''));if(!response.ok)throw Error();
+   const {response,data}=await call(cfg.api+(area?'?area='+area+(area==='whiteboard'?'&metadata=1':''):''),'GET',undefined,2500);if(!response.ok)throw Error();
+   for(const row of data.work)if(!row.deleted)remoteWork.set(row.key,row);
    for(const row of data.work){const m=meta(row.key);if(m.dirty){if((m.revision||0)!==row.revision){const detail=row.payload?row:(await call(cfg.api+encodeURIComponent(row.key)+'/')).data;conflicts.set(row.key,{local:read(row.key),remote:detail.payload,revision:row.revision});}continue;}
-    if(row.payload!==undefined){if(!row.deleted)write(row.key,row.payload.raw||'');else{memory.delete(row.key);native?.removeItem(prefix+row.key);persistSoon(row.key,null,true);}write('@meta:'+row.key,JSON.stringify({revision:row.revision,dirty:false,deleted:row.deleted}));}
+    if(row.payload!==undefined||row.deleted){if(!row.deleted)write(row.key,row.payload.raw||'');else{memory.delete(row.key);native?.removeItem(prefix+row.key);persistSoon(row.key,null,true);}write('@meta:'+row.key,JSON.stringify({revision:row.revision,dirty:false,deleted:row.deleted}));}
    }status(conflicts.size?'Two versions need your choice. Open My Learning.':'Saved online');
   }catch(_){status('Waiting to sync · working from this account’s device copy.');}
  }
@@ -56,7 +77,7 @@
  }
  async function pageUI(){await storage.ready;importUI();renderConflicts();status(state);for(const b of document.querySelectorAll('[data-delete-work]'))b.onclick=()=>{if(confirm('Delete this online draft? Export a backup first. Submitted copies are retained.')){write('@meta:'+b.dataset.deleteWork,JSON.stringify({revision:Math.max(Number(b.dataset.revision),meta(b.dataset.deleteWork).revision||0),dirty:true}));storage.removeItem(b.dataset.deleteWork);flush().then(()=>{if(!meta(b.dataset.deleteWork).dirty)location.reload();});}};
   for(const b of document.querySelectorAll('[data-delete-attachment]'))b.onclick=async()=>{if(!confirm('Remove this unused private document?'))return;const result=await call(cfg.assets+encodeURIComponent(b.dataset.deleteAttachment)+'/','DELETE');if(result.response.ok)location.reload();else status(result.data.error||'Document could not be removed.');};
-  if(document.querySelector('#whiteboard-app,#simulation-view')){const banner=document.createElement('aside');banner.className='academy-save-banner';banner.setAttribute('aria-label','Account saving');const label=document.createElement('span');label.id='academy-cloud-status';label.textContent=state;const link=document.createElement('a');link.href='/learning/';link.textContent='My Learning';banner.append(label,document.createTextNode(' · '),link);document.body.append(banner);}
+  if(document.querySelector('#simulation-view')){const banner=document.createElement('aside');banner.className='academy-save-banner';banner.setAttribute('aria-label','Account saving');const label=document.createElement('span');label.id='academy-cloud-status';label.textContent=state;const link=document.createElement('a');link.href='/learning/';link.textContent='My Learning';banner.append(label,document.createTextNode(' · '),link);document.body.append(banner);}
   const path=location.pathname;if(cfg.eligible&&/^\/(educations\/(grade-|courses\/)|virtual-labs\/grade\/)/.test(path)){const visit=new FormData();visit.set('path',path);visit.set('title',document.title.replace(/\s*\|.*$/,''));call('/learning/progress/','POST',visit);const bar=document.createElement('div');bar.className='academy-card';const text=document.createElement('p');text.textContent='My learning record — completion is self-reported, not an assessed grade.';const b=document.createElement('button');b.type='button';b.textContent='Mark this lesson complete';b.onclick=async()=>{const body=new FormData();body.set('path',path);body.set('title',document.title.replace(/\s*\|.*$/,''));body.set('completed','true');const r=await call('/learning/progress/','POST',body);text.textContent=r.response.ok?'Marked complete in My Learning.':'Progress could not be saved. Try again.';};bar.append(text,b);document.querySelector('main.container')?.append(bar);}
   flush();setInterval(flush,5000);window.addEventListener('online',flush);
  }
