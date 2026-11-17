@@ -1,0 +1,79 @@
+{% extends "educations/base.xhtml" %}
+{% load static %}
+{% block title %}{% block lab_title %}Human Skin{% endblock %} | CBE STEM ACADEMY{% endblock %}
+{% block body_class %}human-skin-page{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'educations/human_skin.css' %}">{% endblock %}
+{% block content %}
+<div class="skin-lab" id="skin-lab" data-activity="{% block lab_activity %}human-skin{% endblock %}">
+  <a class="skin-back" href="{% url 'virtual_labs_grade' grade=7 %}#living-things-environment-heading">← Grade 7 virtual labs</a>
+  <header class="skin-intro">
+    <p class="skin-context">Grade 7 · Integrated Science · Living Things and Environment</p>
+    <h1>{% block lab_name %}Human Skin{% endblock %}</h1>
+    <p>{% block lab_intro %}Assemble a cutaway of hair-bearing skin. Then test the route sweat takes to reach the surface.{% endblock %}</p>
+  </header>
+  <nav aria-label="Lab procedure"><ol class="skin-procedure">
+    <li>Predict the route</li><li>Place the parts</li><li>Check and revise</li><li>Trace and explain</li>
+  </ol></nav>
+  <section class="skin-panel skin-predict" aria-labelledby="skin-predict-title">
+    <h2 id="skin-predict-title">Predict</h2>
+    <label for="skin-prediction">{% block lab_prediction %}Where is sweat made, and how does it reach the surface?{% endblock %}</label>
+    <textarea id="skin-prediction" rows="2" maxlength="800" disabled></textarea>
+    <button type="button" id="skin-start" disabled>Start building</button><p id="skin-storage-status" role="status"></p>
+  </section>
+  <section class="skin-workspace" id="skin-workspace" hidden>
+    <div class="skin-panel skin-board">
+      <div class="skin-board-heading">
+        <h2 id="skin-challenge">{% block lab_challenge %}Build the skin and sweat pathway{% endblock %}</h2>
+        <span id="skin-count"></span>
+      </div>
+      <p id="skin-instructions">Drag a part onto a numbered point, or select a part and then choose a point. Select a placed part to move it.</p>
+      <div class="skin-stage">
+        <canvas id="skin-canvas" width="1440" height="960" aria-hidden="true"></canvas>
+        <div id="skin-targets" role="group" aria-label="Workbench placement points"></div>
+      </div>
+      <p class="skin-caption">{% block lab_caption %}Simplified cross-section of a patch of human skin{% endblock %}</p>
+      <div class="skin-actions">
+        <button type="button" id="skin-return" disabled>Return selected part</button>
+        <button type="button" id="skin-undo" disabled>Undo</button>
+        <button type="button" id="skin-restart">Restart build</button>
+      </div>
+      <div class="skin-actions skin-check-actions">
+        <button type="button" class="skin-primary" id="skin-check">Check my model</button>
+        <button type="button" id="skin-hint">Get a hint</button>
+        <button type="button" id="skin-trace" disabled>{% block lab_trace %}Trace sweat{% endblock %}</button>
+      </div>
+      <label class="skin-motion"><input id="skin-still" type="checkbox"> {% block lab_motion %}Show sweat trace as text{% endblock %}</label>
+      <div class="skin-feedback" id="skin-feedback" role="status" aria-atomic="true"></div>
+    </div>
+    <aside class="skin-panel skin-tray">
+      <h2>Parts tray</h2>
+      <p id="skin-selected" role="status">Choose a model to begin.</p>
+      <div id="skin-parts" class="skin-parts"></div>
+      <details class="skin-reference">
+        <summary>{% block lab_reference %}Skin reference{% endblock %}</summary>
+        <dl id="skin-reference"></dl>
+        <p>{% block lab_sources %}<a href="https://training.seer.cancer.gov/melanoma/anatomy/">NCI skin anatomy</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/5-2-accessory-structures-of-the-skin">OpenStax skin structures</a>{% endblock %}</p>
+      </details>
+    </aside>
+  </section>
+  <section class="skin-panel skin-record" id="skin-record" hidden aria-labelledby="skin-notes-title">
+    <h2 id="skin-notes-title">Record and explain</h2>
+    <label for="skin-observation">{% block lab_observation %}What route did sweat take in your model?{% endblock %}</label>
+    <textarea id="skin-observation" rows="2" maxlength="800"></textarea>
+    <label for="skin-explanation">{% block lab_explanation %}What would change if the duct were disconnected? How does evaporation of sweat help cool your body?{% endblock %}</label>
+    <textarea id="skin-explanation" rows="3" maxlength="1200"></textarea>
+    <button type="button" class="skin-primary" id="skin-save">Save to Grade 7 practical notebook</button>
+    <p id="skin-save-status" role="status"></p>
+    <button type="button" id="skin-extension" hidden>{% block lab_extension %}Add supporting structures{% endblock %}</button>
+  </section>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'educations/lab_notebook_store.js' %}?v=6" defer></script>
+{% block lab_assets %}
+<script src="{% static 'educations/human_skin_model.js' %}" defer></script>
+<script src="{% static 'educations/human_skin_art.js' %}" defer></script>
+<script src="{% static 'educations/human_skin.js' %}?v=2" defer></script>
+{% endblock %}
+<script src="{% static 'educations/anatomy_assembly.js' %}" defer></script>
+{% endblock %}

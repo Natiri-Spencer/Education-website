@@ -1,0 +1,20 @@
+{% extends "educations/anatomy_assembly.xhtml" %}
+{% load static %}
+{% block lab_activity %}human-urinary-system{% endblock %}
+{% block lab_title %}Human Urinary System{% endblock %}
+{% block lab_name %}Human Urinary System{% endblock %}
+{% block lab_intro %}Build a model of the organs that make, carry, store, and release urine. Test the route from both kidneys to the outside of the body.{% endblock %}
+{% block lab_prediction %}Where is urine made, and what route do you think it takes to leave the body?{% endblock %}
+{% block lab_challenge %}Build the urinary tract{% endblock %}
+{% block lab_caption %}Simplified front view. The person's right is on your left.{% endblock %}
+{% block lab_trace %}Trace urine{% endblock %}
+{% block lab_motion %}Show urine trace as text{% endblock %}
+{% block lab_reference %}Urinary system reference{% endblock %}
+{% block lab_sources %}<a href="https://www.niddk.nih.gov/health-information/urologic-diseases/urinary-tract-how-it-works">NIDDK urinary tract anatomy</a> · <a href="https://www.niddk.nih.gov/health-information/kidney-disease/kidneys-how-they-work">NIDDK how kidneys work</a>{% endblock %}
+{% block lab_observation %}Name the four structures urine passes through or is stored in, in order.{% endblock %}
+{% block lab_explanation %}What would happen to the flow of urine from one kidney if its ureter were blocked? Why do the kidneys need a blood supply?{% endblock %}
+{% block lab_extension %}Add the kidney blood vessels{% endblock %}
+{% block lab_assets %}
+<script src="{% static 'educations/human_urinary_model.js' %}" defer></script>
+<script src="{% static 'educations/human_urinary_art.js' %}" defer></script>
+{% endblock %}

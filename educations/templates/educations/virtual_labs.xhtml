@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'educations/magnetism.css' %}?v=1">
 <link rel="stylesheet" href="{% static 'educations/electrical_energy.css' %}?v=3">
 <link rel="stylesheet" href="{% static 'educations/energy_sources.css' %}?v=1">
-<link rel="stylesheet" href="{% static 'educations/lab_notebooks.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'educations/lab_notebooks.css' %}?v=2">
 <link rel="stylesheet" href="{% static 'educations/mathematics.css' %}?v=2">
 <link rel="stylesheet" href="{% static 'educations/geometry_workspace.css' %}?v=2">
 <link rel="stylesheet" href="{% static 'educations/capacity_workspace.css' %}?v=1">
@@ -99,6 +99,8 @@
             <section class="lab-card-group" aria-labelledby="living-things-environment-heading">
                 <h3 id="living-things-environment-heading">Living Things and Environment</h3>
                 <div class="lesson-card-grid">
+                    <a class="lesson-card lesson-card-orange available-lesson" href="{% url 'educations:human_skin_lab' %}"><span class="lesson-card-icon" aria-hidden="true">⚗</span><span class="lesson-card-title">Human Skin</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span></a>
+                    <a class="lesson-card lesson-card-blue available-lesson" href="{% url 'educations:human_urinary_system_lab' %}"><span class="lesson-card-icon" aria-hidden="true">⚗</span><span class="lesson-card-title">Human Urinary System</span><span class="availability-pill">Lab available</span><span class="lesson-card-arrow" aria-hidden="true">→</span></a>
                     <a class="lesson-card lesson-card-orange available-lesson" href="{% url 'educations:female_system_lesson' %}" style="text-decoration:none"><span class="lesson-card-icon" aria-hidden="true">▶</span><span class="lesson-card-title">Female Reproductive System</span><span class="availability-pill">5-minute video + audio</span><span class="lesson-card-arrow" aria-hidden="true">→</span></a>
                     <a class="lesson-card lesson-card-blue available-lesson" href="{% url 'educations:male_system_lesson' %}" style="text-decoration:none"><span class="lesson-card-icon" aria-hidden="true">▶</span><span class="lesson-card-title">Male Reproductive System</span><span class="availability-pill">5-minute video + audio</span><span class="lesson-card-arrow" aria-hidden="true">→</span></a>
                     <a class="lesson-card lesson-card-blue available-lesson" href="{% url 'educations:fertilization_lesson' %}" style="text-decoration:none">
@@ -467,7 +469,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'educations/lab_notebook_store.js' %}?v=3" defer></script>
+<script src="{% static 'educations/lab_notebook_store.js' %}?v=6" defer></script>
 <script src="{% static 'educations/lab_notebooks.js' %}?v=1" defer></script>
 <script src="{% static 'educations/electrical_model.js' %}?v=2" defer></script>
 <script src="{% static 'educations/electrical_apparatus.js' %}?v=2" defer></script>

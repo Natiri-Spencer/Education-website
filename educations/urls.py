@@ -1,5 +1,6 @@
 """Define URL for educations app."""
 from django.urls import path
+from django.views.generic import TemplateView
 from .import views
 from .whiteboard_recognition import recognize_handwriting
 from . import whiteboard_offline
@@ -9,6 +10,8 @@ from .curriculum_lessons import reproductive_system_lesson, reproductive_system_
 app_name = 'educations'
 
 urlpatterns = [
+    path('grade-7/integrated-science/living-things-and-environment/human-urinary-system/', TemplateView.as_view(template_name='educations/human_urinary_system.xhtml'), name='human_urinary_system_lab'),
+    path('grade-7/integrated-science/living-things-and-environment/human-skin/', TemplateView.as_view(template_name='educations/human_skin.xhtml'), name='human_skin_lab'),
     path('grade-7/integrated-science/living-things-and-environment/female-reproductive-system/', reproductive_system_lesson, {'system': 'female'}, name='female_system_lesson'),
     path('grade-7/integrated-science/living-things-and-environment/female-reproductive-system/media/<slug:kind>/', reproductive_system_asset, {'system': 'female'}, name='female_system_asset'),
     path('grade-7/integrated-science/living-things-and-environment/male-reproductive-system/', reproductive_system_lesson, {'system': 'male'}, name='male_system_lesson'),

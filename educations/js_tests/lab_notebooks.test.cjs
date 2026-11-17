@@ -5,13 +5,13 @@ const vm=require('node:vm');
 const path=require('node:path');
 const {catalogue,createStore}=require('../static/educations/lab_notebook_store.js');
 function memory(seed={}){const values=new Map(Object.entries(seed));return {values,getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};}
-test('catalogue covers all fifteen Grade 7 investigations with separate storage',()=>{
-    assert.equal(catalogue.length,15);assert.equal(new Set(catalogue.map(book=>book.key)).size,15);assert.equal(new Set(catalogue.map(book=>book.id)).size,15);assert(catalogue.every(book=>book.columns.length>=3&&book.prompt));
+test('catalogue covers all seventeen Grade 7 investigations with separate storage',()=>{
+    assert.equal(catalogue.length,17);assert.equal(new Set(catalogue.map(book=>book.key)).size,17);assert.equal(new Set(catalogue.map(book=>book.id)).size,17);assert(catalogue.every(book=>book.columns.length>=3&&book.prompt));
 });
 test('all existing notebook formats can be read without changing saved entries',()=>{
     const storage=memory();const store=createStore(storage);
     catalogue.forEach(book=>{
-        const entry=book.id==='apparatus'||book.id==='hibiscus'||book.id==='evaporation'||book.id==='ee-sources'?['Stage','Answer','Mark']:book.id==='commercial'?{sample:'water',indicator:'red',changed:false,cells:['Water','Red litmus','No change','Red','Inconclusive','2/2']}:book.id.startsWith('ee-')?{setup:'Parallel',current:'.60',voltage:'3',brightness:'bright',mark:'3/3'}:book.id.startsWith('mag-')?{test:'Iron',answers:'Movement',mark:'2/2'}:{stage:'Inspect',answer:'Observation',mark:'2/2'};
+        const entry=(book.id==='human-skin'||book.id==='human-urinary-system')?['Prediction','Observation','Explanation','Practice check passed']:book.id==='apparatus'||book.id==='hibiscus'||book.id==='evaporation'||book.id==='ee-sources'?['Stage','Answer','Mark']:book.id==='commercial'?{sample:'water',indicator:'red',changed:false,cells:['Water','Red litmus','No change','Red','Inconclusive','2/2']}:book.id.startsWith('ee-')?{setup:'Parallel',current:'.60',voltage:'3',brightness:'bright',mark:'3/3'}:book.id.startsWith('mag-')?{test:'Iron',answers:'Movement',mark:'2/2'}:{stage:'Inspect',answer:'Observation',mark:'2/2'};
         storage.setItem(book.key,JSON.stringify([entry]));const before=storage.getItem(book.key),rows=store.rows(book);assert.equal(rows.length,1);assert.equal(rows[0].length,book.columns.length);assert.equal(storage.getItem(book.key),before);
     });
     const oldAttraction=store.rows(catalogue.find(book=>book.id==='mag-attraction'));assert.equal(oldAttraction[0][2],'Not recorded');
@@ -33,11 +33,11 @@ class Element {
     addEventListener(){}
     querySelector(){return this.detail??=new Element();}
 }
-test('notebook hub displays saved work, keeps notes per experiment and prints all fifteen',()=>{
+test('notebook hub displays saved work, keeps notes per experiment and prints all seventeen',()=>{
     const nodes={},get=id=>nodes[id]??=new Element(),storage=memory(),store={catalogue,...createStore(storage)};store.save(catalogue[0].key,[['Task','Beaker','Hold liquids','1/1. Correct.']]);let prints=0;
     const body=new Element(),listeners={};
     vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../static/educations/lab_notebooks.js'),'utf8'),{window:{Grade7Notebooks:store,scrollTo(){},addEventListener:(name,handler)=>listeners[name]=handler,print(){assert(body.classList.contains('grade7-notebook-print'));prints++;}},document:{body,getElementById:get,createElement:()=>new Element(),querySelectorAll:()=>[]}});
-    get('open-lab-notebooks').onclick();assert.equal(get('nb-list').children.length,15);assert(get('nb-rows').textContent.includes('Beaker'));get('nb-note').value='My observation';get('nb-list').children[1].onclick();assert.equal(store.load('grade7-lab-reflections-v1')[0].text,'My observation');assert.equal(get('nb-note').value,'');get('nb-list').children[0].onclick();assert.equal(get('nb-note').value,'My observation');get('nb-print-all').onclick();assert.equal(prints,1);assert.equal(get('nb-print').children.length,15);assert(get('nb-print').textContent.includes('My observation'));assert(get('nb-print').textContent.includes('Fractional distillation'));listeners.afterprint();assert(!body.classList.contains('grade7-notebook-print'));
+    get('open-lab-notebooks').onclick();assert.equal(get('nb-list').children.length,17);assert(get('nb-rows').textContent.includes('Beaker'));get('nb-note').value='My observation';get('nb-list').children[1].onclick();assert.equal(store.load('grade7-lab-reflections-v1')[0].text,'My observation');assert.equal(get('nb-note').value,'');get('nb-list').children[0].onclick();assert.equal(get('nb-note').value,'My observation');get('nb-print-all').onclick();assert.equal(prints,1);assert.equal(get('nb-print').children.length,17);assert(get('nb-print').textContent.includes('My observation'));assert(get('nb-print').textContent.includes('Fractional distillation'));listeners.afterprint();assert(!body.classList.contains('grade7-notebook-print'));
 });
 test('hibiscus notebook records incorrect and correct classifications without deleting history',()=>{
     const source=fs.readFileSync(path.join(__dirname,'../static/educations/virtual_labs.js'),'utf8'),a=source.indexOf('    function recordHibiscus('),b=source.indexOf("    document.getElementById('hibiscus-clear-notebook')",a),entries=[],storage=memory(),store=createStore(storage),body=new Element();
